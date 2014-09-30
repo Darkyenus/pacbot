@@ -12,9 +12,6 @@ public class TrainingMain {
     private static String RENDER_START = " v ";
 
 
-
-
-
     public void render(TrainingMap map) {
         System.out.println("+---------------------------+");
         for(int y = 0; y < 9; y ++) {
