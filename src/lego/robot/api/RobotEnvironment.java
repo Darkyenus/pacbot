@@ -30,7 +30,7 @@ public class RobotEnvironment {
 
     private AbsoluteHeading heading = AbsoluteHeading.DOWN;
 
-    private AbsoluteHeading getHeading() {
+    public AbsoluteHeading getHeading() {
         return heading;
     }
 
@@ -53,6 +53,13 @@ public class RobotEnvironment {
         }
         this.x += x;
         this.y += y;
+    }
+
+    public void moveBySuppressOutOfBounds(int x, int y){
+        this.x += x;
+        this.x = Math.max(0, Math.min(mazeWidth-1, this.x));
+        this.y += y;
+        this.y = Math.max(0, Math.min(mazeHeight-1, this.y));
     }
 
     public void rotateTo(AbsoluteHeading heading){

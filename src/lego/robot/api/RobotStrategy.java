@@ -5,12 +5,19 @@ package lego.robot.api;
  */
 public abstract class RobotStrategy implements Runnable {
 
-    protected RobotInterface robotInterface = null;
+    protected AbstractRobotInterface robotInterface = null;
     protected RobotEnvironment robotEnvironment = null;
 
-    public RobotStrategy(RobotInterface robotInterface, RobotEnvironment robotEnvironment){
-        this.robotInterface = robotInterface;
+    public RobotStrategy(RobotEnvironment robotEnvironment){
         this.robotEnvironment = robotEnvironment;
+    }
+
+    public void setUpRobotInterface(AbstractRobotInterface robotInterface){
+        this.robotInterface = robotInterface;
+    }
+
+    public RobotEnvironment getRobotEnvironment(){
+        return robotEnvironment;
     }
 
 
