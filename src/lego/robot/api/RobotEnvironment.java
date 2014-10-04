@@ -1,31 +1,25 @@
 package lego.robot.api;
 
+import lego.util.Util;
 import lego.robot.api.constants.AbsoluteHeading;
 import lego.robot.api.constants.RelativeHeading;
+import lego.training.TupleIntInt;
 
 /**
  * Created by jIRKA on 30.9.2014.
  */
 public class RobotEnvironment {
 
-    final public int mazeWidth = 9;
-    final public int mazeHeight = 6;
+    final public static int mazeWidth = 9;
+    final public static int mazeHeight = 6;
 
-    private int x = 0;
-    private int y = 0;
-
-    /**
-     * @return X coord relative to upper left corner (That one is x = 0)
-     */
-    public int getX(){
-        return x;
-    }
+    private TupleIntInt actualPos = null;
 
     /**
-     * @return Y coord relative to upper left corner (That one is y = 0)
+     * @return Robot coord relative to upper left corner (That one is x = 0, y = 0)
      */
-    public int getY(){
-        return y;
+    public TupleIntInt getPos(){
+        return actualPos;
     }
 
     private AbsoluteHeading heading = AbsoluteHeading.DOWN;
@@ -34,32 +28,29 @@ public class RobotEnvironment {
         return heading;
     }
 
-    public void deploy(int x, int y){
-        this.x = x;
-        this.y = y;
+    public void deploy(TupleIntInt where){
+        actualPos = where;
     }
 
-    public void moveTo(int x, int y){
-        if(x < 0 || x >= mazeWidth || y < 0 || y >= mazeHeight){
-            throw new IllegalArgumentException("Coordinates out of bounds. (x: "+x+", y: "+y+")");
+    public void moveTo(TupleIntInt newPos){
+        if(!Util.isWithinMapBounds(newPos)){
+            throw new IllegalArgumentException("Coordinates out of bounds. (x: "+newPos.getX()+", y: "+newPos.getY()+")");
         }
-        this.x = x;
-        this.y = y;
+        actualPos = newPos;
     }
 
     public void moveBy(int x, int y){
-        if(x + this.x< 0 || x + this.x >= mazeWidth || y + this.y < 0 || y + this.y >= mazeHeight){
+        if(x + actualPos.getX()< 0 || x + actualPos.getX() >= mazeWidth || y + actualPos.getY() < 0 || y + actualPos.getY() >= mazeHeight){
             throw new IllegalArgumentException("Coordinates out of bounds. (x: "+x+", y: "+y+")");
         }
-        this.x += x;
-        this.y += y;
+        actualPos = new TupleIntInt(actualPos.getX() + x, actualPos.getY() + y);
     }
 
     public void moveBySuppressOutOfBounds(int x, int y){
-        this.x += x;
-        this.x = Math.max(0, Math.min(mazeWidth-1, this.x));
-        this.y += y;
-        this.y = Math.max(0, Math.min(mazeHeight-1, this.y));
+        actualPos = new TupleIntInt(
+                Math.max(0, Math.min(mazeWidth-1, actualPos.getX() + x)),
+                Math.max(0, Math.min(mazeWidth-1, actualPos.getY() + y))
+        );
     }
 
     public void rotateTo(AbsoluteHeading heading){

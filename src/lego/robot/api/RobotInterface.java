@@ -7,10 +7,14 @@ import lego.robot.api.constants.RelativeHeading;
  */
 public abstract class RobotInterface implements AbstractRobotInterface {
 
-    private RobotStrategy rs = null;
+    private RobotEnvironment re = null;
 
-    public RobotInterface(RobotStrategy rs){
-        this.rs = rs;
+    public RobotInterface(RobotEnvironment re){
+        this.re = re;
+    }
+
+    public RobotEnvironment getRobotEnvironment(){
+        return re;
     }
 
     public abstract void moveRobotForward();
@@ -24,18 +28,18 @@ public abstract class RobotInterface implements AbstractRobotInterface {
 
     @Override
     public void moveForward() {
-        switch(rs.getRobotEnvironment().getHeading()) {
+        switch(re.getHeading()) {
             case DOWN:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0, 1);
+                re.moveBySuppressOutOfBounds(0, 1);
                 break;
             case RIGHT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(1,0);
+                re.moveBySuppressOutOfBounds(1,0);
                 break;
             case UP:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,-1);
+                re.moveBySuppressOutOfBounds(0,-1);
                 break;
             case LEFT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(-1,0);
+                re.moveBySuppressOutOfBounds(-1,0);
                 break;
         }
         moveRobotForward();
@@ -43,18 +47,18 @@ public abstract class RobotInterface implements AbstractRobotInterface {
 
     @Override
     public void moveLeft() {
-        switch(rs.getRobotEnvironment().getHeading()) {
+        switch(re.getHeading()) {
             case DOWN:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(1,0);
+                re.moveBySuppressOutOfBounds(1,0);
                 break;
             case RIGHT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,-1);
+                re.moveBySuppressOutOfBounds(0,-1);
                 break;
             case UP:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(-1,0);
+                re.moveBySuppressOutOfBounds(-1,0);
                 break;
             case LEFT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,1);
+                re.moveBySuppressOutOfBounds(0,1);
                 break;
         }
         moveRobotLeft();
@@ -62,18 +66,18 @@ public abstract class RobotInterface implements AbstractRobotInterface {
 
     @Override
     public void moveRight() {
-        switch(rs.getRobotEnvironment().getHeading()) {
+        switch(re.getHeading()) {
             case DOWN:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(-1,0);
+                re.moveBySuppressOutOfBounds(-1,0);
                 break;
             case RIGHT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,1);
+                re.moveBySuppressOutOfBounds(0,1);
                 break;
             case UP:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(1,0);
+                re.moveBySuppressOutOfBounds(1,0);
                 break;
             case LEFT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,-1);
+                re.moveBySuppressOutOfBounds(0,-1);
                 break;
         }
         moveRobotRight();
@@ -81,18 +85,18 @@ public abstract class RobotInterface implements AbstractRobotInterface {
 
     @Override
     public void moveBackward() {
-        switch(rs.getRobotEnvironment().getHeading()) {
+        switch(re.getHeading()) {
             case DOWN:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,-1);
+                re.moveBySuppressOutOfBounds(0,-1);
                 break;
             case RIGHT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(-1,0);
+                re.moveBySuppressOutOfBounds(-1,0);
                 break;
             case UP:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(0,1);
+                re.moveBySuppressOutOfBounds(0,1);
                 break;
             case LEFT:
-                rs.getRobotEnvironment().moveBySuppressOutOfBounds(1,0);
+                re.moveBySuppressOutOfBounds(1,0);
                 break;
         }
         moveRobotBackward();
@@ -100,13 +104,13 @@ public abstract class RobotInterface implements AbstractRobotInterface {
 
     @Override
     public void rotateLeft() {
-        rs.getRobotEnvironment().rotateBy(RelativeHeading.LEFT);
+        re.rotateBy(RelativeHeading.LEFT);
         rotateRobotLeft();
     }
 
     @Override
     public void rotateRight() {
-        rs.getRobotEnvironment().rotateBy(RelativeHeading.RIGHT);
+        re.rotateBy(RelativeHeading.RIGHT);
         rotateRobotRight();
     }
 

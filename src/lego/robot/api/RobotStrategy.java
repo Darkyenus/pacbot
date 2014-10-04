@@ -8,12 +8,11 @@ public abstract class RobotStrategy implements Runnable {
     protected AbstractRobotInterface robotInterface = null;
     protected RobotEnvironment robotEnvironment = null;
 
-    public RobotStrategy(RobotEnvironment robotEnvironment){
-        this.robotEnvironment = robotEnvironment;
-    }
+    public abstract void stop();
 
-    public void setUpRobotInterface(AbstractRobotInterface robotInterface){
+    public RobotStrategy(AbstractRobotInterface robotInterface){
         this.robotInterface = robotInterface;
+        robotEnvironment = robotInterface.getRobotEnvironment();
     }
 
     public RobotEnvironment getRobotEnvironment(){
