@@ -1,4 +1,4 @@
-package lego.training;
+package lego.util;
 
 /**
  * Created by jIRKA on 3.10.2014.

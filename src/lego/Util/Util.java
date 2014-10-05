@@ -3,7 +3,6 @@ package lego.util;
 import lego.robot.api.RobotEnvironment;
 import lego.robot.api.constants.AbsoluteHeading;
 import lego.robot.api.constants.RelativeMovement;
-import lego.training.TupleIntInt;
 
 /**
  * Created by jIRKA on 3.10.2014.

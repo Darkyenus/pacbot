@@ -1,6 +1,9 @@
 package lego.training;
 
 import lego.robot.api.RobotStrategy;
+import lego.training.userinterface.Render;
+import lego.training.userinterface.UserInput;
+import lego.util.TupleIntInt;
 import lego.util.Util;
 import lego.robot.api.RobotInterface;
 import lego.robot.api.constants.AbsoluteHeading;
@@ -39,21 +42,21 @@ public class SimulatorRobotInterface extends RobotInterface {
             strategy.stop();
 
             if (!ffMode) {
-                TrainingMain.renderMap(map, true);
+                Render.trainingMap(map, true);
                 System.out.println();
                 System.out.println("Robot has " + robotBehaviourDescription + " in last step.");
                 System.out.println("And this step was its last, because all pac-dots are collected!");
                 System.out.println();
-                TrainingMain.waitForEnter(true);
+                UserInput.waitForEnter(true);
                 System.out.println();
             }
         }else {
             if (!ffMode) {
-                TrainingMain.renderMap(map, true);
+                Render.trainingMap(map, true);
                 System.out.println();
                 System.out.println("Robot has " + robotBehaviourDescription + " in last step.");
                 System.out.println();
-                TrainingMain.waitForEnter(true);
+                UserInput.waitForEnter(true);
                 System.out.println();
             }
         }

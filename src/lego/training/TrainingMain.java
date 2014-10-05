@@ -2,6 +2,11 @@ package lego.training;
 
 import lego.robot.api.RobotStrategy;
 import lego.robot.brain.testificate.TestificateMain;
+import lego.training.userinterface.ConsoleColors;
+import lego.training.userinterface.Print;
+import lego.training.userinterface.Render;
+import lego.training.userinterface.UserInput;
+import lego.util.Constants;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -12,22 +17,18 @@ import java.util.Scanner;
  */
 public class TrainingMain {
 
-    public static String RENDER_BLOCK = "[x]";
-    public static String RENDER_EMPTY = " • ";
-    public static String RENDER_EATEN = " o ";
-    public static String RENDER_ROBOT = "(-)";
-    public static String RENDER_START = " v ";
-
     private static boolean exit = false;
     private static ArrayList<TrainingMap> loadedMaps = new ArrayList<TrainingMap>();
 
     public static void main(String[] args) {
 
+        Print.color("Welcome!\n", ConsoleColors.CYAN);
+
         while(!exit){
             Scanner sc = new Scanner(System.in);
             String line = sc.nextLine();
             if(line.equalsIgnoreCase("exit") || line.equalsIgnoreCase("quit")){
-                System.out.println("Quitting...");
+                Print.info("Quitting...");
                 exit = true;
             }else{
                 int status = handleCommand(line);
@@ -36,69 +37,14 @@ public class TrainingMain {
                 }else if(status == 1){ //Some error, still can continue
 
                 }else if(status == 2){ //Some error which we can't fight with.
-                    System.out.println("Crashed!");
+                    Print.error("App has crashed!");
+                    Print.info("Quitting...");
                     exit = true;
                 }
 
             }
         }
 
-
-    }
-
-    public static void waitForEnter(boolean displayMessage){
-        if(displayMessage){
-            System.out.println("[Press ENTER to continue]");
-        }
-        try {
-            System.in.read();
-            if (System.in.available() > 0) {
-                System.in.read(new byte[System.in.available()]);
-            }
-        }catch(IOException e){}
-    }
-
-    public static boolean askQuestion(String question){
-        System.out.println("[Question] "+question+" (yes/no): ");
-        Scanner sc = new Scanner(System.in);
-        String line = sc.nextLine();
-        if("yes".equals(line.toLowerCase())){
-            return true;
-        }else if("no".equalsIgnoreCase(line.toLowerCase())){
-            return false;
-        }else{
-            System.out.println("[Error] Invalid answer, please answer yes or no, nothing else.");
-            return askQuestion(question);
-        }
-    }
-
-    public static void renderMessage(String[] message, boolean instant){
-        boolean skipAnimation = instant;
-
-        for (int line = 0; line < message.length; line++){
-            int char_ = 0;
-            for (; char_ < message[line].length() && !skipAnimation; char_++){
-                System.out.print(message[line].charAt(char_));
-                System.out.flush();
-                try {
-                    Thread.sleep(190);
-                    if(System.in.available() > 0){
-                        System.in.read(new byte[System.in.available()]);
-                        skipAnimation = true;
-                    }
-
-                } catch (InterruptedException e) {
-                } catch (IOException e) {}
-
-            }
-            if(skipAnimation){
-                System.out.println(message[line].substring(char_));
-                System.out.flush();
-            }else {
-                System.out.println();
-                System.out.flush();
-            }
-        }
 
     }
 
@@ -150,11 +96,11 @@ public class TrainingMain {
                             bw.write("|");
                             for (int x = 0; x < 9; x ++) {
                                 if(map.getMaze()[x][y].isStart){
-                                    bw.write(RENDER_START);
+                                    bw.write(Constants.RENDER_START);
                                 }else if(map.getMaze()[x][y].isBlock){
-                                    bw.write(RENDER_BLOCK);
+                                    bw.write(Constants.RENDER_BLOCK);
                                 }else if(map.getMaze()[x][y].visitedTimes == 0){
-                                    bw.write(RENDER_EMPTY);
+                                    bw.write(Constants.RENDER_PAC_DOT);
                                 }
                             }
                             bw.write("|\n");
@@ -182,7 +128,7 @@ public class TrainingMain {
                 System.out.println("[Error] No map(s) loaded in stack. Have a look at 'loadMaps' command or 'generateMaps' command.");
             }else{
                 for(int i = 0; i < loadedMaps.size(); i++){
-                    renderMap(loadedMaps.get(i), false);
+                    Render.trainingMap(loadedMaps.get(i), false);
                 }
             }
         }else if(cmd.startsWith("train")){
@@ -214,9 +160,9 @@ public class TrainingMain {
                     RobotStrategy strategy = new TestificateMain(sim);
                     sim.setFastForwardMode(ffmode);
                     sim.getReady(strategy);
-                    renderMap(map, false);
+                    Render.trainingMap(map, false);
                     System.out.println();
-                    waitForEnter(true);
+                    UserInput.waitForEnter(true);
                     System.out.println();
                     strategy.run();
                     if (!ffmode) {
@@ -232,7 +178,7 @@ public class TrainingMain {
                         System.out.println();
                         if(loadedMaps.size() > startIndex + 1) {
                             System.out.println();
-                            all = askQuestion("Continue with next map?");
+                            all = UserInput.askQuestion("Continue with next map?");
                             System.out.println();
                         }
                     }
@@ -254,26 +200,4 @@ public class TrainingMain {
         return 0;
     }
 
-
-    public static void renderMap(TrainingMap map, boolean renderRobot) {
-        System.out.println("+---------------------------+");
-        for(int y = 0; y < 6; y ++) {
-            System.out.print("|");
-            for (int x = 0; x < 9; x ++) {
-                if(map.getMaze()[x][y].isStart){
-                    System.out.print(RENDER_START);
-                }else if(renderRobot && map.robotPos.getX() == x && map.robotPos.getY() == y){
-                    System.out.print(RENDER_ROBOT);
-                }else if(map.getMaze()[x][y].isBlock){
-                    System.out.print(RENDER_BLOCK);
-                }else if(map.getMaze()[x][y].visitedTimes == 0){
-                    System.out.print(RENDER_EMPTY);
-                }else{
-                    System.out.print(RENDER_EATEN);
-                }
-            }
-            System.out.println("|");
-        }
-        System.out.println("+---------------------------+");
-    }
 }

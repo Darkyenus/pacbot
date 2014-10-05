@@ -2,6 +2,8 @@ package lego.training;
 
 import lego.robot.api.RobotEnvironment;
 import lego.robot.api.constants.AbsoluteHeading;
+import lego.util.Constants;
+import lego.util.TupleIntInt;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,6 +42,10 @@ public class TrainingMap {
     AbsoluteHeading robotHeading;
     TupleIntInt robotPos = new TupleIntInt(0, 0);
 
+    public TupleIntInt getRobotPos(){
+        return robotPos;
+    }
+
     private int blocksRemainingToCollect = 0;
     public void markAnotherBlockAsCollected(){
         blocksRemainingToCollect --;
@@ -65,16 +71,16 @@ public class TrainingMap {
                         line = file.readLine();
                         for (int symbols = 0; symbols < 9 * 3; symbols += 3) {
                             String symbol = line.substring(symbols + 1, symbols + 4);
-                            if (symbol.equals(TrainingMain.RENDER_BLOCK)) {
+                            if (symbol.equals(Constants.RENDER_BLOCK)) {
                                 maze[symbols / 3][lines] = new MazeCell();
                                 maze[symbols / 3][lines].isBlock = true;
                                 maze[symbols / 3][lines].isStart = false;
-                            } else if (symbol.equals(TrainingMain.RENDER_EMPTY)) {
+                            } else if (symbol.equals(Constants.RENDER_PAC_DOT)) {
                                 maze[symbols / 3][lines] = new MazeCell();
                                 maze[symbols / 3][lines].isBlock = false;
                                 maze[symbols / 3][lines].isStart = false;
                                 blocksRemainingToCollect ++;
-                            } else if (symbol.equals(TrainingMain.RENDER_START)) {
+                            } else if (symbol.equals(Constants.RENDER_START)) {
                                 maze[symbols / 3][lines] = new MazeCell();
                                 maze[symbols / 3][lines].isStart = true;
                                 maze[symbols / 3][lines].isBlock = false;

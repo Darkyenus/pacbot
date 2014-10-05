@@ -3,7 +3,7 @@ package lego.robot.api;
 import lego.util.Util;
 import lego.robot.api.constants.AbsoluteHeading;
 import lego.robot.api.constants.RelativeHeading;
-import lego.training.TupleIntInt;
+import lego.util.TupleIntInt;
 
 /**
  * Created by jIRKA on 30.9.2014.
