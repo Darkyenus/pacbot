@@ -12,6 +12,10 @@ import java.io.IOException;
  */
 public class Render {
 
+    public static void trainingMap(TrainingMap map, boolean renderRobot) {
+        trainingMap(map, renderRobot, null);
+    }
+
     public static void trainingMap(TrainingMap map, boolean renderRobot, String label){
         if(label != null){
             String str = label;
