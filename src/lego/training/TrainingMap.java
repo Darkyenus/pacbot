@@ -1,6 +1,7 @@
 package lego.training;
 
 import lego.robot.api.RobotEnvironment;
+import lego.robot.api.RobotStrategy;
 import lego.robot.api.constants.AbsoluteHeading;
 import lego.util.Constants;
 import lego.util.TupleIntInt;
@@ -66,51 +67,44 @@ public class TrainingMap {
         }else{
             try {
                 String line = file.readLine();
-                if("+---------------------------+".equals(line)) {
-                    for (int lines = 0; lines < 6; lines++) {
-                        line = file.readLine();
-                        for (int symbols = 0; symbols < 9 * 3; symbols += 3) {
-                            String symbol = line.substring(symbols + 1, symbols + 4);
-                            if (symbol.equals(Constants.RENDER_BLOCK)) {
-                                maze[symbols / 3][lines] = new MazeCell();
-                                maze[symbols / 3][lines].isBlock = true;
-                                maze[symbols / 3][lines].isStart = false;
-                            } else if (symbol.equals(Constants.RENDER_PAC_DOT)) {
-                                maze[symbols / 3][lines] = new MazeCell();
-                                maze[symbols / 3][lines].isBlock = false;
-                                maze[symbols / 3][lines].isStart = false;
-                                blocksRemainingToCollect ++;
-                            } else if (symbol.equals(Constants.RENDER_START)) {
-                                maze[symbols / 3][lines] = new MazeCell();
-                                maze[symbols / 3][lines].isStart = true;
-                                maze[symbols / 3][lines].isBlock = false;
-                                if(startPos != null){
-                                    System.out.println("You have to have exactly one starting position on the map!");
-                                    throw new Error("Map loading unsuccessful");
-                                }
-                                startPos = new TupleIntInt(symbols / 3, lines);
+                while("+---------------------------+".equals(line)){}
 
-                            } else {
-                                System.out.println("Invalid file format. Cannot load file.");
-                                throw new Error("Map loading unsuccessful");
+                for (int lines = 0; lines < 6; lines++) {
+                    line = file.readLine();
+                    for (int symbols = 0; symbols < 9 * 3; symbols += 3) {
+                        String symbol = line.substring(symbols + 1, symbols + 4);
+                        if (symbol.equals(Constants.RENDER_BLOCK)) {
+                            maze[symbols / 3][lines] = new MazeCell();
+                            maze[symbols / 3][lines].isBlock = true;
+                            maze[symbols / 3][lines].isStart = false;
+                        } else if (symbol.equals(Constants.RENDER_PAC_DOT)) {
+                            maze[symbols / 3][lines] = new MazeCell();
+                            maze[symbols / 3][lines].isBlock = false;
+                            maze[symbols / 3][lines].isStart = false;
+                            blocksRemainingToCollect ++;
+                        } else if (symbol.equals(Constants.RENDER_START)) {
+                            maze[symbols / 3][lines] = new MazeCell();
+                            maze[symbols / 3][lines].isStart = true;
+                            maze[symbols / 3][lines].isBlock = false;
+                            if(startPos != null){
+                                throw new Error("Invalid file format: Too many starting positions.");
                             }
+                            startPos = new TupleIntInt(symbols / 3, lines);
+
+                        } else {
+                            throw new Error("Invalid file format: Unknown block: "+symbol);
                         }
                     }
-                    if(!"+---------------------------+".equals(file.readLine())){
-                        System.out.println("Invalid file format. Cannot load file.");
-                        throw new Error("Map loading unsuccessful");
-                    }
-                    if(startPos == null){
-                        System.out.println("You have to have exactly one starting position on the map!");
-                        throw new Error("Map loading unsuccessful");
-                    }
-                }else{
-                    System.out.println("Invalid file format. Cannot load file.");
-                    throw new Error("Map loading unsuccessful");
                 }
+                if(!"+---------------------------+".equals(file.readLine())){
+                    throw new Error("Invalid file format: Expected end of lower and of map.");
+                }
+                if(startPos == null){
+                    throw new Error("Invalid file format: No starting position.");
+                }
+
             }catch (IOException e){
-                System.out.println("Cannot load file for some reason (IOException");
-                throw new Error("Map loading unsuccessful");
+                throw new Error("Some problem reading file (IOException).");
             }
         }
     }
@@ -135,7 +129,7 @@ public class TrainingMap {
         }
     }
 
-    public TrainingStatistics getStatistics(){
+    public TrainingStatistics getStatistics(RobotStrategy robotStrategy){
         TrainingStatistics stats = new TrainingStatistics();
 
         boolean passed = true;
@@ -156,6 +150,7 @@ public class TrainingMap {
         }
 
         stats.fill(
+            robotStrategy.getStrategyDescriptor(),
             passed,
             totalCollectible * 100 / totalCollected,
             totalMovements,

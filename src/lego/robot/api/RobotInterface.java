@@ -3,7 +3,10 @@ package lego.robot.api;
 import lego.robot.api.constants.RelativeHeading;
 
 /**
- * Created by jIRKA on 30.9.2014.
+ * Private property.
+ * User: jIRKA
+ * Date: 30.9.2014
+ * Time: 20:30
  */
 public abstract class RobotInterface implements AbstractRobotInterface {
 

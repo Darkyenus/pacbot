@@ -1,7 +1,9 @@
 package lego.training.userinterface;
 
 import lego.training.TrainingMap;
+import lego.training.TrainingStatistics;
 import lego.util.Constants;
+import lego.util.Util;
 
 import java.io.IOException;
 
@@ -10,8 +12,21 @@ import java.io.IOException;
  */
 public class Render {
 
-    public static void trainingMap(TrainingMap map, boolean renderRobot){
-        Print.color("+---------------------------+\n", Constants.COLOR_MAZE_BLOCK);
+    public static void trainingMap(TrainingMap map, boolean renderRobot, String label){
+        if(label != null){
+            String str = label;
+            if(str.length() == 0){
+                str = "+---------------------------+";
+            }else if(str.length() <= 28){
+                str += Util.repeatNtimes("-", 28 - label.length());
+            }else if(str.length() == 29){
+                str += "+";
+            }
+            str += "\n";
+            Print.color(str, Constants.COLOR_MAZE_BLOCK);
+        }else {
+            Print.color("+---------------------------+\n", Constants.COLOR_MAZE_BLOCK);
+        }
         for(int y = 0; y < 6; y ++) {
             Print.color("|", Constants.COLOR_MAZE_BLOCK);
             for (int x = 0; x < 9; x ++) {
@@ -39,10 +54,10 @@ public class Render {
 
         boolean skipAnimation = instant;
 
-        for (String aMessage : message) {
+        for (String msg : message) {
             int char_ = 0;
-            for (; char_ < aMessage.length() && !skipAnimation; char_++) {
-                Print.color(aMessage.substring(char_, char_ + 1), color);
+            for (; char_ < msg.length() && !skipAnimation; char_++) {
+                Print.color(msg.substring(char_, char_ + 1), color);
                 try {
                     Thread.sleep(190);
                     if (System.in.available() > 0) {
@@ -53,11 +68,23 @@ public class Render {
                 }
             }
             if (skipAnimation) {
-                Print.color(aMessage.substring(char_), color);
+                Print.color(msg.substring(char_), color);
             }
             Print.line("");
         }
 
+    }
+
+    public static void statistics(TrainingStatistics stats){
+
+        Print.info("    Strategy descriptor:    " + stats.getStrategyDescriptor());
+        Print.info("    Passed:                 " + (stats.hasPassed() ? "Yes" : "No"));
+        Print.info("    Efficiency:             " + stats.getEfficiency() + "%");
+        Print.info("    Total movements:        " + stats.getTotalMovements());
+        Print.info("    Total turns:            " + stats.getTotalTurns());
+        Print.info("    Total obstacle hinders: " + stats.getTotalObstacleHinders());
+
+        Print.line("\n");
     }
 
 }

@@ -1,9 +1,11 @@
 package lego.robot.api.constants;
 
 /**
- * Created by jIRKA on 30.9.2014.
+ * Private property.
+ * User: jIRKA
+ * Date: 30.9.2014
+ * Time: 20:29
  */
-
 public enum AbsoluteMovement{
     UP,
     DOWN,

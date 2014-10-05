@@ -4,18 +4,22 @@ import lego.robot.api.AbstractRobotInterface;
 import lego.robot.api.RobotStrategy;
 
 /**
- * Created by jIRKA on 3.10.2014.
+ * Private property.
+ * User: jIRKA
+ * Date: 3.10.2014
+ * Time: 20:30
  */
 public class TestificateMain extends RobotStrategy {
 
     public TestificateMain(AbstractRobotInterface ari){
-        super(ari);
+        super(ari,"Hardcoded path");
     }
 
     @Override
     public void run() {
         robotInterface.moveForward();
         robotInterface.rotateRight();
+        robotInterface.moveForward();
         robotInterface.moveForward();
         robotInterface.moveForward();
         robotInterface.moveForward();

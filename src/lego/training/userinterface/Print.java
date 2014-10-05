@@ -11,7 +11,7 @@ import java.io.OutputStream;
 public class Print {
 
     private static OutputStream outStream = System.out;
-    private static boolean colorsEnabled = true;
+    private static boolean colorsEnabled = false;
 
     private static OutputStream loggingStream = null;
 

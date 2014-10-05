@@ -89,4 +89,24 @@ public class Util {
         return false;
     }
 
+    public static String repeatNtimes(String str, int n){
+        StringBuilder sb = new StringBuilder();
+
+        for(int i = 0; i < n; i++){
+            sb.append(str);
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Thread sleep without an exception
+     * @param millis time to sleep
+     */
+    public static void delay(long millis){
+        try{
+            Thread.sleep(millis);
+        }catch (InterruptedException ignored){}
+    }
+
 }
