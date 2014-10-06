@@ -1,4 +1,4 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
 /**
  * Private property.
@@ -20,6 +20,8 @@ public class CommandManager {
             case "savemaps": result = new SaveMaps(); break;
             case "clearmaps": result = new ClearMaps(); break;
 
+            case "set": result = new Set(); break;
+
             case "train": result = new Train(); break;
 
             case "exit": result = new Exit(); break;
@@ -38,6 +40,8 @@ public class CommandManager {
                 new ShowStackedMaps(),
                 new SaveMaps(),
                 new ClearMaps(),
+
+                new Set(),
 
                 new Train(),
 

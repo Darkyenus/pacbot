@@ -1,4 +1,4 @@
-package lego.training;
+package lego.simulator;
 
 /**
  * Created by jIRKA on 30.9.2014.

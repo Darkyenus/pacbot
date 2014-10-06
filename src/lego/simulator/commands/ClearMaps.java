@@ -1,6 +1,7 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
-import lego.training.TrainingsMain;
+import lego.simulator.SimulatorMain;
+import lego.simulator.userinterface.Print;
 
 /**
  * Private property.
@@ -12,7 +13,9 @@ public class ClearMaps implements Command{
 
     @Override
     public void execute(String[] args) {
-        TrainingsMain.clearMaps();
+        SimulatorMain.clearMaps();
+        Print.success("All maps from stack cleared.");
+        Print.line("");
     }
 
     @Override

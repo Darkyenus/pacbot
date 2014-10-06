@@ -1,4 +1,4 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
 /**
  * Private property.

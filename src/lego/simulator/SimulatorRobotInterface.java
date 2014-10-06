@@ -1,8 +1,8 @@
-package lego.training;
+package lego.simulator;
 
 import lego.robot.api.RobotStrategy;
-import lego.training.userinterface.Render;
-import lego.training.userinterface.UserInput;
+import lego.simulator.userinterface.Render;
+import lego.simulator.userinterface.UserInput;
 import lego.util.TupleIntInt;
 import lego.util.Util;
 import lego.robot.api.RobotInterface;

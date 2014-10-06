@@ -1,8 +1,8 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
-import lego.training.TrainingsMain;
-import lego.training.TrainingMap;
-import lego.training.userinterface.Print;
+import lego.simulator.SimulatorMain;
+import lego.simulator.TrainingMap;
+import lego.simulator.userinterface.Print;
 
 import java.io.*;
 
@@ -20,14 +20,14 @@ public class LoadMaps implements Command{
             try {
                 String fileName = args[0];
 
-            BufferedReader br = new BufferedReader(new FileReader(new File(fileName)));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(fileName)), "UTF8"));
             TrainingMap newMap;
             int count = 0;
             int errorID = 1;
             while(br.ready()){
                 try {
                     newMap = new TrainingMap(br);
-                    TrainingsMain.addMap(newMap);
+                    SimulatorMain.addMap(newMap);
                     count ++;
                     errorID ++;
                 }catch (Error e){
@@ -45,7 +45,7 @@ public class LoadMaps implements Command{
         }else{
             Print.error("Incorrect use. "+messageTypos);
         }
-
+        Print.line("");
     }
 
     @Override

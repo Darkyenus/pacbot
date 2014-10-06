@@ -1,9 +1,9 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
-import lego.training.TrainingMap;
-import lego.training.TrainingsMain;
-import lego.training.userinterface.Print;
-import lego.training.userinterface.Render;
+import lego.simulator.SimulatorMain;
+import lego.simulator.TrainingMap;
+import lego.simulator.userinterface.Print;
+import lego.simulator.userinterface.Render;
 
 /**
  * Private property.
@@ -15,15 +15,16 @@ public class ShowStackedMaps implements Command{
 
     @Override
     public void execute(String[] args) {
-        TrainingMap[] maps = TrainingsMain.getMaps();
+        TrainingMap[] maps = SimulatorMain.getMaps();
         if(maps.length == 0){
-            Print.warn("No map(s) loaded in stack. Have a look at 'loadMaps' command or 'generateMaps' command.");
+            Print.warn("No map(s) loaded in stack. Have a look at 'loadMaps' command or 'generateMaps' command.\n");
         }else{
             int index = 1;
             for (TrainingMap map : maps) {
                 Render.trainingMap(map, false, "Map#"+index+" ");
                 index ++;
             }
+            Print.line("");
         }
     }
 

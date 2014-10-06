@@ -1,7 +1,7 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
-import lego.training.userinterface.ConsoleColors;
-import lego.training.userinterface.Print;
+import lego.simulator.userinterface.ConsoleColors;
+import lego.simulator.userinterface.Print;
 import lego.util.Util;
 
 /**
@@ -18,12 +18,12 @@ public class Man implements Command {
             Command cmd = CommandManager.getInstanceOf(args[0]);
 
             if(cmd != null){
-                String title = " Manual for command: "+cmd.getName()+"\n";
+                String title = "            Manual for command: "+cmd.getName()+"           \n";
                 String headline = Util.repeatNtimes("=",title.length())+"\n";
 
-                Print.color(headline, ConsoleColors.BRIGHT_BLUE);
-                Print.color(title, ConsoleColors.BRIGHT_BLUE);
-                Print.color(headline, ConsoleColors.BRIGHT_BLUE);
+                Print.color(headline, ConsoleColors.CYAN);
+                Print.color(title, ConsoleColors.CYAN);
+                Print.color(headline, ConsoleColors.CYAN);
                 Print.line("");
 
                 String[] manPage = cmd.getManPage();
@@ -33,7 +33,7 @@ public class Man implements Command {
                 }
 
                 Print.line("\n\n");
-                Print.color("======== End of manual ========\n\n", ConsoleColors.BLUE);
+                Print.color("================ End of manual ================\n\n", ConsoleColors.CYAN);
 
             }else{
                 Print.error("Command "+ args[0] + " doesn't exists. Please check for typos or try 'help' command.");
@@ -59,7 +59,7 @@ public class Man implements Command {
     @Override
     public String[] getManPage() {
         return new String[]{
-                "man show manual about other commands.",
+                "mans show manual about other commands.",
                 "Use man in combination with help in order to be informed about every possibility here.",
                 "And remember, man is here anytime. If you don't have idea what arguments",
                 "you should give to some command, just see the man page of for that command.",

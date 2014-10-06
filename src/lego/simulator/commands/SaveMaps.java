@@ -1,8 +1,8 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
-import lego.training.TrainingMap;
-import lego.training.TrainingsMain;
-import lego.training.userinterface.Print;
+import lego.simulator.SimulatorMain;
+import lego.simulator.TrainingMap;
+import lego.simulator.userinterface.Print;
 import lego.util.Constants;
 
 import java.io.*;
@@ -19,7 +19,7 @@ public class SaveMaps implements Command{
     public void execute(String[] args) {
         if(args.length == 1){
             try {
-                TrainingMap[] maps = TrainingsMain.getMaps();
+                TrainingMap[] maps = SimulatorMain.getMaps();
                 if(maps.length != 0) {
                     String fileName = args[0];
 
@@ -56,7 +56,7 @@ public class SaveMaps implements Command{
         }else{
             Print.error("Incorrect use. "+messageTypos);
         }
-
+        Print.line("");
     }
 
     @Override

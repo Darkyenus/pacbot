@@ -1,4 +1,4 @@
-package lego.training.userinterface;
+package lego.simulator.userinterface;
 
 import lego.util.Constants;
 

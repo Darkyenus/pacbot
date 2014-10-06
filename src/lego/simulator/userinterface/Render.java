@@ -1,7 +1,7 @@
-package lego.training.userinterface;
+package lego.simulator.userinterface;
 
-import lego.training.TrainingMap;
-import lego.training.TrainingStatistics;
+import lego.simulator.TrainingMap;
+import lego.simulator.TrainingStatistics;
 import lego.util.Constants;
 import lego.util.Util;
 
@@ -17,14 +17,17 @@ public class Render {
     }
 
     public static void trainingMap(TrainingMap map, boolean renderRobot, String label){
+        if(!RenderPermissions.renderTrainingMaps())
+            return;
         if(label != null){
             String str = label;
             if(str.length() == 0){
                 str = "+---------------------------+";
             }else if(str.length() <= 28){
                 str += Util.repeatNtimes("-", 28 - label.length());
-            }else if(str.length() == 29){
                 str += "+";
+            }else if(str.length() == 29){
+                str += Util.repeatNtimes("-", 28 - label.length());
             }
             str += "\n";
             Print.color(str, Constants.COLOR_MAZE_BLOCK);
@@ -80,15 +83,18 @@ public class Render {
     }
 
     public static void statistics(TrainingStatistics stats){
+        if(RenderPermissions.renderStats()) {
 
-        Print.info("    Strategy descriptor:    " + stats.getStrategyDescriptor());
-        Print.info("    Passed:                 " + (stats.hasPassed() ? "Yes" : "No"));
-        Print.info("    Efficiency:             " + stats.getEfficiency() + "%");
-        Print.info("    Total movements:        " + stats.getTotalMovements());
-        Print.info("    Total turns:            " + stats.getTotalTurns());
-        Print.info("    Total obstacle hinders: " + stats.getTotalObstacleHinders());
+            Print.color("======== Robot strategy statistics output ========\n", ConsoleColors.CYAN);
+            Print.color("\n    Strategy descriptor:    " + stats.getStrategyDescriptor(), ConsoleColors.CYAN);
+            Print.color("\n    Passed:                 " + (stats.hasPassed() ? "Yes" : "No"), ConsoleColors.CYAN);
+            Print.color("\n    Efficiency:             " + stats.getEfficiency() + "%", ConsoleColors.CYAN);
+            Print.color("\n    Total movements:        " + stats.getTotalMovements(), ConsoleColors.CYAN);
+            Print.color("\n    Total turns:            " + stats.getTotalTurns(), ConsoleColors.CYAN);
+            Print.color("\n    Total obstacle hinders: " + stats.getTotalObstacleHinders(), ConsoleColors.CYAN);
+            Print.color("\n\n======= End of Robot strategy stats output =======\n\n", ConsoleColors.CYAN);
 
-        Print.line("\n");
+        }
     }
 
 }

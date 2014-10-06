@@ -1,4 +1,4 @@
-package lego.training;
+package lego.simulator;
 
 import lego.robot.api.RobotEnvironment;
 import lego.robot.api.RobotStrategy;
@@ -66,8 +66,9 @@ public class TrainingMap {
             generateMaze(maze, env);
         }else{
             try {
-                String line = file.readLine();
-                while("+---------------------------+".equals(line)){}
+
+                while(!"+---------------------------+".equals(file.readLine())){}
+                String line;
 
                 for (int lines = 0; lines < 6; lines++) {
                     line = file.readLine();
@@ -92,7 +93,7 @@ public class TrainingMap {
                             startPos = new TupleIntInt(symbols / 3, lines);
 
                         } else {
-                            throw new Error("Invalid file format: Unknown block: "+symbol);
+                            throw new Error("Invalid file format: Unknown block");
                         }
                     }
                 }

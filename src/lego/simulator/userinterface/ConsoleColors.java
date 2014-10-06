@@ -1,4 +1,4 @@
-package lego.training.userinterface;
+package lego.simulator.userinterface;
 
 /**
  * Created by jIRKA on 4.10.2014.

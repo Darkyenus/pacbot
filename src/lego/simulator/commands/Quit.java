@@ -1,8 +1,8 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
-import lego.training.TrainingsMain;
-import lego.training.userinterface.Print;
-import lego.training.userinterface.UserInput;
+import lego.simulator.SimulatorMain;
+import lego.simulator.userinterface.Print;
+import lego.simulator.userinterface.UserInput;
 import lego.util.BetterThread;
 
 import java.util.LinkedList;
@@ -94,7 +94,7 @@ public class Quit implements Command {
 
                 //TODO clean resources (close streams, etc)
 
-                TrainingsMain.quit();
+                SimulatorMain.quit();
             }
         }
 

@@ -1,4 +1,4 @@
-package lego.training.userinterface;
+package lego.simulator.userinterface;
 
 /**
  * Created by jIRKA on 5.10.2014.
@@ -12,6 +12,7 @@ public class RenderPermissions {
     private static boolean renderGeneralText = true;
 
     private static boolean renderTrainingMaps = true;
+    private static boolean renderStats = true;
 
 
     /**
@@ -26,6 +27,7 @@ public class RenderPermissions {
         setRenderGeneralText(render);
 
         setRenderTrainingMaps(render);
+        setRenderStats(render);
     }
 
 
@@ -76,8 +78,16 @@ public class RenderPermissions {
      * Training maps means everything rendered using Render.trainingMap
      * @return
      */
-    public static boolean trainingMaps(){
+    public static boolean renderTrainingMaps(){
         return renderTrainingMaps;
+    }
+
+    /**
+     * Stats means everything rendered using Render.statistics
+     * @return
+     */
+    public static boolean renderStats(){
+        return renderStats;
     }
 
 
@@ -128,5 +138,13 @@ public class RenderPermissions {
      */
     public static void setRenderTrainingMaps(boolean render) {
         renderTrainingMaps = render;
+    }
+
+    /**
+     * Stats means everything rendered using Render.statistics
+     * @param render true if it should be rendered.
+     */
+    public static void setRenderStats(boolean render) {
+        renderStats = render;
     }
 }

@@ -1,10 +1,10 @@
-package lego.training;
+package lego.simulator;
 
-import lego.training.commands.Command;
-import lego.training.commands.CommandManager;
-import lego.training.userinterface.ConsoleColors;
-import lego.training.userinterface.Print;
-import lego.training.userinterface.UserInput;
+import lego.simulator.commands.Command;
+import lego.simulator.commands.CommandManager;
+import lego.simulator.userinterface.ConsoleColors;
+import lego.simulator.userinterface.Print;
+import lego.simulator.userinterface.UserInput;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
  * Date: 30.9.2014
  * Time: 17:42
  */
-public class TrainingsMain {
+public class SimulatorMain {
 
     public static final String SOFT_NAME = "PacmanTrainings 2000+ - 'The rocket speed of Lite version'";
     private static ArrayList<TrainingMap> loadedMaps = new ArrayList<>();
@@ -35,10 +35,12 @@ public class TrainingsMain {
                 BufferedReader br = new BufferedReader(new FileReader(autorun));
                 String nextLine = br.readLine();
                 while(nextLine != null){
-                    parseCommand(nextLine);
+                    if(!nextLine.isEmpty())
+                        parseCommand(nextLine);
                     nextLine = br.readLine();
                 }
-
+                br.close();
+                Print.success("Autorun executed\n");
             }catch (IOException e){
                 Print.error("Some problem reading file (IOException).");
             }
@@ -46,6 +48,7 @@ public class TrainingsMain {
 
         while(!markQuit){
 
+            Print.color("$ ", ConsoleColors.BRIGHT_BLUE);
             parseCommand(UserInput.getUserInputScanner().nextLine());
 
         }
@@ -55,27 +58,29 @@ public class TrainingsMain {
     }
 
     private static void parseCommand(String line){
-        if (line.contains(" ")) {
-            String[] input = line.split("(?<!\\\\) ");
-            for(int i = 0; i < input.length; i++){
-                input[i] = input[i].replace("\\ "," ");
-            }
-            String command = input[0];
-            String[] arguments = new String[input.length - 1];
-            System.arraycopy(input, 1, arguments, 0, arguments.length);
+        if(!line.isEmpty()) {
+            if (line.contains(" ")) {
+                String[] input = line.split("(?<!\\\\) ");
+                for (int i = 0; i < input.length; i++) {
+                    input[i] = input[i].replace("\\ ", " ");
+                }
+                String command = input[0];
+                String[] arguments = new String[input.length - 1];
+                System.arraycopy(input, 1, arguments, 0, arguments.length);
 
-            Command cmd = CommandManager.getInstanceOf(command);
-            if (cmd != null) {
-                cmd.execute(arguments);
+                Command cmd = CommandManager.getInstanceOf(command);
+                if (cmd != null) {
+                    cmd.execute(arguments);
+                } else {
+                    Print.error("Command " + command + " doesn't exists. Please check for typos or try 'help' command.\n");
+                }
             } else {
-                Print.error("Command " + command + " doesn't exists. Please check for typos or try 'help' command.");
-            }
-        } else {
-            Command cmd = CommandManager.getInstanceOf(line);
-            if (cmd != null) {
-                cmd.execute(new String[0]);
-            } else {
-                Print.error("Command " + line + " doesn't exists. Please check for typos or try 'help' command.");
+                Command cmd = CommandManager.getInstanceOf(line);
+                if (cmd != null) {
+                    cmd.execute(new String[0]);
+                } else {
+                    Print.error("Command " + line + " doesn't exists. Please check for typos or try 'help' command.\n");
+                }
             }
         }
     }

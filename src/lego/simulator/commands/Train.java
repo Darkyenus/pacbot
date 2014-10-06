@@ -1,14 +1,14 @@
-package lego.training.commands;
+package lego.simulator.commands;
 
 import lego.robot.api.RobotStrategy;
 import lego.robot.brain.testificate.TestificateMain;
-import lego.training.SimulatorRobotInterface;
-import lego.training.TrainingMap;
-import lego.training.TrainingStatistics;
-import lego.training.TrainingsMain;
-import lego.training.userinterface.Print;
-import lego.training.userinterface.Render;
-import lego.training.userinterface.UserInput;
+import lego.simulator.SimulatorMain;
+import lego.simulator.SimulatorRobotInterface;
+import lego.simulator.TrainingMap;
+import lego.simulator.TrainingStatistics;
+import lego.simulator.userinterface.Print;
+import lego.simulator.userinterface.Render;
+import lego.simulator.userinterface.UserInput;
 
 /**
  * Private property.
@@ -46,7 +46,7 @@ public class Train implements Command{
                 switch (awaitingArgForFlag){
                     case "--from":
                         try {
-                            startIndex = Integer.parseInt(arg);
+                            startIndex = Integer.parseInt(arg)-1;
                         }catch (NumberFormatException e){
                             Print.error("Argument after flag '-f|--from' has to be valid number. "+messageTypos);
                         }
@@ -55,9 +55,12 @@ public class Train implements Command{
                 }
             }
         }
+        if(awaitingArgForFlag != null){
+            Print.error("Some argument was expecting and got nothing. "+messageTypos+"\n");
+            return;
+        }
 
-
-        TrainingMap[] maps = TrainingsMain.getMaps();
+        TrainingMap[] maps = SimulatorMain.getMaps();
 
         if(maps.length != 0 && maps.length > startIndex) {
             do {

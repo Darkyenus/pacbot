@@ -1,4 +1,4 @@
-package lego.training.userinterface;
+package lego.simulator.userinterface;
 
 import lego.util.Constants;
 
@@ -29,6 +29,7 @@ public class UserInput {
     public static boolean askQuestion(String question){
         Print.color("[Question] (yes/no): ", Constants.COLOR_TAG_INTERACTION);
         Print.text(question);
+        Print.text(" ");
         String line = scanner.nextLine();
         if("yes".equals(line.toLowerCase())){
             return true;
