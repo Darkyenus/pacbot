@@ -75,7 +75,7 @@ public class Simulator {
                 Render.trainingMap(map, robotPos);
                 Print.line("");
                 Print.line("Robot has " + robotBehaviourDescription + " in last step.");
-                Print.line("And this step was its last, because all pac-dots are collected!");
+                Print.line("And this step was its last, because all pac-dots collected!");
                 Print.line("");
                 UserInput.waitForEnter(true);
                 Print.line("");
