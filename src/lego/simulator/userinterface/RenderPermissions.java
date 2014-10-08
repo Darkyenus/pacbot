@@ -14,6 +14,8 @@ public class RenderPermissions {
     private static boolean renderTrainingMaps = true;
     private static boolean renderStats = true;
 
+    private static boolean renderBrain = true;
+
 
     /**
      * Sets permission to all renderables at once.
@@ -28,6 +30,7 @@ public class RenderPermissions {
 
         setRenderTrainingMaps(render);
         setRenderStats(render);
+        setRenderBrainz(render);
     }
 
 
@@ -90,6 +93,14 @@ public class RenderPermissions {
         return renderStats;
     }
 
+    /**
+     * Brainz means everything rendered using Render.brain
+     * @return
+     */
+    public static boolean renderBrainz(){
+        return renderBrain;
+    }
+
 
     /**
      * Errors means everything rendered using Print.error
@@ -146,5 +157,13 @@ public class RenderPermissions {
      */
     public static void setRenderStats(boolean render) {
         renderStats = render;
+    }
+
+    /**
+     * Brainz means everything rendered using Render.brain
+     * @param render true if it should be rendered.
+     */
+    public static void setRenderBrainz(boolean render) {
+        renderBrain = render;
     }
 }

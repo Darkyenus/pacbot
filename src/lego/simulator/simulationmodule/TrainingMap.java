@@ -1,8 +1,5 @@
-package lego.simulator;
+package lego.simulator.simulationmodule;
 
-import lego.robot.api.RobotEnvironment;
-import lego.robot.api.RobotStrategy;
-import lego.robot.api.constants.AbsoluteHeading;
 import lego.util.Constants;
 import lego.util.TupleIntInt;
 
@@ -14,8 +11,8 @@ import java.io.IOException;
  */
 public class TrainingMap {
 
-    private static final int mazeWidth = 9;
-    private static final int mazeHeight = 6;
+    static final int mazeWidth = 9;
+    static final int mazeHeight = 6;
 
     private MazeCell[][] maze = new MazeCell[mazeWidth][mazeHeight];
 
@@ -29,23 +26,6 @@ public class TrainingMap {
         return maze;
     }
 
-    private RobotEnvironment env = new RobotEnvironment();
-
-    public RobotEnvironment getRobotEnvironment(){
-        return env;
-    }
-
-
-    private int totalMovements = 0;
-    private int totalTurns = 0;
-    private int totalObstacleHinders = 0;
-
-    AbsoluteHeading robotHeading;
-    TupleIntInt robotPos = new TupleIntInt(0, 0);
-
-    public TupleIntInt getRobotPos(){
-        return robotPos;
-    }
 
     private int blocksRemainingToCollect = 0;
     public void markAnotherBlockAsCollected(){
@@ -57,13 +37,13 @@ public class TrainingMap {
     }
 
     public TrainingMap(){
-        generateMaze(maze, env);
+        generateMaze();
 
     }
 
     public TrainingMap(BufferedReader file) throws Error{
         if(file == null){
-            generateMaze(maze, env);
+            generateMaze();
         }else{
             try {
 
@@ -110,15 +90,11 @@ public class TrainingMap {
         }
     }
 
-    private void generateMaze(MazeCell[][] maze, RobotEnvironment re){
+    private void generateMaze(){
         //TODO generate maze
     }
 
     public void reset(){
-        env = new RobotEnvironment();
-        totalMovements = 0;
-        totalTurns = 0;
-        totalObstacleHinders = 0;
         blocksRemainingToCollect = 0;
         for(int x = 0; x < mazeWidth; x ++){
             for(int y = 0; y < mazeHeight; y ++){
@@ -130,46 +106,7 @@ public class TrainingMap {
         }
     }
 
-    public TrainingStatistics getStatistics(RobotStrategy robotStrategy){
-        TrainingStatistics stats = new TrainingStatistics();
 
-        boolean passed = true;
-        int totalCollected = 0;
-        int totalCollectible = 0;
 
-        for(int x = 0; x < mazeWidth; x ++){
-            for(int y = 0; y < mazeHeight; y ++){
-                if(!maze[x][y].isBlock && !maze[x][y].isStart){
-                    if(maze[x][y].visitedTimes == 0){
-                        passed = false;
-                    }else {
-                        totalCollectible++;
-                        totalCollected += maze[x][y].visitedTimes;
-                    }
-                }
-            }
-        }
-
-        stats.fill(
-            robotStrategy.getStrategyDescriptor(),
-            passed,
-            totalCollectible * 100 / totalCollected,
-            totalMovements,
-            totalTurns,
-            totalObstacleHinders
-        );
-
-        return stats;
-    }
-
-    public void logMovement(){
-        totalMovements ++;
-    }
-    public void logTurn(){
-        totalTurns ++;
-    }
-    public void logObstacleHinders(){
-        totalObstacleHinders ++;
-    }
 
 }

@@ -12,8 +12,8 @@ public abstract class RobotInterface implements AbstractRobotInterface {
 
     private RobotEnvironment re = null;
 
-    public RobotInterface(RobotEnvironment re){
-        this.re = re;
+    public RobotInterface(){
+        this.re = new RobotEnvironment();
     }
 
     public RobotEnvironment getRobotEnvironment(){
@@ -25,8 +25,8 @@ public abstract class RobotInterface implements AbstractRobotInterface {
     public abstract void moveRobotRight();
     public abstract void moveRobotBackward();
 
-    public abstract void rotateRobotLeft();
-    public abstract void rotateRobotRight();
+    public abstract void turnRobotLeft();
+    public abstract void turnRobotRight();
 
 
     @Override
@@ -106,15 +106,15 @@ public abstract class RobotInterface implements AbstractRobotInterface {
     }
 
     @Override
-    public void rotateLeft() {
+    public void turnLeft() {
         re.rotateBy(RelativeHeading.LEFT);
-        rotateRobotLeft();
+        turnRobotLeft();
     }
 
     @Override
-    public void rotateRight() {
+    public void turnRight() {
         re.rotateBy(RelativeHeading.RIGHT);
-        rotateRobotRight();
+        turnRobotRight();
     }
 
 }

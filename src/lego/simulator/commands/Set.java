@@ -73,6 +73,12 @@ public class Set implements Command {
                                 Print.success("Statistics channel has been hidden");
                             }
                             break;
+                        case "brainz":
+                            RenderPermissions.setRenderBrainz(false);
+                            if(!silent) {
+                                Print.success("Brainz channel has been hidden");
+                            }
+                            break;
                         case "all":
                             RenderPermissions.setRenderForAll(false);
                             if(!silent) {
@@ -119,6 +125,12 @@ public class Set implements Command {
                             RenderPermissions.setRenderStats(true);
                             if(!silent) {
                                 Print.success("Statistics channel has been shown");
+                            }
+                            break;
+                        case "brainz":
+                            RenderPermissions.setRenderBrainz(true);
+                            if(!silent) {
+                                Print.success("Brainz channel has been shown");
                             }
                             break;
                         case "all":
@@ -187,15 +199,15 @@ public class Set implements Command {
                 "                                             or path relative to this software's main .jar file.",
                 "                                             When the file doesn't exists, it's created automatically.",
                 "    showoutputs          info|success|warn   Show outputs and Hide outputs are inverted commands",
-                "                         maze|states|all     which allows you to customize what you want to be",
-                "                                             shown or not shown. For example, when you are using",
+                "                         maze|stats|brainz   which allows you to customize what you want to be",
+                "                         all                 shown or not shown. For example, when you are using",
                 "                                             autorun, you can put line at the beginning of file",
                 "                                             which turns all output off and at the end of file",
                 "                                             again. (You don't want to see those annoying",
                 "                                             messages all the time, do you?",
                 "    hideoutputs          info|success|warn   Show outputs and Hide outputs are inverted commands",
-                "                         maze|states|all     which allows you to customize what you want to be",
-                "                                             shown or not shown. For example, when you are using",
+                "                         maze|stats|brainz   which allows you to customize what you want to be",
+                "                         all                 shown or not shown. For example, when you are using",
                 "                                             autorun, you can put line at the beginning of file",
                 "                                             which turns all output off and at the end of file",
                 "                                             again. (You don't want to see those annoying",

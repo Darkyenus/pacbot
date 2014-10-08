@@ -1,7 +1,7 @@
 package lego.simulator.commands;
 
-import lego.simulator.SimulatorMain;
-import lego.simulator.TrainingMap;
+import lego.simulator.Storage;
+import lego.simulator.simulationmodule.TrainingMap;
 import lego.simulator.userinterface.Print;
 
 import java.io.*;
@@ -27,7 +27,7 @@ public class LoadMaps implements Command{
             while(br.ready()){
                 try {
                     newMap = new TrainingMap(br);
-                    SimulatorMain.addMap(newMap);
+                    Storage.addMap(newMap);
                     count ++;
                     errorID ++;
                 }catch (Error e){

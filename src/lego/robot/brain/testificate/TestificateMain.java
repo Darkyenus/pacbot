@@ -12,23 +12,23 @@ import lego.robot.api.RobotStrategy;
 public class TestificateMain extends RobotStrategy {
 
     public TestificateMain(AbstractRobotInterface ari){
-        super(ari,"Hardcoded path");
+        super(ari,"'Testificate' - Hardcoded path");
     }
 
     @Override
     public void run() {
         robotInterface.moveForward();
-        robotInterface.rotateRight();
+        robotInterface.turnRight();
         robotInterface.moveForward();
         robotInterface.moveForward();
         robotInterface.moveForward();
         robotInterface.moveForward();
-        robotInterface.rotateRight();
+        robotInterface.turnRight();
         robotInterface.moveForward();
-        robotInterface.rotateLeft();
+        robotInterface.turnLeft();
         robotInterface.moveForward();
         robotInterface.moveForward();
-        robotInterface.rotateLeft();
+        robotInterface.turnLeft();
         robotInterface.moveForward();
     }
 

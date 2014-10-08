@@ -1,11 +1,14 @@
 package lego.simulator.commands;
 
-import lego.simulator.SimulatorMain;
-import lego.simulator.TrainingMap;
+import lego.simulator.Storage;
+import lego.simulator.simulationmodule.TrainingMap;
 import lego.simulator.userinterface.Print;
 import lego.util.Constants;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Private property.
@@ -19,7 +22,7 @@ public class SaveMaps implements Command{
     public void execute(String[] args) {
         if(args.length == 1){
             try {
-                TrainingMap[] maps = SimulatorMain.getMaps();
+                TrainingMap[] maps = Storage.getMaps();
                 if(maps.length != 0) {
                     String fileName = args[0];
 

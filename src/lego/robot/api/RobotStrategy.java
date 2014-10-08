@@ -1,5 +1,7 @@
 package lego.robot.api;
 
+import java.util.HashMap;
+
 /**
  * Private property.
  * User: jIRKA
@@ -11,6 +13,8 @@ public abstract class RobotStrategy implements Runnable{
     protected AbstractRobotInterface robotInterface = null;
     protected RobotEnvironment robotEnvironment = null;
     protected String strategyDescriptor;
+
+    private HashMap<String, String> initialData = new HashMap<>();
 
     public abstract void stop();
 
@@ -25,6 +29,11 @@ public abstract class RobotStrategy implements Runnable{
     }
     public String getStrategyDescriptor(){
         return strategyDescriptor;
+    }
+
+
+    public void setInitialData(HashMap<String,String> data){
+        initialData = data;
     }
 
 

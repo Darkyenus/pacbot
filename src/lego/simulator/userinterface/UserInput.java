@@ -19,9 +19,19 @@ public class UserInput {
         scanner = userInputScanner;
     }
 
+    public static boolean waitForEnterCancelable(boolean displayMessage){
+        if(displayMessage){
+            Print.color("[Waiting] ", Constants.COLOR_TAG_INTERACTION);
+            Print.text("Press ENTER to continue or type 'Cancel' ");
+        }
+        String data = scanner.nextLine();
+        return !"cancel".equalsIgnoreCase(data);
+    }
+
     public static void waitForEnter(boolean displayMessage){
         if(displayMessage){
-            Print.color("[Press ENTER to continue]", Constants.COLOR_TAG_INTERACTION);
+            Print.color("[Waiting] ", Constants.COLOR_TAG_INTERACTION);
+            Print.text("Press ENTER to continue");
         }
         scanner.nextLine();
     }

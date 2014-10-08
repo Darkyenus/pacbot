@@ -15,9 +15,7 @@ public abstract class BetterThread extends Thread {
     }
 
     protected void delay(long millis){
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException ignored) {}
+        Util.delay(millis);
     }
 
 }

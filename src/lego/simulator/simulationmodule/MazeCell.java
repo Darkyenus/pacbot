@@ -1,4 +1,4 @@
-package lego.simulator;
+package lego.simulator.simulationmodule;
 
 /**
  * Created by jIRKA on 30.9.2014.

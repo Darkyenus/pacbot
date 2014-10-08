@@ -10,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * Private property.
@@ -18,10 +17,11 @@ import java.util.ArrayList;
  * Date: 30.9.2014
  * Time: 17:42
  */
-public class SimulatorMain {
+public class Main {
 
     public static final String SOFT_NAME = "PacmanTrainings 2000+ - 'The rocket speed of Lite version'";
-    private static ArrayList<TrainingMap> loadedMaps = new ArrayList<>();
+
+
     private static boolean markQuit = false;
 
     public static void main(String[] args) {
@@ -58,6 +58,7 @@ public class SimulatorMain {
     }
 
     private static void parseCommand(String line){
+
         if(!line.isEmpty()) {
             if (line.contains(" ")) {
                 String[] input = line.split("(?<!\\\\) ");
@@ -85,18 +86,6 @@ public class SimulatorMain {
         }
     }
 
-
-    public static void addMap(TrainingMap map){
-        loadedMaps.add(map);
-    }
-
-    public static void clearMaps(){
-        loadedMaps.clear();
-    }
-
-    public static TrainingMap[] getMaps(){
-        return loadedMaps.toArray(new TrainingMap[loadedMaps.size()]);
-    }
 
     /**
      * Mark application as it should quit. When all issued commands are executed completely applications quits.

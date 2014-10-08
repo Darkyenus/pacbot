@@ -1,6 +1,6 @@
 package lego.simulator.commands;
 
-import lego.simulator.SimulatorMain;
+import lego.simulator.Main;
 import lego.simulator.userinterface.ConsoleColors;
 import lego.simulator.userinterface.Print;
 import lego.util.Util;
@@ -23,22 +23,21 @@ public class Help implements Command {
         Print.color(title, ConsoleColors.CYAN);
         Print.color(headline, ConsoleColors.CYAN);
 
-        Print.line("Welcome in help command of "+ SimulatorMain.SOFT_NAME+"\n");
+        Print.line("Welcome in help command of "+ Main.SOFT_NAME+"\n");
         Print.line("PacmanTrainings is software responsible for training the pacman algorithms.");
         Print.line("The main use is expected for ČVUT robosoutěž 2014, but it can be used freely it other non-commercial occasion.");
         Print.line("");
         Print.line("The architecture and some principles are written here, so be careful when reading.");
         Print.line("You have two separate thing. Training maps and Braiz. Let me start explaining maps.");
         Print.line("Maps are stored in so called 'map stack' which is actually list of all available,");
-        Print.line("maps. You can extend or modify this list with commands below (See later).");
+        Print.line("maps. You can extend or modify this list with commands below (see later).");
         Print.line("Every training, every attempt to successfully complete competition rules and");
         Print.line("have best score is called training (as well as footballers are training to be");
         Print.line("good, also algorithm (especially neural networks) have to train to be the best).");
         Print.line("Training consist in fast-forwarded simulation on all loaded maps with all");
-        Print.line("available Brainz.");
-        Print.line("");
-        Print.color("[The brain system isn't really implemented yet so can't be documented]\n", ConsoleColors.YELLOW);
-        Print.color("[We really do apologise for any inconvenience this may cause.]\n", ConsoleColors.YELLOW);
+        Print.line("available Brainz. Brainz are stored in stack (as well as maps, but in different one).");
+        Print.line("You can 'prepare' new Brain. It is basically creating new brain (one of preprogrammed");
+        Print.line("packages) and (only if you want) you can give your brain some arguments.");
         Print.line("");
         Print.line("Use commands to control this program. Input line is split by spaces and first");
         Print.line("word is treated as command and the rest as bunch of arguments (space separated)");

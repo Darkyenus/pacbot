@@ -1,6 +1,6 @@
 package lego.simulator.commands;
 
-import lego.simulator.SimulatorMain;
+import lego.simulator.Main;
 import lego.simulator.userinterface.Print;
 import lego.simulator.userinterface.UserInput;
 import lego.util.BetterThread;
@@ -94,7 +94,7 @@ public class Quit implements Command {
 
                 //TODO clean resources (close streams, etc)
 
-                SimulatorMain.quit();
+                Main.quit();
             }
         }
 

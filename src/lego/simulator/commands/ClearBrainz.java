@@ -9,36 +9,35 @@ import lego.simulator.userinterface.Print;
  * Date: 5.10.2014
  * Time: 18:51
  */
-public class ClearMaps implements Command{
+public class ClearBrainz implements Command{
 
     @Override
     public void execute(String[] args) {
-        Storage.clearMaps();
-        Print.success("All maps from stack cleared.");
+        Storage.clearBrainz();
+        Print.success("All brainz from stack cleared.");
         Print.line("");
     }
 
     @Override
     public String getName() {
-        return "clearMaps";
+        return "clearBrainz";
     }
 
     @Override
     public String getShortDesc() {
-        return "Clears map(s) from stack.";
+        return "Clears brain(z) from stack.";
     }
 
     @Override
     public String[] getManPage() {
         return new String[]{
-                "clearMaps removes map(s) from stack.",
+                "clearBrainz removes brain(z) from stack.",
                 "This command might be somewhat useful, when you have prepared",
-                "different sets of maps you want to try robot on. Remove maps",
-                "from stack and load another file. Or if you just want a bigger",
-                "testing set and you know that robot has no problem with all currently",
-                "loaded maps.",
+                "different sets of brainz you want to try. Or you just want",
+                "to play with different brain and you don't want the actual one",
+                "to bother you.",
                 "",
-                "use: clearMaps",
+                "use: clearBrainz",
                 "",
                 messageNoArgs
         };

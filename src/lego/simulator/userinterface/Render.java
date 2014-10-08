@@ -1,22 +1,25 @@
 package lego.simulator.userinterface;
 
-import lego.simulator.TrainingMap;
-import lego.simulator.TrainingStatistics;
+import lego.simulator.BrainStatistic;
+import lego.simulator.simulationmodule.Brain;
+import lego.simulator.simulationmodule.TrainingMap;
 import lego.util.Constants;
+import lego.util.TupleIntInt;
 import lego.util.Util;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by jIRKA on 4.10.2014.
  */
 public class Render {
 
-    public static void trainingMap(TrainingMap map, boolean renderRobot) {
-        trainingMap(map, renderRobot, null);
+    public static void trainingMap(TrainingMap map, TupleIntInt robotPos) {
+        trainingMap(map, robotPos, null);
     }
 
-    public static void trainingMap(TrainingMap map, boolean renderRobot, String label){
+    public static void trainingMap(TrainingMap map, TupleIntInt robotPos, String label){
         if(!RenderPermissions.renderTrainingMaps())
             return;
         if(label != null){
@@ -37,10 +40,10 @@ public class Render {
         for(int y = 0; y < 6; y ++) {
             Print.color("|", Constants.COLOR_MAZE_BLOCK);
             for (int x = 0; x < 9; x ++) {
-                if(map.getMaze()[x][y].isStart){
-                    Print.color(Constants.RENDER_START, Constants.COLOR_MAZE_START);
-                }else if(renderRobot && map.getRobotPos() != null && map.getRobotPos().getX() == x && map.getRobotPos().getY() == y){
+                if(robotPos != null && robotPos.getX() == x && robotPos.getY() == y){
                     Print.color(Constants.RENDER_ROBOT, Constants.COLOR_MAZE_ROBOT);
+                }else if(map.getMaze()[x][y].isStart){
+                    Print.color(Constants.RENDER_START, Constants.COLOR_MAZE_START);
                 }else if(map.getMaze()[x][y].isBlock){
                     Print.color(Constants.RENDER_BLOCK, Constants.COLOR_MAZE_BLOCK);
                 }else if(map.getMaze()[x][y].visitedTimes == 0){
@@ -52,6 +55,66 @@ public class Render {
             Print.color("|\n", Constants.COLOR_MAZE_BLOCK);
         }
         Print.color("+---------------------------+\n", Constants.COLOR_MAZE_BLOCK);
+    }
+
+    public static void brain(Brain brain, String label){
+        if(RenderPermissions.renderBrainz()) {
+            if(label == null)
+                label = "";
+
+            HashMap<String, String> data = brain.getData();
+            if(data == null){
+                data = new HashMap<String, String>();
+            }
+            if(data.isEmpty()){
+                data.put("No data","---");
+            }
+
+            int longestKey = 0;
+            int longestValue = 0;
+            String[] keysTmp = data.keySet().toArray(new String[data.size()]);
+            String[] keys = new String[keysTmp.length + 2];
+            System.arraycopy(keysTmp, 0, keys, 2, keysTmp.length);
+            String[] values = new String[keys.length];
+
+            keys[0] = "Brain type";
+            values[0] = brain.getType();
+
+            keys[1] = "";
+            values[1] = "";
+
+            for(int i = 0; i < keys.length; i++){
+                if(i > 1){
+                    values[i] = data.get(keys[i]);
+                }
+                if(longestKey < keys[i].length())
+                    longestKey = keys[i].length();
+                if(longestValue < values[i].length())
+                    longestValue = values[i].length();
+            }
+
+
+            longestKey += 1;
+
+            String header = "+- "+label+" ";
+
+            header = header + Util.repeatNtimes("-", longestKey+longestValue+10-header.length());
+
+            Print.color(header+"+\n", ConsoleColors.CYAN);
+            Print.color("|   "+Util.repeatNtimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+
+            for(int i = 0; i < keys.length; i++){
+                if(!keys[i].isEmpty()) {
+                    Print.color("\n|   " + keys[i] + ":" + Util.repeatNtimes(" ", longestKey - keys[i].length()) + "  " +
+                            values[i] + Util.repeatNtimes(" ", longestValue - values[i].length()) + "   |", ConsoleColors.CYAN);
+                }else{
+                    Print.color("\n|   "+Util.repeatNtimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+                }
+            }
+            Print.color("\n|   "+Util.repeatNtimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+            Print.color("\n+"+Util.repeatNtimes("-", longestKey+longestValue+9)+"+\n", ConsoleColors.CYAN);
+
+        }
     }
 
     public static void messageBlock(String[] message, boolean instant, ConsoleColors color){
@@ -82,17 +145,38 @@ public class Render {
 
     }
 
-    public static void statistics(TrainingStatistics stats){
+    public static void statistics(BrainStatistic stats){
         if(RenderPermissions.renderStats()) {
 
-            Print.color("======== Robot strategy statistics output ========\n", ConsoleColors.CYAN);
-            Print.color("\n    Strategy descriptor:    " + stats.getStrategyDescriptor(), ConsoleColors.CYAN);
-            Print.color("\n    Passed:                 " + (stats.hasPassed() ? "Yes" : "No"), ConsoleColors.CYAN);
-            Print.color("\n    Efficiency:             " + stats.getEfficiency() + "%", ConsoleColors.CYAN);
-            Print.color("\n    Total movements:        " + stats.getTotalMovements(), ConsoleColors.CYAN);
-            Print.color("\n    Total turns:            " + stats.getTotalTurns(), ConsoleColors.CYAN);
-            Print.color("\n    Total obstacle hinders: " + stats.getTotalObstacleHinders(), ConsoleColors.CYAN);
-            Print.color("\n\n======= End of Robot strategy stats output =======\n\n", ConsoleColors.CYAN);
+            int longestKey = 0;
+            int longestValue = 0;
+            String[] keys = stats.keys();
+            String[] values = new String[keys.length];
+
+            for(int i = 0; i < keys.length; i++){
+                values[i] = stats.getValueOf(keys[i]);
+                if(longestKey < keys[i].length())
+                    longestKey = keys[i].length();
+                if(longestValue < values[i].length())
+                    longestValue = values[i].length();
+            }
+
+            longestKey += 3;
+            longestValue += 3;
+
+            int titleLength = Math.max(40,4 + longestKey + 2 + longestValue);
+            String header = "= Robot brain statistics output =";
+            String footer = " End of Robot brain stats output ";
+            String equalises = Util.repeatNtimes("=",(titleLength-header.length()+1) / 2);
+
+            Print.color(equalises+header+equalises+"\n", ConsoleColors.CYAN);
+
+            for(int i = 0; i < keys.length; i++){
+                Print.color("\n    "+keys[i]+":"+Util.repeatNtimes(" ",longestKey-keys[i].length())+"  "+
+                        values[i], ConsoleColors.CYAN);
+            }
+
+            Print.color("\n\n"+equalises+footer+equalises+"\n\n", ConsoleColors.CYAN);
 
         }
     }

@@ -15,8 +15,8 @@ public interface AbstractRobotInterface {
     public void moveRight();
     public void moveBackward();
 
-    public void rotateLeft();
-    public void rotateRight();
+    public void turnLeft();
+    public void turnRight();
 
     public boolean scanLeft();
     public boolean scanRight();

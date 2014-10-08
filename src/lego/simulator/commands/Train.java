@@ -1,11 +1,11 @@
 package lego.simulator.commands;
 
 import lego.robot.api.RobotStrategy;
-import lego.robot.brain.testificate.TestificateMain;
-import lego.simulator.SimulatorMain;
-import lego.simulator.SimulatorRobotInterface;
-import lego.simulator.TrainingMap;
-import lego.simulator.TrainingStatistics;
+import lego.simulator.BrainStatistic;
+import lego.simulator.Storage;
+import lego.simulator.simulationmodule.Brain;
+import lego.simulator.simulationmodule.Simulator;
+import lego.simulator.simulationmodule.TrainingMap;
 import lego.simulator.userinterface.Print;
 import lego.simulator.userinterface.Render;
 import lego.simulator.userinterface.UserInput;
@@ -21,8 +21,10 @@ public class Train implements Command{
     @Override
     public void execute(String[] args) {
         boolean ffmode = false;
-        boolean all = false;
-        int startIndex = 0;
+        boolean allMaps = false;
+        boolean allBrainz = false;
+        int startMapIndex = 0;
+        int startBrainIndex = 0;
 
         String awaitingArgForFlag = null;
         for(String arg:args){
@@ -32,23 +34,40 @@ public class Train implements Command{
                     case "--fast-forward":
                         ffmode = true;
                         break;
-                    case "-a":
-                    case "--all":
-                        all = true;
-                    case "-f":
-                    case "--from":
-                        awaitingArgForFlag = "--from";
+                    case "-am":
+                    case "--all-maps":
+                        allMaps = true;
+                        break;
+                    case "-ab":
+                    case "--all-brainz":
+                        allBrainz = true;
+                        break;
+                    case "-fm":
+                    case "--from-map":
+                        awaitingArgForFlag = "--from-maps";
+                        break;
+                    case "-fb":
+                    case "--from-brain":
+                        awaitingArgForFlag = "--from-brainz";
                         break;
                     default:
                         Print.error("Unknown flag (" + arg + "). "+messageTypos);
                 }
             }else{
                 switch (awaitingArgForFlag){
-                    case "--from":
+                    case "--from-maps":
                         try {
-                            startIndex = Integer.parseInt(arg)-1;
+                            startMapIndex = Integer.parseInt(arg)-1;
                         }catch (NumberFormatException e){
-                            Print.error("Argument after flag '-f|--from' has to be valid number. "+messageTypos);
+                            Print.error("Argument after flag '-fm|--from-maps' has to be valid number. "+messageTypos+"\n");
+                        }
+                        awaitingArgForFlag = null;
+                        break;
+                    case "--from-brainz":
+                        try {
+                            startBrainIndex = Integer.parseInt(arg)-1;
+                        }catch (NumberFormatException e){
+                            Print.error("Argument after flag '-fb|--from-brainz' has to be valid number. "+messageTypos+"\n");
                         }
                         awaitingArgForFlag = null;
                         break;
@@ -60,36 +79,60 @@ public class Train implements Command{
             return;
         }
 
-        TrainingMap[] maps = SimulatorMain.getMaps();
+        TrainingMap[] maps = Storage.getMaps();
 
-        if(maps.length != 0 && maps.length > startIndex) {
+
+        Brain[] brainz = Storage.getBrainz();
+
+        if(brainz.length > startBrainIndex) {
             do {
-                TrainingMap map = maps[startIndex];
-                SimulatorRobotInterface sim = new SimulatorRobotInterface(map);
-                RobotStrategy strategy = new TestificateMain(sim);
-                sim.setFastForwardMode(ffmode);
-                sim.getReady(strategy);
-                Render.trainingMap(map, false, "Map#"+(startIndex+1)+" ");
-                Print.line("");
-                UserInput.waitForEnter(true);
-                Print.line("");
-                strategy.run();
-                if (!ffmode) {
-                    TrainingStatistics stats = map.getStatistics(strategy);
-                    Render.statistics(stats);
-                    if(maps.length > startIndex + 1) {
-                        System.out.println();
-                        all = UserInput.askQuestion("Continue with next map?");
-                        System.out.println();
-                    }
+                int actualMapIndex = startMapIndex;
+                if (maps.length != 0 && maps.length > actualMapIndex) {
+
+                    do {
+                        TrainingMap map = maps[actualMapIndex];
+
+                        Simulator sim = new Simulator(map);
+                        sim.setFastForwardMode(ffmode);
+
+                        RobotStrategy strategy = brainz[startBrainIndex].getInstance(sim.getSimulatorRobotInterface());
+
+                        sim.getReady(strategy);
+                        Render.trainingMap(map, null, "Map#" + (actualMapIndex + 1) + " ");
+                        Print.line("");
+                        UserInput.waitForEnter(true);
+                        Print.line("");
+                        strategy.run();
+
+                        if (!ffmode) {
+                            BrainStatistic stats = sim.getStatistics(strategy);
+                            Render.statistics(stats);
+                            if (maps.length > actualMapIndex + 1) {
+                                Print.line("");
+                                allMaps = UserInput.askQuestion("Continue with next map?");
+                                Print.line("");
+                            }
+                        }
+
+                        map.reset();
+
+                        actualMapIndex++;
+                    } while (allMaps && maps.length > actualMapIndex);
+                } else {
+                    Print.warn("Not enough maps loaded in stack. Have a look at 'loadMaps' command or 'generateMaps' command.\n");
                 }
 
-                map.reset();
+                startBrainIndex ++;
 
-                startIndex ++;
-            } while (all && maps.length > startIndex);
+                if(startBrainIndex < brainz.length) {
+                    Print.line("");
+                    Print.info("One brain has ended. Using other one.");
+                    Print.line("");
+                }
+
+            } while(allBrainz && startBrainIndex < brainz.length);
         }else{
-            Print.warn("No map(s) loaded in stack. Have a look at 'loadMaps' command or 'generateMaps' command.");
+            Print.warn("Not enough brainz prepared in stack. Have a look at 'prepareBrain' command.\n");
         }
     }
 
@@ -123,11 +166,16 @@ public class Train implements Command{
                 "                                   is (default) mode which breaks after every movement",
                 "                                   done by RobotStrategy and renders map with some",
                 "                                   additional information.",
-                "    -a|--all                       Performs robot training for all stacked maps, starting",
+                "    -am|--all-maps                 Performs robot training for all stacked maps, starting",
                 "                                   at first, unless otherwise specified.",
-                "    -f|--from                      Defines starting first index in map stack.",
+                "    -fm|--from-map                 Defines starting first index in map stack.",
                 "                                   When in --all mode, this is new starting position,",
-                "                                   otherwise this is the id of the only one maze trained."
+                "                                   otherwise this is the id of the only one maze trained.",
+                "    -ab|--all-brainz               Performs robot training for all prepared brainz, starting",
+                "                                   at first, unless otherwise specified.",
+                "    -fb|--from-brain               Defines starting first index in brain stack.",
+                "                                   When in --all mode, this is new starting position,",
+                "                                   otherwise this is the id of the only one brain trained."
 
 
         };

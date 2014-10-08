@@ -20,6 +20,10 @@ public class CommandManager {
             case "savemaps": result = new SaveMaps(); break;
             case "clearmaps": result = new ClearMaps(); break;
 
+            case "clearbrainz": result = new ClearBrainz(); break;
+            case "showstackedbrainz": result = new ShowStackedBrainz(); break;
+            case "preparebrain": result = new PrepareBrain(); break;
+
             case "set": result = new Set(); break;
 
             case "train": result = new Train(); break;
@@ -40,6 +44,10 @@ public class CommandManager {
                 new ShowStackedMaps(),
                 new SaveMaps(),
                 new ClearMaps(),
+
+                new ClearBrainz(),
+                new ShowStackedBrainz(),
+                new PrepareBrain(),
 
                 new Set(),
 
