@@ -14,7 +14,7 @@ public abstract class RobotStrategy implements Runnable{
     protected RobotEnvironment robotEnvironment = null;
     protected String strategyDescriptor;
 
-    private HashMap<String, String> initialData = new HashMap<>();
+    private HashMap<String, String> initialData = new HashMap<String, String>();
 
     public abstract void stop();
 

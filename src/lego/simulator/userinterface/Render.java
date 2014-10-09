@@ -134,7 +134,9 @@ public class Render {
                         System.in.read(new byte[System.in.available()]);
                         skipAnimation = true;
                     }
-                } catch (InterruptedException | IOException ignored) {
+                } catch (InterruptedException ignored){
+
+                } catch (IOException ignored) {
                 }
             }
             if (skipAnimation) {

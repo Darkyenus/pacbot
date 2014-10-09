@@ -24,144 +24,146 @@ public class Set implements Command {
                 }
             }
 
-            switch (args[0].toLowerCase()) {
-                case "enablecolors":
-                    Print.setColorsEnabled("true".equals(args[1].toLowerCase()) || "1".equals(args[1]));
-                    if(!silent) {
-                        if (Print.isColorsEnabled()) {
-                            Print.success("Colors has been enabled in terminal" + "\n");
-                        } else {
-                            Print.success("Colors has been disabled in terminal" + "\n");
-                        }
-                    }
-                    break;
-                case "hideoutputs":
-                    switch (args[1].toLowerCase()) {
-                        case "info":
-                            RenderPermissions.setRenderInfos(false);
-                            if(!silent) {
-                                Print.success("Info channel has been hidden");
-                            }
-                            break;
-                        case "success":
-                            RenderPermissions.setRenderSuccesses(false);
-                            if(!silent) {
-                                Print.success("Success channel has been hidden");
-                            }
-                            break;
-                        case "error":
-                            RenderPermissions.setRenderErrors(false);
-                            if(!silent) {
-                                Print.success("Error channel has been hidden");
-                            }
-                            break;
-                        case "warn":
-                            RenderPermissions.setRenderWarns(false);
-                            if(!silent) {
-                                Print.success("Warning channel has been hidden");
-                            }
-                            break;
-                        case "maze":
-                            RenderPermissions.setRenderTrainingMaps(false);
-                            if(!silent) {
-                                Print.success("Training map channel has been hidden");
-                            }
-                            break;
-                        case "stats":
-                            RenderPermissions.setRenderStats(false);
-                            if(!silent) {
-                                Print.success("Statistics channel has been hidden");
-                            }
-                            break;
-                        case "brainz":
-                            RenderPermissions.setRenderBrainz(false);
-                            if(!silent) {
-                                Print.success("Brainz channel has been hidden");
-                            }
-                            break;
-                        case "all":
-                            RenderPermissions.setRenderForAll(false);
-                            if(!silent) {
-                                Print.success("All channels has been hidden");
-                            }
-                            break;
-                        default:
-                            Print.error("No such argument. " + messageTypos + "\n");
-                    }
-                    break;
-                case "showoutputs":
-                    switch (args[1].toLowerCase()) {
-                        case "info":
-                            RenderPermissions.setRenderInfos(true);
-                            if(!silent) {
-                                Print.success("Info channel has been shown");
-                            }
-                            break;
-                        case "success":
-                            RenderPermissions.setRenderSuccesses(true);
-                            if(!silent) {
-                                Print.success("Info Success has been shown");
-                            }
-                            break;
-                        case "error":
-                            RenderPermissions.setRenderErrors(true);
-                            if(!silent) {
-                                Print.success("Error channel has been shown");
-                            }
-                            break;
-                        case "warn":
-                            RenderPermissions.setRenderWarns(true);
-                            if(!silent) {
-                                Print.success("Warning channel has been shown");
-                            }
-                            break;
-                        case "maze":
-                            RenderPermissions.setRenderTrainingMaps(true);
-                            if(!silent) {
-                                Print.success("Training map channel has been shown");
-                            }
-                            break;
-                        case "stats":
-                            RenderPermissions.setRenderStats(true);
-                            if(!silent) {
-                                Print.success("Statistics channel has been shown");
-                            }
-                            break;
-                        case "brainz":
-                            RenderPermissions.setRenderBrainz(true);
-                            if(!silent) {
-                                Print.success("Brainz channel has been shown");
-                            }
-                            break;
-                        case "all":
-                            RenderPermissions.setRenderForAll(true);
-                            if(!silent) {
-                                Print.success("All channels has been shown");
-                            }
-                            break;
-                        default:
-                            Print.error("No such argument. " + messageTypos + "\n");
-                    }
-                    break;
-                case "logfile":
-                    if ("none".equals(args[1])) {
-                        Print.changeOutputStream(null);
-                        if(!silent) {
-                            Print.success("Logging has been disabled." + "\n");
-                        }
+            String s2 = args[0].toLowerCase();
+            if (s2.equals("enablecolors")) {
+                Print.setColorsEnabled("true".equals(args[1].toLowerCase()) || "1".equals(args[1]));
+                if (!silent) {
+                    if (Print.isColorsEnabled()) {
+                        Print.success("Colors has been enabled in terminal" + "\n");
                     } else {
-                        try {
-                            Print.changeOutputStream(new FileOutputStream(args[1]));
-                            if(!silent) {
-                                Print.success("Logging has been enabled." + "\n");
-                            }
-                        } catch (FileNotFoundException e) {
-                            Print.error("Cannot use that file for some reason (Already opened stream? Not a file but directory?)" + "\n");
-                        }
+                        Print.success("Colors has been disabled in terminal" + "\n");
+                    }
+                }
+
+            } else if (s2.equals("hideoutputs")) {
+                String s = args[1].toLowerCase();
+                if (s.equals("info")) {
+                    RenderPermissions.setRenderInfos(false);
+                    if (!silent) {
+                        Print.success("Info channel has been hidden");
                     }
 
-                default:
-                    Print.error("Wrong use. " + messageTypos + "\n");
+                } else if (s.equals("success")) {
+                    RenderPermissions.setRenderSuccesses(false);
+                    if (!silent) {
+                        Print.success("Success channel has been hidden");
+                    }
+
+                } else if (s.equals("error")) {
+                    RenderPermissions.setRenderErrors(false);
+                    if (!silent) {
+                        Print.success("Error channel has been hidden");
+                    }
+
+                } else if (s.equals("warn")) {
+                    RenderPermissions.setRenderWarns(false);
+                    if (!silent) {
+                        Print.success("Warning channel has been hidden");
+                    }
+
+                } else if (s.equals("maze")) {
+                    RenderPermissions.setRenderTrainingMaps(false);
+                    if (!silent) {
+                        Print.success("Training map channel has been hidden");
+                    }
+
+                } else if (s.equals("stats")) {
+                    RenderPermissions.setRenderStats(false);
+                    if (!silent) {
+                        Print.success("Statistics channel has been hidden");
+                    }
+
+                } else if (s.equals("brainz")) {
+                    RenderPermissions.setRenderBrainz(false);
+                    if (!silent) {
+                        Print.success("Brainz channel has been hidden");
+                    }
+
+                } else if (s.equals("all")) {
+                    RenderPermissions.setRenderForAll(false);
+                    if (!silent) {
+                        Print.success("All channels has been hidden");
+                    }
+
+                } else {
+                    Print.error("No such argument. " + messageTypos + "\n");
+                }
+
+            } else if (s2.equals("showoutputs")) {
+                String s1 = args[1].toLowerCase();
+                if (s1.equals("info")) {
+                    RenderPermissions.setRenderInfos(true);
+                    if (!silent) {
+                        Print.success("Info channel has been shown");
+                    }
+
+                } else if (s1.equals("success")) {
+                    RenderPermissions.setRenderSuccesses(true);
+                    if (!silent) {
+                        Print.success("Info Success has been shown");
+                    }
+
+                } else if (s1.equals("error")) {
+                    RenderPermissions.setRenderErrors(true);
+                    if (!silent) {
+                        Print.success("Error channel has been shown");
+                    }
+
+                } else if (s1.equals("warn")) {
+                    RenderPermissions.setRenderWarns(true);
+                    if (!silent) {
+                        Print.success("Warning channel has been shown");
+                    }
+
+                } else if (s1.equals("maze")) {
+                    RenderPermissions.setRenderTrainingMaps(true);
+                    if (!silent) {
+                        Print.success("Training map channel has been shown");
+                    }
+
+                } else if (s1.equals("stats")) {
+                    RenderPermissions.setRenderStats(true);
+                    if (!silent) {
+                        Print.success("Statistics channel has been shown");
+                    }
+
+                } else if (s1.equals("brainz")) {
+                    RenderPermissions.setRenderBrainz(true);
+                    if (!silent) {
+                        Print.success("Brainz channel has been shown");
+                    }
+
+                } else if (s1.equals("all")) {
+                    RenderPermissions.setRenderForAll(true);
+                    if (!silent) {
+                        Print.success("All channels has been shown");
+                    }
+
+                } else {
+                    Print.error("No such argument. " + messageTypos + "\n");
+                }
+
+            } else if (s2.equals("logfile")) {
+                if ("none".equals(args[1])) {
+                    Print.changeOutputStream(null);
+                    if (!silent) {
+                        Print.success("Logging has been disabled." + "\n");
+                    }
+                } else {
+                    try {
+                        Print.changeOutputStream(new FileOutputStream(args[1]));
+                        if (!silent) {
+                            Print.success("Logging has been enabled." + "\n");
+                        }
+                    } catch (FileNotFoundException e) {
+                        Print.error("Cannot use that file for some reason (Already opened stream? Not a file but directory?)" + "\n");
+                    }
+                }
+
+
+                Print.error("Wrong use. " + messageTypos + "\n");
+            } else {
+                Print.error("Wrong use. " + messageTypos + "\n");
             }
         }else{
             Print.error("Wrong use. "+messageTypos+"\n");

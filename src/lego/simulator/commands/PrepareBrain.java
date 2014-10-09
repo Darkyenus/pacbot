@@ -38,7 +38,7 @@ public class PrepareBrain implements Command{
 
                 if(supported) {
 
-                    HashMap<String, String> data = new HashMap<>();
+                    HashMap<String, String> data = new HashMap<String, String>();
 
                     String key = "";
 

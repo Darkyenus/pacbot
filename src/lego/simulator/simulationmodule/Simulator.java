@@ -100,7 +100,7 @@ public class Simulator {
 
     public BrainStatistic getStatistics(RobotStrategy robotStrategy){
 
-        LinkedHashMap<String, String> data = new LinkedHashMap<>();
+        LinkedHashMap<String, String> data = new LinkedHashMap<String, String>();
 
         boolean passed = true;
         int totalCollected = 0;

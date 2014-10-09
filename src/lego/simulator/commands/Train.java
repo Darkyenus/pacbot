@@ -29,48 +29,41 @@ public class Train implements Command{
         String awaitingArgForFlag = null;
         for(String arg:args){
             if(awaitingArgForFlag == null) {
-                switch (arg) {
-                    case "-ff":
-                    case "--fast-forward":
-                        ffmode = true;
-                        break;
-                    case "-am":
-                    case "--all-maps":
-                        allMaps = true;
-                        break;
-                    case "-ab":
-                    case "--all-brainz":
-                        allBrainz = true;
-                        break;
-                    case "-fm":
-                    case "--from-map":
-                        awaitingArgForFlag = "--from-maps";
-                        break;
-                    case "-fb":
-                    case "--from-brain":
-                        awaitingArgForFlag = "--from-brainz";
-                        break;
-                    default:
-                        Print.error("Unknown flag (" + arg + "). "+messageTypos);
+                if (arg.equals("-ff") || arg.equals("--fast-forward")) {
+                    ffmode = true;
+
+                } else if (arg.equals("-am") || arg.equals("--all-maps")) {
+                    allMaps = true;
+
+                } else if (arg.equals("-ab") || arg.equals("--all-brainz")) {
+                    allBrainz = true;
+
+                } else if (arg.equals("-fm") || arg.equals("--from-map")) {
+                    awaitingArgForFlag = "--from-maps";
+
+                } else if (arg.equals("-fb") || arg.equals("--from-brain")) {
+                    awaitingArgForFlag = "--from-brainz";
+
+                } else {
+                    Print.error("Unknown flag (" + arg + "). " + messageTypos);
                 }
             }else{
-                switch (awaitingArgForFlag){
-                    case "--from-maps":
-                        try {
-                            startMapIndex = Integer.parseInt(arg)-1;
-                        }catch (NumberFormatException e){
-                            Print.error("Argument after flag '-fm|--from-maps' has to be valid number. "+messageTypos+"\n");
-                        }
-                        awaitingArgForFlag = null;
-                        break;
-                    case "--from-brainz":
-                        try {
-                            startBrainIndex = Integer.parseInt(arg)-1;
-                        }catch (NumberFormatException e){
-                            Print.error("Argument after flag '-fb|--from-brainz' has to be valid number. "+messageTypos+"\n");
-                        }
-                        awaitingArgForFlag = null;
-                        break;
+                if (awaitingArgForFlag.equals("--from-maps")) {
+                    try {
+                        startMapIndex = Integer.parseInt(arg) - 1;
+                    } catch (NumberFormatException e) {
+                        Print.error("Argument after flag '-fm|--from-maps' has to be valid number. " + messageTypos + "\n");
+                    }
+                    awaitingArgForFlag = null;
+
+                } else if (awaitingArgForFlag.equals("--from-brainz")) {
+                    try {
+                        startBrainIndex = Integer.parseInt(arg) - 1;
+                    } catch (NumberFormatException e) {
+                        Print.error("Argument after flag '-fb|--from-brainz' has to be valid number. " + messageTypos + "\n");
+                    }
+                    awaitingArgForFlag = null;
+
                 }
             }
         }

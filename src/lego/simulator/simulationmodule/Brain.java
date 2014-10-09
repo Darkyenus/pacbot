@@ -15,10 +15,10 @@ import java.util.HashMap;
  */
 public class Brain {
 
-    public static final String[] supportedTypes = {"Random","Testificate"};
+    public static final String[] supportedTypes = {"Random", "Testificate"};
 
     private String type;
-    private HashMap<String, String> data = new HashMap<>();
+    private HashMap<String, String> data = new HashMap<String, String>();
 
     public Brain(String type){
         this.type = type;
@@ -30,10 +30,13 @@ public class Brain {
 
     public RobotStrategy getInstance(AbstractRobotInterface ari){
         RobotStrategy res = null;
-        switch (type.toLowerCase()){
-            case "random": res = new RandomMain(ari); break;
-            case "testificate": res = new TestificateMain(ari); break;
+
+        if("Random".equalsIgnoreCase(type)){
+            res = new RandomMain(ari);
+        }else if("Testificate".equalsIgnoreCase(type)){
+            res = new TestificateMain(ari);
         }
+
         return res;
     }
 

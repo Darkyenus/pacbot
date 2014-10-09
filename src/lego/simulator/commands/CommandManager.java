@@ -11,26 +11,34 @@ public class CommandManager {
     public static Command getInstanceOf(String commandName){
         Command result = null;
 
-        switch (commandName.toLowerCase()){
-            case "man": result = new Man(); break;
-            case "help": result = new Help(); break;
-
-            case "loadmaps": result = new LoadMaps(); break;
-            case "showstackedmaps": result = new ShowStackedMaps(); break;
-            case "savemaps": result = new SaveMaps(); break;
-            case "clearmaps": result = new ClearMaps(); break;
-
-            case "clearbrainz": result = new ClearBrainz(); break;
-            case "showstackedbrainz": result = new ShowStackedBrainz(); break;
-            case "preparebrain": result = new PrepareBrain(); break;
-
-            case "set": result = new Set(); break;
-
-            case "train": result = new Train(); break;
-
-            case "exit": result = new Exit(); break;
-            case "quit": result = new Quit(); break;
+        if("man".equalsIgnoreCase(commandName)){
+            result = new Man();
+        }else if("help".equalsIgnoreCase(commandName)){
+            result = new Help();
+        }else if("loadMaps".equalsIgnoreCase(commandName)){
+            result = new LoadMaps();
+        }else if("showStackedMaps".equalsIgnoreCase(commandName)){
+            result = new ShowStackedMaps();
+        }else if("saveMaps".equalsIgnoreCase(commandName)){
+            result = new SaveMaps();
+        }else if("clearMaps".equalsIgnoreCase(commandName)){
+            result = new ClearMaps();
+        }else if("clearBrainz".equalsIgnoreCase(commandName)){
+            result = new ClearBrainz();
+        }else if("showStackedBrainz".equalsIgnoreCase(commandName)){
+            result = new ShowStackedBrainz();
+        }else if("prepareBrain".equalsIgnoreCase(commandName)){
+            result = new PrepareBrain();
+        }else if("set".equalsIgnoreCase(commandName)){
+            result = new Set();
+        }else if("train".equalsIgnoreCase(commandName)){
+            result = new Train();
+        }else if("exit".equalsIgnoreCase(commandName)){
+            result = new Exit();
+        }else if("quit".equalsIgnoreCase(commandName)){
+            result = new Quit();
         }
+
 
         return result;
     }

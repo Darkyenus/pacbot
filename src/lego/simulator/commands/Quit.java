@@ -30,44 +30,31 @@ public class Quit implements Command {
                 quit = true;
             }
         }else{
-            switch (args[0]) {
-                case "-kt":
-                case "--kill-threads":
-                    stopOrKillThreads(scanForRunningThreads(true), false);
-                    break;
-                case "-st":
-                case "--stop-stoppable-threads":
-                    stopThreads(scanForRunningThreads(true));
-                    break;
-                case "-wt":
-                case "--view-threads": {
-                    Thread[] threads = scanForRunningThreads(true);
-                    if (threads.length == 0) {
-                        Print.info("No threads running. Nothing to show.");
-                    } else {
-                        showThreadList(threads);
-                    }
-                    break;
+            if("-kt".equals(args[0]) || "--kill-threads".equals(args[0])){
+                stopOrKillThreads(scanForRunningThreads(true), false);
+            }else if("-st".equals(args[0]) || "--stop-stoppable-threads".equals(args[0])){
+                stopThreads(scanForRunningThreads(true));
+            }else if("-wt".equals(args[0]) || "--view-threads".equals(args[0])){
+                Thread[] threads = scanForRunningThreads(true);
+                if (threads.length == 0) {
+                    Print.info("No threads running. Nothing to show.");
+                } else {
+                    showThreadList(threads);
                 }
-                case "-wtd":
-                case "--view-threads-daemon": {
-                    Thread[] threads = scanForRunningThreads(false);
-                    if (threads.length == 0) {
-                        Print.info("No threads running. Nothing to show.");
-                    } else {
-                        showThreadList(threads);
-                    }
-                    break;
+            }else if("-wtd".equals(args[0]) || "--view-threads-daemon".equals(args[0])){
+                Thread[] threads = scanForRunningThreads(false);
+                if (threads.length == 0) {
+                    Print.info("No threads running. Nothing to show.");
+                } else {
+                    showThreadList(threads);
                 }
-                case "-sq":
-                case "--silent-quit":
-                    silent = true;
-                    quit = true;
-                    break;
-                default:
-                    Print.error("Unknown flag. "+messageTypos);
-                    break;
+            }else if("-sq".equals(args[0]) || "--silent-quit".equals(args[0])){
+                silent = true;
+                quit = true;
+            }else{
+                Print.error("Unknown flag. "+messageTypos);
             }
+
         }
 
         if(quit){
@@ -151,7 +138,7 @@ public class Quit implements Command {
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         Thread[] threadArray = threadSet.toArray(new Thread[threadSet.size()]);
 
-        LinkedList<Thread> relevantThreads = new LinkedList<>();
+        LinkedList<Thread> relevantThreads = new LinkedList<Thread>();
 
         for(Thread t:threadArray){
             if(((!t.isDaemon() && exclDaemon) || !exclDaemon) && t.isAlive() && !t.getName().equals("main")){

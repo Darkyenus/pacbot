@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
  */
 public class BrainStatistic {
 
-    private LinkedHashMap<String, String> data = new LinkedHashMap<>();
+    private LinkedHashMap<String, String> data = new LinkedHashMap<String, String>();
 
     public BrainStatistic(LinkedHashMap<String, String> data){
         this.data = data;

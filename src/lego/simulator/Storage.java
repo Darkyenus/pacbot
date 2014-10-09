@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class Storage {
 
-    private static ArrayList<TrainingMap> loadedMaps = new ArrayList<>();
+    private static ArrayList<TrainingMap> loadedMaps = new ArrayList<TrainingMap>();
 
     public static void addMap(TrainingMap map){
         loadedMaps.add(map);
@@ -29,7 +29,7 @@ public class Storage {
 
 
 
-    private static ArrayList<Brain> preparedBrainz = new ArrayList<>();
+    private static ArrayList<Brain> preparedBrainz = new ArrayList<Brain>();
 
     public static void addBrain(Brain brain){
         preparedBrainz.add(brain);
