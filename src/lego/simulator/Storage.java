@@ -1,6 +1,6 @@
 package lego.simulator;
 
-import lego.simulator.simulationmodule.Brain;
+import lego.robot.brain.Brain;
 import lego.simulator.simulationmodule.TrainingMap;
 
 import java.util.ArrayList;

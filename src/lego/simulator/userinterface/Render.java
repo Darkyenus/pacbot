@@ -1,7 +1,7 @@
 package lego.simulator.userinterface;
 
+import lego.robot.brain.Brain;
 import lego.simulator.BrainStatistic;
-import lego.simulator.simulationmodule.Brain;
 import lego.simulator.simulationmodule.TrainingMap;
 import lego.util.Constants;
 import lego.util.TupleIntInt;
@@ -20,41 +20,69 @@ public class Render {
     }
 
     public static void trainingMap(TrainingMap map, TupleIntInt robotPos, String label){
-        if(!RenderPermissions.renderTrainingMaps())
-            return;
-        if(label != null){
-            String str = label;
-            if(str.length() == 0){
-                str = "+---------------------------+";
-            }else if(str.length() <= 28){
-                str += Util.repeatNtimes("-", 28 - label.length());
-                str += "+";
-            }else if(str.length() == 29){
-                str += Util.repeatNtimes("-", 28 - label.length());
-            }
-            str += "\n";
-            Print.color(str, Constants.COLOR_MAZE_BLOCK);
-        }else {
-            Print.color("+---------------------------+\n", Constants.COLOR_MAZE_BLOCK);
-        }
-        for(int y = 0; y < 6; y ++) {
-            Print.color("|", Constants.COLOR_MAZE_BLOCK);
-            for (int x = 0; x < 9; x ++) {
-                if(robotPos != null && robotPos.getX() == x && robotPos.getY() == y){
-                    Print.color(Constants.RENDER_ROBOT, Constants.COLOR_MAZE_ROBOT);
-                }else if(map.getMaze()[x][y].isStart){
-                    Print.color(Constants.RENDER_START, Constants.COLOR_MAZE_START);
-                }else if(map.getMaze()[x][y].isBlock){
-                    Print.color(Constants.RENDER_BLOCK, Constants.COLOR_MAZE_BLOCK);
-                }else if(map.getMaze()[x][y].visitedTimes == 0){
-                    Print.color(Constants.RENDER_PAC_DOT, Constants.COLOR_MAZE_PAC_DOT);
-                }else{
-                    Print.color(Constants.RENDER_PAC_DOT_EATEN, Constants.COLOR_MAZE_PAC_DOT_EATEN);
+        textAlongSideMap(map, robotPos, null, null);
+    }
+
+    public static void textAlongSideMap(TrainingMap map, TupleIntInt robotPos, String label, String[] text){
+        if(RenderPermissions.renderTrainingMaps()) {
+            if (label != null) {
+                String str = label;
+                if (str.length() == 0) {
+                    str = "+---------------------------+";
+                } else if (str.length() <= 28) {
+                    str += Util.repeatNtimes("-", 28 - label.length());
+                    str += "+";
+                } else if (str.length() == 29) {
+                    str += Util.repeatNtimes("-", 28 - label.length());
                 }
+                Print.color(str, Constants.COLOR_MAZE_BLOCK);
+            } else {
+                Print.color("+---------------------------+", Constants.COLOR_MAZE_BLOCK);
             }
-            Print.color("|\n", Constants.COLOR_MAZE_BLOCK);
+
+            String margin = "          ";
+
+            if(text != null && text.length != 0){
+                Print.color(margin+"Brain thinks that...\n", ConsoleColors.CYAN);
+            }else{
+                Print.line("");
+            }
+
+            int lineIndex = -1;
+
+            for (int y = 0; y < 6; y++) {
+                Print.color("|", Constants.COLOR_MAZE_BLOCK);
+                for (int x = 0; x < 9; x++) {
+                    if (robotPos != null && robotPos.getX() == x && robotPos.getY() == y) {
+                        Print.color(Constants.RENDER_ROBOT, Constants.COLOR_MAZE_ROBOT);
+                    } else if (map.getMaze()[x][y].isStart) {
+                        Print.color(Constants.RENDER_START, Constants.COLOR_MAZE_START);
+                    } else if (map.getMaze()[x][y].isBlock) {
+                        Print.color(Constants.RENDER_BLOCK, Constants.COLOR_MAZE_BLOCK);
+                    } else if (map.getMaze()[x][y].visitedTimes == 0) {
+                        Print.color(Constants.RENDER_PAC_DOT, Constants.COLOR_MAZE_PAC_DOT);
+                    } else {
+                        Print.color(Constants.RENDER_PAC_DOT_EATEN, Constants.COLOR_MAZE_PAC_DOT_EATEN);
+                    }
+                }
+                Print.color("|", Constants.COLOR_MAZE_BLOCK);
+                if(text != null && lineIndex != -1 && text.length > lineIndex){
+                    Print.line(margin+text[lineIndex]);
+                }else{
+                    Print.line("");
+                }
+                lineIndex ++;
+            }
+            Print.color("+---------------------------+", Constants.COLOR_MAZE_BLOCK);
+            if(text != null && text.length > lineIndex){
+                Print.line(margin+text[lineIndex]);
+            }else{
+                Print.line("");
+            }
+            for(;text != null && lineIndex < text.length; lineIndex++){
+                Print.line("                             "+margin+text[lineIndex]+"\n");
+            }
         }
-        Print.color("+---------------------------+\n", Constants.COLOR_MAZE_BLOCK);
     }
 
     public static void brain(Brain brain, String label){

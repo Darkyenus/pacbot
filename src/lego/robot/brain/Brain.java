@@ -1,4 +1,4 @@
-package lego.simulator.simulationmodule;
+package lego.robot.brain;
 
 import lego.robot.api.AbstractRobotInterface;
 import lego.robot.api.RobotStrategy;
@@ -35,6 +35,10 @@ public class Brain {
             res = new RandomMain(ari);
         }else if("Testificate".equalsIgnoreCase(type)){
             res = new TestificateMain(ari);
+        }
+
+        if(res != null){
+            res.setInitialData(data);
         }
 
         return res;

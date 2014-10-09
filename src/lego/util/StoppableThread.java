@@ -6,7 +6,7 @@ package lego.util;
  * Date: 5.10.2014
  * Time: 16:45
  */
-public abstract class BetterThread extends Thread {
+public abstract class StoppableThread extends Thread {
 
     protected boolean canRun = true;
 

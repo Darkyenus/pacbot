@@ -46,6 +46,8 @@ public class Simulator {
         this.robotHeading = robotHeading;
     }
 
+    private String[] lines;
+
     private boolean ffMode = false;
 
     public Simulator(TrainingMap map){
@@ -66,13 +68,17 @@ public class Simulator {
         ffMode = mode;
     }
 
+    public void debugRender(String[] lines){
+        this.lines = lines;
+    }
+
     public void nextStepBlock(String robotBehaviourDescription){
         if(map.getBlocksRemainingToCollect() == 0){ //Done.
 
             strategy.stop();
 
             if (!ffMode) {
-                Render.trainingMap(map, robotPos);
+                Render.textAlongSideMap(map, robotPos, null, lines);
                 Print.line("");
                 Print.line("Robot has " + robotBehaviourDescription + " in last step.");
                 Print.line("And this step was its last, because all pac-dots collected!");
@@ -82,7 +88,7 @@ public class Simulator {
             }
         }else {
             if (!ffMode) {
-                Render.trainingMap(map, robotPos);
+                Render.textAlongSideMap(map, robotPos, null, lines);
                 Print.line("");
                 Print.line("Robot has " + robotBehaviourDescription + " in last step.");
                 Print.line("");
@@ -95,6 +101,7 @@ public class Simulator {
                 }
             }
         }
+        lines = null;
     }
 
 

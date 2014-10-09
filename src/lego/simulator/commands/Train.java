@@ -3,7 +3,7 @@ package lego.simulator.commands;
 import lego.robot.api.RobotStrategy;
 import lego.simulator.BrainStatistic;
 import lego.simulator.Storage;
-import lego.simulator.simulationmodule.Brain;
+import lego.robot.brain.Brain;
 import lego.simulator.simulationmodule.Simulator;
 import lego.simulator.simulationmodule.TrainingMap;
 import lego.simulator.userinterface.Print;

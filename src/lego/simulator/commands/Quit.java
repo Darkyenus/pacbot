@@ -3,7 +3,7 @@ package lego.simulator.commands;
 import lego.simulator.Main;
 import lego.simulator.userinterface.Print;
 import lego.simulator.userinterface.UserInput;
-import lego.util.BetterThread;
+import lego.util.StoppableThread;
 
 import java.util.LinkedList;
 import java.util.Set;
@@ -89,8 +89,8 @@ public class Quit implements Command {
 
     private void stopOrKillThreads(Thread[] threads, boolean silent){
         for(Thread t:threads){
-            if(t instanceof BetterThread){
-                ((BetterThread)t).finish();
+            if(t instanceof StoppableThread){
+                ((StoppableThread)t).finish();
                 long time = System.currentTimeMillis();
                 while(t.isAlive() && System.currentTimeMillis() - time < 2500){
                     try {
@@ -116,8 +116,8 @@ public class Quit implements Command {
 
     private void stopThreads(Thread[] threads){
         for(Thread t:threads){
-            if(t instanceof BetterThread){
-                ((BetterThread)t).finish();
+            if(t instanceof StoppableThread){
+                ((StoppableThread)t).finish();
                 long time = System.currentTimeMillis();
                 while(t.isAlive() && System.currentTimeMillis() - time < 2500){
                     try {
@@ -151,7 +151,7 @@ public class Quit implements Command {
 
     private void showThreadList(Thread[] threads){
         for(Thread t:threads){
-            if(t instanceof BetterThread){
+            if(t instanceof StoppableThread){
                 Print.line("       Stoppable thread: "+t.getName()+" with " +
                         (t.getPriority()==1?"low":t.getPriority()==5?"normal":t.getPriority()==10?"high":t.getPriority()) +
                         " priority.");

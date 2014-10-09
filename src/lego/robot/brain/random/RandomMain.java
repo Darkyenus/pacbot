@@ -9,7 +9,7 @@ import lego.robot.api.RobotStrategy;
  * Date: 3.10.2014
  * Time: 20:30
  */
-public class RandomMain extends RobotStrategy {
+public class RandomMain extends RobotStrategy{
 
     public RandomMain(AbstractRobotInterface ari){
         super(ari,"'Random' - Fully random");
@@ -30,41 +30,41 @@ public class RandomMain extends RobotStrategy {
             banForward = false;
 
             if(!front && !left && !right){
-                robotInterface.moveBackward();
+                robotInterface.queueMoveBackward();
                 banForward = true;
             }else if(front && !left && !right){
-                robotInterface.moveForward();
+                robotInterface.queueMoveForward();
             }else if(!front && left && !right){
-                robotInterface.turnLeft();
-                robotInterface.moveForward();
+                robotInterface.queueTurnLeft();
+                robotInterface.queueMoveForward();
             }else if(!front && !left && right){
-                robotInterface.turnRight();
-                robotInterface.moveForward();
+                robotInterface.queueTurnRight();
+                robotInterface.queueMoveForward();
             }else if(!front){
                 if(Math.random() > 0.5f){
-                    robotInterface.turnLeft();
+                    robotInterface.queueTurnLeft();
                 }else{
-                    robotInterface.turnRight();
+                    robotInterface.queueTurnRight();
                 }
-                robotInterface.moveForward();
+                robotInterface.queueMoveForward();
             }else{
                 if(left && right){
                     if(Math.random() < 0.333f){
-                        robotInterface.turnLeft();
+                        robotInterface.queueTurnLeft();
                     }else if(Math.random() < 0.5f){
-                        robotInterface.turnRight();
+                        robotInterface.queueTurnRight();
                     }
-                    robotInterface.moveForward();
+                    robotInterface.queueMoveForward();
                 }else if(left){
                     if(Math.random() < 0.5f){
-                        robotInterface.turnLeft();
+                        robotInterface.queueTurnLeft();
                     }
-                    robotInterface.moveForward();
+                    robotInterface.queueMoveForward();
                 }else{
                     if(Math.random() < 0.5f){
-                        robotInterface.turnRight();
+                        robotInterface.queueTurnRight();
                     }
-                    robotInterface.moveForward();
+                    robotInterface.queueMoveForward();
                 }
             }
 

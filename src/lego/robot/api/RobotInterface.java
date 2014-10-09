@@ -20,17 +20,17 @@ public abstract class RobotInterface implements AbstractRobotInterface {
         return re;
     }
 
-    public abstract void moveRobotForward();
-    public abstract void moveRobotLeft();
-    public abstract void moveRobotRight();
-    public abstract void moveRobotBackward();
+    public abstract void queueAddMoveForward();
+    public abstract void queueAddMoveLeft();
+    public abstract void queueAddMoveRight();
+    public abstract void queueAddMoveBackward();
 
-    public abstract void turnRobotLeft();
-    public abstract void turnRobotRight();
+    public abstract void queueAddTurnLeft();
+    public abstract void queueAddTurnRight();
 
 
     @Override
-    public void moveForward() {
+    public void queueMoveForward() {
         switch(re.getHeading()) {
             case DOWN:
                 re.moveBySuppressOutOfBounds(0, 1);
@@ -45,11 +45,11 @@ public abstract class RobotInterface implements AbstractRobotInterface {
                 re.moveBySuppressOutOfBounds(-1,0);
                 break;
         }
-        moveRobotForward();
+        queueAddMoveForward();
     }
 
     @Override
-    public void moveLeft() {
+    public void queueMoveLeft() {
         switch(re.getHeading()) {
             case DOWN:
                 re.moveBySuppressOutOfBounds(1,0);
@@ -64,11 +64,11 @@ public abstract class RobotInterface implements AbstractRobotInterface {
                 re.moveBySuppressOutOfBounds(0,1);
                 break;
         }
-        moveRobotLeft();
+        queueAddMoveLeft();
     }
 
     @Override
-    public void moveRight() {
+    public void queueMoveRIght() {
         switch(re.getHeading()) {
             case DOWN:
                 re.moveBySuppressOutOfBounds(-1,0);
@@ -83,11 +83,11 @@ public abstract class RobotInterface implements AbstractRobotInterface {
                 re.moveBySuppressOutOfBounds(0,-1);
                 break;
         }
-        moveRobotRight();
+        queueAddMoveRight();
     }
 
     @Override
-    public void moveBackward() {
+    public void queueMoveBackward() {
         switch(re.getHeading()) {
             case DOWN:
                 re.moveBySuppressOutOfBounds(0,-1);
@@ -102,19 +102,23 @@ public abstract class RobotInterface implements AbstractRobotInterface {
                 re.moveBySuppressOutOfBounds(1,0);
                 break;
         }
-        moveRobotBackward();
+        queueAddMoveBackward();
     }
 
     @Override
-    public void turnLeft() {
+    public void queueTurnLeft() {
         re.rotateBy(RelativeHeading.LEFT);
-        turnRobotLeft();
+        queueAddTurnLeft();
     }
 
     @Override
-    public void turnRight() {
+    public void queueTurnRight() {
         re.rotateBy(RelativeHeading.RIGHT);
-        turnRobotRight();
+        queueAddTurnRight();
     }
 
+
+    //Makes it not mandatory to override
+    @Override
+    public void debugRender(String[] lines) {}
 }

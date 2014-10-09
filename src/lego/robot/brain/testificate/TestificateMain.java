@@ -17,19 +17,26 @@ public class TestificateMain extends RobotStrategy {
 
     @Override
     public void run() {
-        robotInterface.moveForward();
-        robotInterface.turnRight();
-        robotInterface.moveForward();
-        robotInterface.moveForward();
-        robotInterface.moveForward();
-        robotInterface.moveForward();
-        robotInterface.turnRight();
-        robotInterface.moveForward();
-        robotInterface.turnLeft();
-        robotInterface.moveForward();
-        robotInterface.moveForward();
-        robotInterface.turnLeft();
-        robotInterface.moveForward();
+        robotInterface.debugRender(new String[]{"Some text","multi line"});
+        robotInterface.queueMoveForward();
+        robotInterface.queueTurnRight();
+        robotInterface.debugRender(new String[]{"Some text2","multi line2"});
+        robotInterface.queueMoveForward();
+        robotInterface.queueMoveForward();
+        robotInterface.queueMoveForward();
+        robotInterface.debugRender(new String[]{"Some text","multi line","Some text","multi line","Some text","multi line","Some text","multi line","Some text","multi line","Some text","multi line","Some text","multi end"});
+        robotInterface.queueMoveForward();
+        robotInterface.queueTurnRight();
+        robotInterface.queueMoveForward();
+        robotInterface.queueTurnLeft();
+        robotInterface.debugRender(new String[]{"Some text2","multi line2"});
+        robotInterface.queueMoveForward();
+        robotInterface.debugRender(new String[]{"Some text2","multi line2"});
+        robotInterface.queueMoveForward();
+        robotInterface.debugRender(new String[]{"Some text2","multi line2"});
+        robotInterface.queueTurnLeft();
+        robotInterface.queueMoveForward();
+        robotInterface.debugRender(new String[]{"Some text2","multi line2"});
     }
 
     @Override

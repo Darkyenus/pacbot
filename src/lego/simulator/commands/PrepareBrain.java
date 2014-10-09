@@ -1,7 +1,7 @@
 package lego.simulator.commands;
 
 import lego.simulator.Storage;
-import lego.simulator.simulationmodule.Brain;
+import lego.robot.brain.Brain;
 import lego.simulator.userinterface.Print;
 
 import java.util.HashMap;

@@ -26,7 +26,7 @@ public class SimulatorRobotInterface extends RobotInterface {
     }
 
     @Override
-    public void moveRobotForward() {
+    public void queueAddMoveForward() {
         TupleIntInt newPos = Util.getTransformedPos(sim.getRobotPos(), sim.getRobotHeading(), RelativeMovement.FORWARD);
         if(Util.isWithinMapBounds(newPos)){
             if(map.getMaze()[newPos.getX()][newPos.getY()].isStart){
@@ -66,7 +66,7 @@ public class SimulatorRobotInterface extends RobotInterface {
     }
 
     @Override
-    public void moveRobotLeft() {
+    public void queueAddMoveLeft() {
         TupleIntInt newPos = Util.getTransformedPos(sim.getRobotPos(), sim.getRobotHeading(), RelativeMovement.LEFT);
         if(Util.isWithinMapBounds(newPos)){
             if(map.getMaze()[newPos.getX()][newPos.getY()].isStart){
@@ -106,7 +106,7 @@ public class SimulatorRobotInterface extends RobotInterface {
     }
 
     @Override
-    public void moveRobotRight() {
+    public void queueAddMoveRight() {
         TupleIntInt newPos = Util.getTransformedPos(sim.getRobotPos(), sim.getRobotHeading(), RelativeMovement.RIGHT);
         if(Util.isWithinMapBounds(newPos)){
             if(map.getMaze()[newPos.getX()][newPos.getY()].isStart){
@@ -146,7 +146,7 @@ public class SimulatorRobotInterface extends RobotInterface {
     }
 
     @Override
-    public void moveRobotBackward() {
+    public void queueAddMoveBackward() {
         TupleIntInt newPos = Util.getTransformedPos(sim.getRobotPos(), sim.getRobotHeading(), RelativeMovement.BACKWARD);
         if(Util.isWithinMapBounds(newPos)){
             if(map.getMaze()[newPos.getX()][newPos.getY()].isStart){
@@ -186,7 +186,7 @@ public class SimulatorRobotInterface extends RobotInterface {
     }
 
     @Override
-    public void turnRobotLeft() {
+    public void queueAddTurnLeft() {
         switch(sim.getRobotHeading()) {
             case DOWN:
                 sim.setRobotHeading(AbsoluteHeading.RIGHT);
@@ -206,7 +206,7 @@ public class SimulatorRobotInterface extends RobotInterface {
     }
 
     @Override
-    public void turnRobotRight() {
+    public void queueAddTurnRight() {
         switch(sim.getRobotHeading()) {
             case DOWN:
                 sim.setRobotHeading(AbsoluteHeading.LEFT);
@@ -289,5 +289,23 @@ public class SimulatorRobotInterface extends RobotInterface {
         }else{
             return true;
         }
+    }
+
+    @Override
+    public void debugRender(String[] lines) {
+        sim.debugRender(lines);
+    }
+
+
+    //Little fraud...
+
+    @Override
+    public boolean isQueueRunning() {
+        return false;
+    }
+
+    @Override
+    public void waitUntilQueueIsEmpty() {
+
     }
 }
