@@ -105,6 +105,9 @@ public class Train implements Command{
                                 allMaps = UserInput.askQuestion("Continue with next map?");
                                 Print.line("");
                             }
+                        }else{
+                            BrainStatistic stats = sim.getStatistics(strategy);
+                            Render.statistics(stats);
                         }
 
                         map.reset();
@@ -117,7 +120,7 @@ public class Train implements Command{
 
                 startBrainIndex ++;
 
-                if(startBrainIndex < brainz.length) {
+                if(allBrainz && startBrainIndex < brainz.length) {
                     Print.line("");
                     Print.info("One brain has ended. Using other one.");
                     Print.line("");
