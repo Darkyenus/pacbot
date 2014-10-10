@@ -54,7 +54,7 @@ public class Main {
         }
 
         Print.line("");
-        Print.info("Quitting...");
+        Print.info("Quitting...\n");
     }
 
     private static void parseCommand(String line){

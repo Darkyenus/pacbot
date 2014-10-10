@@ -12,7 +12,7 @@ public interface AbstractRobotInterface {
 
     public void queueMoveForward();
     public void queueMoveLeft();
-    public void queueMoveRIght();
+    public void queueMoveRight();
     public void queueMoveBackward();
 
     public void queueTurnLeft();

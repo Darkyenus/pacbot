@@ -68,7 +68,7 @@ public abstract class RobotInterface implements AbstractRobotInterface {
     }
 
     @Override
-    public void queueMoveRIght() {
+    public void queueMoveRight() {
         switch(re.getHeading()) {
             case DOWN:
                 re.moveBySuppressOutOfBounds(-1,0);

@@ -79,8 +79,8 @@ public class Render {
             }else{
                 Print.line("");
             }
-            for(;text != null && lineIndex < text.length; lineIndex++){
-                Print.line("                             "+margin+text[lineIndex]+"\n");
+            for(lineIndex++ ;text != null && lineIndex < text.length; lineIndex++){
+                Print.line("                             "+margin+text[lineIndex]);
             }
         }
     }

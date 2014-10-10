@@ -2,6 +2,7 @@ package lego.robot.brain;
 
 import lego.robot.api.AbstractRobotInterface;
 import lego.robot.api.RobotStrategy;
+import lego.robot.brain.clever.CleverMain;
 import lego.robot.brain.random.RandomMain;
 import lego.robot.brain.testificate.TestificateMain;
 
@@ -15,7 +16,7 @@ import java.util.HashMap;
  */
 public class Brain {
 
-    public static final String[] supportedTypes = {"Random", "Testificate"};
+    public static final String[] supportedTypes = {"Random", "Testificate", "Clever"};
 
     private String type;
     private HashMap<String, String> data = new HashMap<String, String>();
@@ -35,6 +36,8 @@ public class Brain {
             res = new RandomMain(ari);
         }else if("Testificate".equalsIgnoreCase(type)){
             res = new TestificateMain(ari);
+        }else if("Clever".equalsIgnoreCase(type)){
+            res = new CleverMain(ari);
         }
 
         if(res != null){
