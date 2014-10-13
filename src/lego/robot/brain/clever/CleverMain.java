@@ -55,6 +55,8 @@ public class CleverMain extends RobotStrategy{
 
         while(run){
 
+            robotInterface.waitUntilQueueIsEmpty();
+
             TupleIntInt actualPos = robotEnvironment.getPos();
             TupleIntInt frontPos = Util.getTransformedPos(actualPos,robotEnvironment.getHeading(), RelativeMovement.FORWARD);
             TupleIntInt leftPos = Util.getTransformedPos(actualPos,robotEnvironment.getHeading(), RelativeMovement.LEFT);

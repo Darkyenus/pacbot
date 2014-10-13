@@ -128,7 +128,7 @@ public class Simulator {
 
         data.put("Brain name", robotStrategy.getStrategyDescriptor());
         data.put("Passed", passed?"Yes":"No");
-        data.put("Efficiency",totalCollectible * 100 / totalCollected+"%");
+        data.put("Efficiency",totalCollected==0?"NaN":(totalCollectible * 100 / totalCollected+"%"));
         data.put("Total movements", Integer.toString(totalMovements));
         data.put("Total turns", Integer.toString(totalTurns));
         data.put("Total ~ hinders", Integer.toString(totalObstacleHinders));
