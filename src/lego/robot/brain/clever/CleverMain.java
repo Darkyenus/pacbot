@@ -145,6 +145,9 @@ public class CleverMain extends RobotStrategy{
                     CleverUtil.generateDebugInfo(map, this);
                     robotInterface.queueTurnRight();
                     break;
+                case NONE:
+                    CleverUtil.generateDebugErrorMessage("Robot action not specified", this);
+                    robotInterface.doNothing();
             }
 
         }

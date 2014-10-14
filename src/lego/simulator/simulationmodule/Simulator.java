@@ -22,6 +22,7 @@ public class Simulator {
     private int totalMovements = 0;
     private int totalTurns = 0;
     private int totalObstacleHinders = 0;
+    private int totalSleptSteps = 0;
 
     private TrainingMap map;
     private RobotStrategy strategy;
@@ -129,6 +130,7 @@ public class Simulator {
         data.put("Brain name", robotStrategy.getStrategyDescriptor());
         data.put("Passed", passed?"Yes":"No");
         data.put("Efficiency",totalCollected==0?"NaN":(totalCollectible * 100 / totalCollected+"%"));
+        data.put("No action count", Integer.toString(totalSleptSteps));
         data.put("Total movements", Integer.toString(totalMovements));
         data.put("Total turns", Integer.toString(totalTurns));
         data.put("Total ~ hinders", Integer.toString(totalObstacleHinders));
@@ -144,6 +146,9 @@ public class Simulator {
     }
     public void logObstacleHinders(){
         totalObstacleHinders ++;
+    }
+    public void logDoNothing() {
+        totalSleptSteps ++;
     }
 
 

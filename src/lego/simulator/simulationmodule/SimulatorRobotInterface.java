@@ -296,6 +296,11 @@ public class SimulatorRobotInterface extends RobotInterface {
         sim.debugRender(lines);
     }
 
+    @Override
+    public void doNothing(){
+        sim.logDoNothing();
+        sim.nextStepBlock("done nothing");
+    }
 
     //Little fraud...
 

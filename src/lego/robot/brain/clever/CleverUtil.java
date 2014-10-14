@@ -81,6 +81,10 @@ public class CleverUtil {
         cm.getRobotInterface().debugRender(debug);
     }
 
+    public static void generateDebugErrorMessage(String message, CleverMain cm){
+        cm.getRobotInterface().debugRender(new String[]{"Error:",message});
+    }
+
     public static void logScan(MappedMap map, TupleIntInt frontPos, boolean frontObstacle, TupleIntInt leftPos, boolean leftObstacle, TupleIntInt rightPos, boolean rightObstacle, TupleIntInt actualPos){
 
         if(map.getBlockType(frontPos) == BlockType.UNKNOWN){

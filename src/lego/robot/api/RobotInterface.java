@@ -117,6 +117,11 @@ public abstract class RobotInterface implements AbstractRobotInterface {
         queueAddTurnRight();
     }
 
+    @Override
+    public void doNothing(){
+
+    }
+
 
     //Makes it not mandatory to override
     @Override

@@ -26,6 +26,7 @@ public interface AbstractRobotInterface {
     public boolean isQueueRunning();
     public void waitUntilQueueIsEmpty();
 
+    public void doNothing();
     public void debugRender(String[] lines);
 
 }
