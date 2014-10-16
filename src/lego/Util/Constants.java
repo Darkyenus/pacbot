@@ -7,24 +7,22 @@ import lego.simulator.userinterface.ConsoleColors;
  */
 public class Constants {
 
-    //TODO: Some changing, getter + setter
+    public static final String RENDER_BLOCK = "[x]";
+    public static final String RENDER_PAC_DOT = " # ";
+    public static final String RENDER_PAC_DOT_EATEN = "   ";
+    public static final String RENDER_ROBOT = "(-)";
+    public static final String RENDER_START = " v ";
 
-    public static String RENDER_BLOCK = "[x]";
-    public static String RENDER_PAC_DOT = " # ";
-    public static String RENDER_PAC_DOT_EATEN = "   ";
-    public static String RENDER_ROBOT = "(-)";
-    public static String RENDER_START = " v ";
+    public static final ConsoleColors COLOR_MAZE_BLOCK = ConsoleColors.BRIGHT_RED;
+    public static final ConsoleColors COLOR_MAZE_PAC_DOT = ConsoleColors.BRIGHT_YELLOW;
+    public static final ConsoleColors COLOR_MAZE_PAC_DOT_EATEN = ConsoleColors.YELLOW;
+    public static final ConsoleColors COLOR_MAZE_ROBOT = ConsoleColors.GREEN;
+    public static final ConsoleColors COLOR_MAZE_START = ConsoleColors.BRIGHT_MAGENTA;
 
-    public static ConsoleColors COLOR_MAZE_BLOCK = ConsoleColors.BRIGHT_RED;
-    public static ConsoleColors COLOR_MAZE_PAC_DOT = ConsoleColors.BRIGHT_YELLOW;
-    public static ConsoleColors COLOR_MAZE_PAC_DOT_EATEN = ConsoleColors.YELLOW;
-    public static ConsoleColors COLOR_MAZE_ROBOT = ConsoleColors.GREEN;
-    public static ConsoleColors COLOR_MAZE_START = ConsoleColors.BRIGHT_MAGENTA;
-
-    public static ConsoleColors COLOR_TAG_ERROR = ConsoleColors.RED;
-    public static ConsoleColors COLOR_TAG_SUCCESS = ConsoleColors.GREEN;
-    public static ConsoleColors COLOR_TAG_INFO = ConsoleColors.CYAN;
-    public static ConsoleColors COLOR_TAG_WARN = ConsoleColors.YELLOW;
-    public static ConsoleColors COLOR_TAG_INTERACTION = ConsoleColors.BRIGHT_BLUE;
+    public static final ConsoleColors COLOR_TAG_ERROR = ConsoleColors.RED;
+    public static final ConsoleColors COLOR_TAG_SUCCESS = ConsoleColors.GREEN;
+    public static final ConsoleColors COLOR_TAG_INFO = ConsoleColors.CYAN;
+    public static final ConsoleColors COLOR_TAG_WARN = ConsoleColors.YELLOW;
+    public static final ConsoleColors COLOR_TAG_INTERACTION = ConsoleColors.BRIGHT_BLUE;
 
 }

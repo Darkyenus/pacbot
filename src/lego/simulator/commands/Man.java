@@ -19,7 +19,7 @@ public class Man implements Command {
 
             if(cmd != null){
                 String title = "            Manual for command: "+cmd.getName()+"           \n";
-                String headline = Util.repeatNtimes("=",title.length())+"\n";
+                String headline = Util.repeatNTimes("=", title.length())+"\n";
 
                 Print.color(headline, ConsoleColors.CYAN);
                 Print.color(title, ConsoleColors.CYAN);

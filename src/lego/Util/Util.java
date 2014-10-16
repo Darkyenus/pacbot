@@ -89,7 +89,7 @@ public class Util {
         return false;
     }
 
-    public static String repeatNtimes(String str, int n){
+    public static String repeatNTimes(String str, int n){
         StringBuilder sb = new StringBuilder();
 
         for(int i = 0; i < n; i++){

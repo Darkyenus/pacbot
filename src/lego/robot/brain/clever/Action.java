@@ -6,7 +6,7 @@ package lego.robot.brain.clever;
  * Date: 10.10.2014
  * Time: 16:49
  */
-public enum Action {
+enum Action {
 
     MOVE_FORWARD,
     MOVE_LEFT,

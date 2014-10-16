@@ -37,25 +37,25 @@ public class DifferentialRobotInterface extends RobotInterface{
 
     @Override
     public boolean scanLeft() {
-        //TODO, need to see bot again
+        //TODO need to enhance robot hardware
         return false;
     }
 
     @Override
     public boolean scanRight() {
-        //TODO, need to see bot again
+        //TODO need to enhance robot hardware
         return false;
     }
 
     @Override
     public boolean scanFront() {
-        //TODO, need to see bot again
+        //TODO need to enhance robot hardware
         return false;
     }
 
     @Override
     public boolean scanBack() {
-        //TODO, need to see bot again
+        //TODO need to enhance robot hardware
         return false;
     }
 

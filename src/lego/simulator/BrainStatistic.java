@@ -28,4 +28,9 @@ public class BrainStatistic {
         return data.keySet().toArray(new String[0]);
     }
 
+    public int getScore(){
+        //TODO some computing of score for neural networks...
+        return 0;
+    }
+
 }

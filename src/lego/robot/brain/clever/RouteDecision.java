@@ -6,7 +6,7 @@ package lego.robot.brain.clever;
  * Date: 10.10.2014
  * Time: 16:51
  */
-public class RouteDecision {
+class RouteDecision {
 
 
     public static Action caseOnePacdotted(BlockType frontBlock, BlockType leftBlock, BlockType rightBlock, BlockType backBlock) {

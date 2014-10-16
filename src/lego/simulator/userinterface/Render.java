@@ -30,10 +30,10 @@ public class Render {
                 if (str.length() == 0) {
                     str = "+---------------------------+";
                 } else if (str.length() <= 28) {
-                    str += Util.repeatNtimes("-", 28 - label.length());
+                    str += Util.repeatNTimes("-", 28 - label.length());
                     str += "+";
                 } else if (str.length() == 29) {
-                    str += Util.repeatNtimes("-", 28 - label.length());
+                    str += Util.repeatNTimes("-", 28 - label.length());
                 }
                 Print.color(str, Constants.COLOR_MAZE_BLOCK);
             } else {
@@ -126,21 +126,21 @@ public class Render {
 
             String header = "+- "+label+" ";
 
-            header = header + Util.repeatNtimes("-", longestKey+longestValue+10-header.length());
+            header = header + Util.repeatNTimes("-", longestKey + longestValue + 10 - header.length());
 
             Print.color(header+"+\n", ConsoleColors.CYAN);
-            Print.color("|   "+Util.repeatNtimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+            Print.color("|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
 
             for(int i = 0; i < keys.length; i++){
                 if(!keys[i].isEmpty()) {
-                    Print.color("\n|   " + keys[i] + ":" + Util.repeatNtimes(" ", longestKey - keys[i].length()) + "  " +
-                            values[i] + Util.repeatNtimes(" ", longestValue - values[i].length()) + "   |", ConsoleColors.CYAN);
+                    Print.color("\n|   " + keys[i] + ":" + Util.repeatNTimes(" ", longestKey - keys[i].length()) + "  " +
+                            values[i] + Util.repeatNTimes(" ", longestValue - values[i].length()) + "   |", ConsoleColors.CYAN);
                 }else{
-                    Print.color("\n|   "+Util.repeatNtimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+                    Print.color("\n|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
                 }
             }
-            Print.color("\n|   "+Util.repeatNtimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
-            Print.color("\n+"+Util.repeatNtimes("-", longestKey+longestValue+9)+"+\n", ConsoleColors.CYAN);
+            Print.color("\n|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+            Print.color("\n+"+Util.repeatNTimes("-", longestKey + longestValue + 9)+"+\n", ConsoleColors.CYAN);
 
         }
     }
@@ -197,12 +197,12 @@ public class Render {
             int titleLength = Math.max(40,4 + longestKey + 2 + longestValue);
             String header = "= Robot brain statistics output =";
             String footer = " End of Robot brain stats output ";
-            String equalises = Util.repeatNtimes("=",(titleLength-header.length()+1) / 2);
+            String equalises = Util.repeatNTimes("=", (titleLength - header.length() + 1) / 2);
 
             Print.color(equalises+header+equalises+"\n", ConsoleColors.CYAN);
 
             for(int i = 0; i < keys.length; i++){
-                Print.color("\n    "+keys[i]+":"+Util.repeatNtimes(" ",longestKey-keys[i].length())+"  "+
+                Print.color("\n    "+keys[i]+":"+Util.repeatNTimes(" ", longestKey - keys[i].length())+"  "+
                         values[i], ConsoleColors.CYAN);
             }
 

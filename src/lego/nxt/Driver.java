@@ -29,7 +29,7 @@ public class Driver {
 
     public static final float GRAD_TO_RAD = TWO_PI / 400f;
 
-    private static final RobotInterface robotInterface = new DifferentialRobotInterface();
+    private static final RobotInterface robotInterface = new CartesianRobotInterface();
 
     private static MotorController toolMotor = new MotorController(MotorPort.A);
 
@@ -505,9 +505,6 @@ public class Driver {
                 return "T:CalibrateFwd " + remainingTries;
             }
         };
-    } 
-    private static TaskProcessor.Task constructUnstuckerClassic(float turnOffset,int remainingTries){
-        return constructStraightDrive(-1f, MotorManager.MAX_SPEED()).appendNextTask(constructTurnOnSpot(turnOffset)).appendNextTask(constructTurnOnSpot(-turnOffset*2)).appendNextTask(constructTurnOnSpot(turnOffset)).appendNextTask(constructCalibrateForward(remainingTries - 1));
     }
 
     private static TaskProcessor.Task constructUnstuckerFast(float turnOffset,int remainingTries){

@@ -55,20 +55,31 @@ public class CleverMain extends RobotStrategy{
 
         while(run){
 
-            robotInterface.waitUntilQueueIsEmpty();
-
             TupleIntInt actualPos = robotEnvironment.getPos();
             TupleIntInt frontPos = Util.getTransformedPos(actualPos,robotEnvironment.getHeading(), RelativeMovement.FORWARD);
             TupleIntInt leftPos = Util.getTransformedPos(actualPos,robotEnvironment.getHeading(), RelativeMovement.LEFT);
             TupleIntInt rightPos = Util.getTransformedPos(actualPos,robotEnvironment.getHeading(), RelativeMovement.RIGHT);
             TupleIntInt backPos = Util.getTransformedPos(actualPos,robotEnvironment.getHeading(), RelativeMovement.BACKWARD);
 
-            CleverUtil.logScan(map, frontPos, !robotInterface.scanFront(), leftPos, !robotInterface.scanLeft(), rightPos, !robotInterface.scanRight(), actualPos);
-
             BlockType frontBlock = map.getBlockType(frontPos);
             BlockType leftBlock = map.getBlockType(leftPos);
             BlockType rightBlock = map.getBlockType(rightPos);
             BlockType backBlock = map.getBlockType(backPos);
+
+            if(frontBlock == BlockType.UNKNOWN || leftBlock == BlockType.UNKNOWN || rightBlock == BlockType.UNKNOWN || backBlock == BlockType.UNKNOWN){
+                robotInterface.waitUntilQueueIsEmpty();
+
+                CleverUtil.logScan(map, frontPos, !robotInterface.scanFront(), leftPos, !robotInterface.scanLeft(), rightPos, !robotInterface.scanRight(), actualPos);
+
+                frontBlock = map.getBlockType(frontPos);
+                leftBlock = map.getBlockType(leftPos);
+                rightBlock = map.getBlockType(rightPos);
+                backBlock = map.getBlockType(backPos);
+            }else{
+                if(map.getBlockType(actualPos) == BlockType.PAC_DOT || map.getBlockType(actualPos) == BlockType.PLANNED){
+                    map.mark(actualPos, BlockType.VISITED);
+                }
+            }
 
             Action action;
 

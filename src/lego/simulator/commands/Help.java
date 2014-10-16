@@ -18,7 +18,7 @@ public class Help implements Command {
 
 
         String title = "\n     Have no fear, the help is near!     \n";
-        String headline = Util.repeatNtimes("=",title.length() - 2)+"\n\n";
+        String headline = Util.repeatNTimes("=", title.length() - 2)+"\n\n";
 
         Print.color(title, ConsoleColors.CYAN);
         Print.color(headline, ConsoleColors.CYAN);
@@ -48,7 +48,7 @@ public class Help implements Command {
         Command[] cmds = CommandManager.getAvailableCommands();
 
         for (Command cmd : cmds) {
-            Print.line("    "+cmd.getName()+Util.repeatNtimes(" ",20-cmd.getName().length())+cmd.getShortDesc());
+            Print.line("    "+cmd.getName()+Util.repeatNTimes(" ", 20 - cmd.getName().length())+cmd.getShortDesc());
         }
 
         Print.color("\nAnd this is the end of help today. \nYou can invoke this message again by typing 'help' command (which you are familiar with)\n\n", ConsoleColors.BRIGHT_BLUE);
