@@ -2,7 +2,6 @@ package lego.simulator;
 
 import lego.simulator.commands.Command;
 import lego.simulator.commands.CommandManager;
-import lego.simulator.userinterface.ConsoleColors;
 import lego.simulator.userinterface.Print;
 import lego.simulator.userinterface.UserInput;
 
@@ -26,7 +25,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Print.color("Welcome to "+SOFT_NAME+"\n\n", ConsoleColors.CYAN);
+        Print.text("Welcome to " + SOFT_NAME + "\n\n");
 
         File autorun = new File("data/autorun.txt");
         if(autorun.canRead()){
@@ -48,7 +47,7 @@ public class Main {
 
         while(!markQuit){
 
-            Print.color("$ ", ConsoleColors.BRIGHT_BLUE);
+            Print.text("$ ");
             parseCommand(UserInput.getUserInputScanner().nextLine());
 
         }

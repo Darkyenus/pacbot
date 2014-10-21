@@ -1,7 +1,6 @@
 package lego.simulator.commands;
 
 import lego.simulator.Main;
-import lego.simulator.userinterface.ConsoleColors;
 import lego.simulator.userinterface.Print;
 import lego.util.Util;
 
@@ -20,8 +19,8 @@ public class Help implements Command {
         String title = "\n     Have no fear, the help is near!     \n";
         String headline = Util.repeatNTimes("=", title.length() - 2)+"\n\n";
 
-        Print.color(title, ConsoleColors.CYAN);
-        Print.color(headline, ConsoleColors.CYAN);
+        Print.text(title);
+        Print.text(headline);
 
         Print.line("Welcome in help command of "+ Main.SOFT_NAME+"\n");
         Print.line("PacmanTrainings is software responsible for training the pacman algorithms.");
@@ -43,16 +42,13 @@ public class Help implements Command {
         Print.line("word is treated as command and the rest as bunch of arguments (space separated)");
         Print.line("If you want to pass space as part of argument, use '\\ ' (backslash and space) instead.");
         Print.line("");
-        Print.color("Here is list of detected commands:\n\n", ConsoleColors.CYAN);
+        Print.text("Here is list of detected commands:\n\n");
 
         Command[] cmds = CommandManager.getAvailableCommands();
 
         for (Command cmd : cmds) {
             Print.line("    "+cmd.getName()+Util.repeatNTimes(" ", 20 - cmd.getName().length())+cmd.getShortDesc());
         }
-
-        Print.color("\nAnd this is the end of help today. \nYou can invoke this message again by typing 'help' command (which you are familiar with)\n\n", ConsoleColors.BRIGHT_BLUE);
-
     }
 
 

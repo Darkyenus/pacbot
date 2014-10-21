@@ -7,7 +7,6 @@ import lego.util.DebugRenderConstants;
 import lego.util.TupleIntInt;
 import lego.util.Util;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 /**
@@ -15,12 +14,8 @@ import java.util.HashMap;
  */
 public class Render {
 
-    public static void trainingMap(TrainingMap map, TupleIntInt robotPos) {
-        trainingMap(map, robotPos, null);
-    }
-
     public static void trainingMap(TrainingMap map, TupleIntInt robotPos, String label){
-        textAlongSideMap(map, robotPos, null, null);
+        textAlongSideMap(map, robotPos, label, null);
     }
 
     public static void textAlongSideMap(TrainingMap map, TupleIntInt robotPos, String label, String[] text){
@@ -35,15 +30,15 @@ public class Render {
                 } else if (str.length() == 29) {
                     str += Util.repeatNTimes("-", 28 - label.length());
                 }
-                Print.color(str, DebugRenderConstants.COLOR_MAZE_BLOCK);
+                Print.text(str);
             } else {
-                Print.color("+---------------------------+", DebugRenderConstants.COLOR_MAZE_BLOCK);
+                Print.text("+---------------------------+");
             }
 
             String margin = "          ";
 
             if(text != null && text.length != 0){
-                Print.color(margin+"Brain thinks that...\n", ConsoleColors.CYAN);
+                Print.text(margin+"Brain thinks that...\n");
             }else{
                 Print.line("");
             }
@@ -51,21 +46,21 @@ public class Render {
             int lineIndex = -1;
 
             for (int y = 0; y < 6; y++) {
-                Print.color("|", DebugRenderConstants.COLOR_MAZE_BLOCK);
+                Print.text("|");
                 for (int x = 0; x < 9; x++) {
                     if (robotPos != null && robotPos.getX() == x && robotPos.getY() == y) {
-                        Print.color(DebugRenderConstants.RENDER_ROBOT, DebugRenderConstants.COLOR_MAZE_ROBOT);
+                        Print.text(DebugRenderConstants.RENDER_ROBOT);
                     } else if (map.getMaze()[x][y].isStart) {
-                        Print.color(DebugRenderConstants.RENDER_START, DebugRenderConstants.COLOR_MAZE_START);
+                        Print.text(DebugRenderConstants.RENDER_START);
                     } else if (map.getMaze()[x][y].isBlock) {
-                        Print.color(DebugRenderConstants.RENDER_BLOCK, DebugRenderConstants.COLOR_MAZE_BLOCK);
+                        Print.text(DebugRenderConstants.RENDER_BLOCK);
                     } else if (map.getMaze()[x][y].visitedTimes == 0) {
-                        Print.color(DebugRenderConstants.RENDER_PAC_DOT, DebugRenderConstants.COLOR_MAZE_PAC_DOT);
+                        Print.text(DebugRenderConstants.RENDER_PAC_DOT);
                     } else {
-                        Print.color(DebugRenderConstants.RENDER_PAC_DOT_EATEN, DebugRenderConstants.COLOR_MAZE_PAC_DOT_EATEN);
+                        Print.text(DebugRenderConstants.RENDER_PAC_DOT_EATEN);
                     }
                 }
-                Print.color("|", DebugRenderConstants.COLOR_MAZE_BLOCK);
+                Print.text("|");
                 if(text != null && lineIndex != -1 && text.length > lineIndex){
                     Print.line(margin+text[lineIndex]);
                 }else{
@@ -73,7 +68,7 @@ public class Render {
                 }
                 lineIndex ++;
             }
-            Print.color("+---------------------------+", DebugRenderConstants.COLOR_MAZE_BLOCK);
+            Print.text("+---------------------------+");
             if(text != null && text.length > lineIndex){
                 Print.line(margin+text[lineIndex]);
             }else{
@@ -128,51 +123,27 @@ public class Render {
 
             header = header + Util.repeatNTimes("-", longestKey + longestValue + 10 - header.length());
 
-            Print.color(header+"+\n", ConsoleColors.CYAN);
-            Print.color("|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+            Print.text(header+"+\n");
+            Print.text("|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |");
 
             for(int i = 0; i < keys.length; i++){
                 if(!keys[i].isEmpty()) {
-                    Print.color("\n|   " + keys[i] + ":" + Util.repeatNTimes(" ", longestKey - keys[i].length()) + "  " +
-                            values[i] + Util.repeatNTimes(" ", longestValue - values[i].length()) + "   |", ConsoleColors.CYAN);
+                    Print.text("\n|   " + keys[i] + ":" + Util.repeatNTimes(" ", longestKey - keys[i].length()) + "  " +
+                            values[i] + Util.repeatNTimes(" ", longestValue - values[i].length()) + "   |");
                 }else{
-                    Print.color("\n|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
+                    Print.text("\n|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |");
                 }
             }
-            Print.color("\n|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |", ConsoleColors.CYAN);
-            Print.color("\n+"+Util.repeatNTimes("-", longestKey + longestValue + 9)+"+\n", ConsoleColors.CYAN);
+            Print.text("\n|   "+Util.repeatNTimes(" ", longestKey + longestValue + 3)+"   |");
+            Print.text("\n+"+Util.repeatNTimes("-", longestKey + longestValue + 9)+"+\n");
 
         }
     }
 
-    public static void messageBlock(String[] message, boolean instant, ConsoleColors color){
-
-        if(color == null)
-            color = ConsoleColors.DEFAULT;
-
-        boolean skipAnimation = instant;
-
-        for (String msg : message) {
-            int char_ = 0;
-            for (; char_ < msg.length() && !skipAnimation; char_++) {
-                Print.color(msg.substring(char_, char_ + 1), color);
-                try {
-                    Thread.sleep(190);
-                    if (System.in.available() > 0) {
-                        System.in.read(new byte[System.in.available()]);
-                        skipAnimation = true;
-                    }
-                } catch (InterruptedException ignored){
-
-                } catch (IOException ignored) {
-                }
-            }
-            if (skipAnimation) {
-                Print.color(msg.substring(char_), color);
-            }
-            Print.line("");
+    public static void messageBlock(String[] block){
+        for(String message:block){
+            Print.line(message);
         }
-
     }
 
     public static void statistics(BrainStatistic stats){
@@ -199,14 +170,14 @@ public class Render {
             String footer = " End of Robot brain stats output ";
             String equalises = Util.repeatNTimes("=", (titleLength - header.length() + 1) / 2);
 
-            Print.color(equalises+header+equalises+"\n", ConsoleColors.CYAN);
+            Print.text(equalises+header+equalises+"\n");
 
             for(int i = 0; i < keys.length; i++){
-                Print.color("\n    "+keys[i]+":"+Util.repeatNTimes(" ", longestKey - keys[i].length())+"  "+
-                        values[i], ConsoleColors.CYAN);
+                Print.text("\n    "+keys[i]+":"+Util.repeatNTimes(" ", longestKey - keys[i].length())+"  "+
+                        values[i]);
             }
 
-            Print.color("\n\n"+equalises+footer+equalises+"\n\n", ConsoleColors.CYAN);
+            Print.text("\n\n"+equalises+footer+equalises+"\n\n");
 
         }
     }

@@ -1,6 +1,5 @@
 package lego.simulator.commands;
 
-import lego.simulator.userinterface.ConsoleColors;
 import lego.simulator.userinterface.Print;
 import lego.util.Util;
 
@@ -21,9 +20,9 @@ public class Man implements Command {
                 String title = "            Manual for command: "+cmd.getName()+"           \n";
                 String headline = Util.repeatNTimes("=", title.length())+"\n";
 
-                Print.color(headline, ConsoleColors.CYAN);
-                Print.color(title, ConsoleColors.CYAN);
-                Print.color(headline, ConsoleColors.CYAN);
+                Print.text(headline);
+                Print.text(title);
+                Print.text(headline);
                 Print.line("");
 
                 String[] manPage = cmd.getManPage();
@@ -33,7 +32,7 @@ public class Man implements Command {
                 }
 
                 Print.line("\n\n");
-                Print.color("================ End of manual ================\n\n", ConsoleColors.CYAN);
+                Print.text("================ End of manual ================\n\n");
 
             }else{
                 Print.error("Command "+ args[0] + " doesn't exists. Please check for typos or try 'help' command.");

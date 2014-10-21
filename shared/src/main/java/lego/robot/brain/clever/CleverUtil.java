@@ -1,7 +1,5 @@
 package lego.robot.brain.clever;
 
-import lego.simulator.userinterface.ConsoleColors;
-import lego.util.DebugRenderConstants;
 import lego.util.TupleIntInt;
 
 /**
@@ -15,28 +13,25 @@ class CleverUtil {
     public static void generateDebugInfo(MappedMap map, CleverMain cm){
 
         String[] debug = new String[8];
-        debug[0] = new String(DebugRenderConstants.COLOR_MAZE_BLOCK.getCode())+"+---------------------------+"+new String(ConsoleColors.DEFAULT.getCode());
-        debug[7] = new String(DebugRenderConstants.COLOR_MAZE_BLOCK.getCode())+"+---------------------------+"+new String(ConsoleColors.DEFAULT.getCode());
+        debug[0] = "+---------------------------+";
+        debug[7] = "+---------------------------+";
 
         for(int y = 0; y < 6; y++){
             StringBuilder ln = new StringBuilder();
-            ln.append(new String(DebugRenderConstants.COLOR_MAZE_BLOCK.getCode()));
             ln.append("|");
             for(int x = 0; x < 9; x++){
                 BlockType type = map.getBlockType(new TupleIntInt(x,y));
                 if(cm.getRobotEnvironment().getPos().getX() == x && cm.getRobotEnvironment().getPos().getY() == y){
-                    ln.append(new String(DebugRenderConstants.COLOR_MAZE_ROBOT.getCode()));
                     ln.append("(-)");
                 }else {
                     switch (type) {
-                        case BLOCK: ln.append(new String(DebugRenderConstants.COLOR_MAZE_BLOCK.getCode())); ln.append("[x]"); break;
-                        case DEAD_END: ln.append(new String(ConsoleColors.RED.getCode())); ln.append("!!!"); break;
-                        case PAC_DOT: ln.append(new String(DebugRenderConstants.COLOR_MAZE_PAC_DOT.getCode())); ln.append(" # "); break;
-                        case START: ln.append(new String(DebugRenderConstants.COLOR_MAZE_START.getCode())); ln.append(" v "); break;
-                        case UNKNOWN: ln.append(new String(ConsoleColors.BLUE.getCode())); ln.append("???"); break;
+                        case BLOCK: ln.append("[x]"); break;
+                        case DEAD_END: ln.append("!!!"); break;
+                        case PAC_DOT: ln.append(" # "); break;
+                        case START: ln.append(" v "); break;
+                        case UNKNOWN: ln.append("???"); break;
                         case VISITED: ln.append("   "); break;
                         case PLANNED:
-                            ln.append(new String(ConsoleColors.CYAN.getCode()));
                             boolean hor = false;
                             boolean ver = false;
                             if(map.getBlockType(new TupleIntInt(x-1,y)) == BlockType.PLANNED){
@@ -73,7 +68,6 @@ class CleverUtil {
                     }
                 }
             }
-            ln.append(new String(DebugRenderConstants.COLOR_MAZE_BLOCK.getCode()));
             ln.append("|");
             debug[1+y] = ln.toString();
         }

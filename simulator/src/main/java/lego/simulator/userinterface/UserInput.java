@@ -1,7 +1,5 @@
 package lego.simulator.userinterface;
 
-import lego.util.DebugRenderConstants;
-
 import java.util.Scanner;
 
 /**
@@ -21,7 +19,7 @@ public class UserInput {
 
     public static boolean waitForEnterCancelable(boolean displayMessage){
         if(displayMessage){
-            Print.color("[Waiting] ", DebugRenderConstants.COLOR_TAG_INTERACTION);
+            Print.text("[Waiting] ");
             Print.text("Press ENTER to continue or type 'Cancel' ");
         }
         String data = scanner.nextLine();
@@ -30,14 +28,14 @@ public class UserInput {
 
     public static void waitForEnter(boolean displayMessage){
         if(displayMessage){
-            Print.color("[Waiting] ", DebugRenderConstants.COLOR_TAG_INTERACTION);
+            Print.text("[Waiting] ");
             Print.text("Press ENTER to continue");
         }
         scanner.nextLine();
     }
 
     public static boolean askQuestion(String question){
-        Print.color("[Question] (yes/no): ", DebugRenderConstants.COLOR_TAG_INTERACTION);
+        Print.text("[Question] (yes/no): ");
         Print.text(question);
         Print.text(" ");
         String line = scanner.nextLine();
