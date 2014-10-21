@@ -7,4 +7,5 @@ package lego.api;
  * Time: 13:45
  */
 public abstract class BotController {
+    protected void initialize(){}
 }

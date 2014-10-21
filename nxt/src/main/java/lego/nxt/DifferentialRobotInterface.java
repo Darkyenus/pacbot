@@ -15,23 +15,23 @@ public class DifferentialRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveForward() {
-        Driver.TaskProcessor.appendHead(Driver.constructStraightDrive(BLOCK_DISTANCE, DEFAULT_SPEED));
+        Driver.TaskProcessor.appendTask(Driver.constructStraightDrive(BLOCK_DISTANCE, DEFAULT_SPEED));
     }
 
     @Override
     public void queueAddMoveBackward() {
-        Driver.TaskProcessor.appendHead(Driver.constructStraightDrive(-BLOCK_DISTANCE, DEFAULT_SPEED));
+        Driver.TaskProcessor.appendTask(Driver.constructStraightDrive(-BLOCK_DISTANCE, DEFAULT_SPEED));
     }
 
 
     @Override
     public void queueAddTurnLeft() {
-        Driver.TaskProcessor.appendHead(Driver.constructTurnOnSpot(Driver.HALF_PI));
+        Driver.TaskProcessor.appendTask(Driver.constructTurnOnSpot(Driver.HALF_PI));
     }
 
     @Override
     public void queueAddTurnRight() {
-        Driver.TaskProcessor.appendHead(Driver.constructTurnOnSpot(-Driver.HALF_PI));
+        Driver.TaskProcessor.appendTask(Driver.constructTurnOnSpot(-Driver.HALF_PI));
     }
 
 

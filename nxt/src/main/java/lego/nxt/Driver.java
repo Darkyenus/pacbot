@@ -19,9 +19,9 @@ import java.util.HashMap;
  */
 public class Driver {
 
-    private static final boolean FLIP_DIRECTION = true;
+    private Driver(){} //Driver is singleton, never instantiated
 
-    private static final int TRAY_BALLS = 8;
+    private static final boolean FLIP_DIRECTION = true;
 
     public static final float HALF_PI = (float) (Math.PI / 2.0);
     public static final float PI = (float) Math.PI;
@@ -42,13 +42,18 @@ public class Driver {
     private static boolean virtualEnter = false;
     private static boolean virtualEscape = false;
 
-    public static void main(String[] args) {
-        Thread.currentThread().setName("main");
-        startSubsystems();
-        MotorManager.stop(MotorManager.MAX_ACCELERATION);
+    public static void initialize(){
+        Thread driverThread = new Thread("Driver"){
+            @Override
+            public void run() {
+                startSubsystems();
+                MotorManager.stop(MotorManager.MAX_ACCELERATION);
 
-        TaskProcessor.process();
-
+                TaskProcessor.process();
+            }
+        };
+        driverThread.setDaemon(false);
+        driverThread.start();
     }
 
     /**
@@ -91,21 +96,41 @@ public class Driver {
         toolMotor.flt(true);//Start spinning!
     }
 
+    /**
+     * Singleton responsible for scheduling tasks.
+     * Task's create linked list structure that is being constantly consumed by Tasks themselves.
+     * Every Task can have one successor task.
+     * When active Task finishes, successor takes over. When there is no successor,
+     * TaskProcessor waits for more actions from outside and resumes processing as soon as any task arrives.
+     */
     public static class TaskProcessor {
+        private TaskProcessor(){}
+
         private static final Object PROCESSOR_LOCK = new Object();
         private static Task stackHead = null;
         private static boolean running = true;
 
+        /**
+         * @return when no task is being processed
+         */
         public static boolean isIdle(){
             return stackHead == null;
         }
 
+        /**
+         * Will wait using 200ms delays until TaskProcessor is idle, then returns.
+         * Will return immediately when idle.
+         */
         public static void waitUntilIdle(){
             while(isIdle()){
                 Delay.msDelay(200);
             }
         }
 
+        /**
+         * Will stop processing as soon as last task finishes.
+         * Will not then continue to its successors nor wait for more.
+         */
         public static void scheduleExit() {
             running = false;
             synchronized (PROCESSOR_LOCK) {
@@ -113,27 +138,35 @@ public class Driver {
             }
         }
 
-        public static void appendHead(Task head) {
-            if (head == null) {
+        /**
+         * Given task will be added to the end of queue.
+         * Then it will be executed asynchronously.
+         * Therefore, this method doesn't block.
+         *
+         * @param task to be added
+         */
+        public static void appendTask(Task task) {
+            if (task == null) {
                 return;
             }
             if (stackHead == null) {
-                stackHead = head;
+                stackHead = task;
                 synchronized (PROCESSOR_LOCK) {
                     PROCESSOR_LOCK.notifyAll();
                 }
             } else {
-                stackHead.appendTask(head);
+                stackHead.appendTask(task);
             }
         }
 
+        /**
+         * Do not call this from user code, this is called by Driver class to actually process Task's.
+         */
         public static void process() {
             while (running) {
                 if (stackHead != null) {
-                    //console.printTime("P: "+stackHead);
                     stackHead.process();
                     stackHead = stackHead.nextTask;
-                    //console.printTime("P");
                 } else {
                     synchronized (PROCESSOR_LOCK) {
                         try {
@@ -145,49 +178,84 @@ public class Driver {
             }
         }
 
+        /**
+         * Task contains logic for program.
+         * It has one optional successor Task that will be executed when this Task finishes.
+         * This goes down recursively.
+         */
         public static class Task {
 
             private Task nextTask;
 
+            /**
+             * Actual logic for task is here. Override this method.
+             */
             protected void process() {
             }
 
-            public Task pushNextTask(Task task) {
-                task.appendTask(nextTask);
-                nextTask = task;
+            /**
+             * Given task will be forcefully added right after this task.
+             * So it will be this task's direct successor.
+             * Any previous successors will be appended to this successor.
+             * {@see appendTask(Task)} for how it will be done.
+             */
+            public Task pushTask(Task directSuccessor) {
+                directSuccessor.appendTask(nextTask);
+                nextTask = directSuccessor;
                 return this;
             }
 
-            public Task appendNextTask(Task task) {
-                appendTask(task);
-                return this;
-            }
-
-            private void appendTask(Task toAppend) {
+            /**
+             * Given task will be added as successor to this Task.
+             * If this task has no successor, it will be direct successor.
+             * If this task has successor, it will be appended with same logic to him.
+             *
+             * So, given task will be at the end of this task queue.
+             */
+            public Task appendTask(Task successor) {
                 if (nextTask == null) {
-                    nextTask = toAppend;
+                    nextTask = successor;
                 } else {
-                    nextTask.appendTask(toAppend);
+                    nextTask.appendTask(successor);
                 }
+                return this;
             }
 
+            /**
+             * Override this if your task runs for any measurable amount of time.
+             * Returns true if robot doesn't move during this task.
+             * Moving tasks can use this knowledge to brake/not accelerate and thus speeding up the robot.
+             */
             public boolean isStationery() {
                 return isNextStationery();
             }
 
+            /**
+             * @return Whether direct successor isStationery. When there is none, returns true.
+             */
             protected boolean isNextStationery() {
                 return nextTask == null || nextTask.isStationery();
             }
 
+            /**
+             * Returns debug info about this task. Please override this with custom info.
+             */
             @Override
             public String toString() {
                 return "T:Empty";
             }
 
+            /**
+             * @return direct successor. May be null.
+             */
             protected Task getNextTask() {
                 return nextTask;
             }
 
+            /**
+             * Sets direct successor, discarding original one (if there was any).
+             * So anything queued after this Task will be discarded by this.
+             */
             protected void setNextTask(Task nextTask) {
                 this.nextTask = nextTask;
             }
@@ -472,10 +540,10 @@ public class Driver {
                         if (remainingTries > 0) {
                             if(leftClaw.isPressed()){
                                 TaskProcessor.Task getRidOfBallsProcedure = constructUnstuckerFast/*Classic*/(turnOffset, remainingTries);
-                                pushNextTask(getRidOfBallsProcedure);
+                                pushTask(getRidOfBallsProcedure);
                             }else{
                                 TaskProcessor.Task getRidOfBallsProcedure = constructUnstuckerFast/*Classic*/(-turnOffset, remainingTries);
-                                pushNextTask(getRidOfBallsProcedure);
+                                pushTask(getRidOfBallsProcedure);
                             }
 
                         }
@@ -483,7 +551,7 @@ public class Driver {
                     } else if (delaysToTimeout <= 0) {
                         if (remainingTries > 0) {
                             TaskProcessor.Task getRidOfBallsProcedure = constructUnstuckerFast/*Classic*/(-turnOffset, remainingTries);
-                            pushNextTask(getRidOfBallsProcedure);
+                            pushTask(getRidOfBallsProcedure);
                         }
                         break;
                     }
@@ -508,7 +576,7 @@ public class Driver {
     }
 
     private static TaskProcessor.Task constructUnstuckerFast(float turnOffset,int remainingTries){
-        return constructStraightDrive(-2,MotorManager.MAX_SPEED()).appendNextTask(constructTurnOnSpot(turnOffset)).appendNextTask(constructWait(300)).appendNextTask(constructCalibrateForward(remainingTries - 1));
+        return constructStraightDrive(-2,MotorManager.MAX_SPEED()).appendTask(constructTurnOnSpot(turnOffset)).appendTask(constructWait(300)).appendTask(constructCalibrateForward(remainingTries - 1));
     }
 
     public static TaskProcessor.Task constructCalibrateBackward() {
@@ -622,7 +690,6 @@ public class Driver {
 
     public static class Console extends Thread {
 
-        /*private final long start = System.currentTimeMillis();*/
         private StringBuilder outBuffer = new StringBuilder();
         private boolean connected = false;
         private int sleepTime = 200;
@@ -733,7 +800,7 @@ public class Driver {
                         } else if (incoming.charAt(0) == '+') {
                             FileExecutor.execute(incoming.substring(1));
                         } else {
-                            TaskProcessor.appendHead(parseTask(incoming));
+                            TaskProcessor.appendTask(parseTask(incoming));
                         }
                     }
                     Delay.msDelay(sleepTime);
@@ -749,10 +816,6 @@ public class Driver {
                 System.exit(0);
             }
         }
-
-        /*public void printTime(String data){
-            print((System.currentTimeMillis()-start)+": "+data);
-        }*/
 
         public void print(String data) {
             if (connected) {
@@ -791,7 +854,7 @@ public class Driver {
 
         public static final float MAX_ACCELERATION = 9000;
         public static final float SMOOTH_ACCELERATION = 3000;
-        public static final float NO_DECELERATION = MAX_ACCELERATION;//Float.POSITIVE_INFINITY;//0;
+        public static final float NO_DECELERATION = MAX_ACCELERATION;
 
         public static final float wheelDiameterCM = 4.2f;
         public static final float wheelCircumferenceCM = PI * wheelDiameterCM;
@@ -907,7 +970,7 @@ public class Driver {
                         if (toRead == '\n') {
                             commandLine = false;
                             if (lineContent.length() != 0) {
-                                TaskProcessor.appendHead(parseTask(lineContent.toString()));
+                                TaskProcessor.appendTask(parseTask(lineContent.toString()));
                                 lineContent = new StringBuilder();
                             }
                         } else if (!commandLine) {
@@ -919,7 +982,7 @@ public class Driver {
                         }
                     } else {
                         if (lineContent.length() != 0) {
-                            TaskProcessor.appendHead(parseTask(lineContent.toString()));
+                            TaskProcessor.appendTask(parseTask(lineContent.toString()));
                         }
                         keepReading = false;
                     }

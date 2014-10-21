@@ -51,94 +51,94 @@ public class CartesianRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveForward() {
-        Driver.TaskProcessor.appendHead(constructAxisToggle(true));
-        Driver.TaskProcessor.appendHead(
-            new Driver.TaskProcessor.Task() {
-                @Override
-                protected void process() {
-                    Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
-                }
+        Driver.TaskProcessor.appendTask(constructAxisToggle(true));
+        Driver.TaskProcessor.appendTask(
+                new Driver.TaskProcessor.Task() {
+                    @Override
+                    protected void process() {
+                        Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
+                    }
 
-                @Override
-                public boolean isStationery() {
-                    return false;
-                }
+                    @Override
+                    public boolean isStationery() {
+                        return false;
+                    }
 
-                @Override
-                public String toString() {
-                    return "T:Straight " + BLOCK_DISTANCE;
+                    @Override
+                    public String toString() {
+                        return "T:Straight " + BLOCK_DISTANCE;
+                    }
                 }
-            }
         );
     }
 
     @Override
     public void queueAddMoveBackward() {
-        Driver.TaskProcessor.appendHead(constructAxisToggle(true));
-        Driver.TaskProcessor.appendHead(
-            new Driver.TaskProcessor.Task() {
-                @Override
-                protected void process() {
-                    Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
-                }
+        Driver.TaskProcessor.appendTask(constructAxisToggle(true));
+        Driver.TaskProcessor.appendTask(
+                new Driver.TaskProcessor.Task() {
+                    @Override
+                    protected void process() {
+                        Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
+                    }
 
-                @Override
-                public boolean isStationery() {
-                    return false;
-                }
+                    @Override
+                    public boolean isStationery() {
+                        return false;
+                    }
 
-                @Override
-                public String toString() {
-                    return "T:Straight " + -BLOCK_DISTANCE;
+                    @Override
+                    public String toString() {
+                        return "T:Straight " + -BLOCK_DISTANCE;
+                    }
                 }
-            }
         );
     }
 
 
     @Override
     public void queueAddMoveLeft() { //Relative movement * facing down = absolute move right
-        Driver.TaskProcessor.appendHead(constructAxisToggle(false));
-        Driver.TaskProcessor.appendHead(
-            new Driver.TaskProcessor.Task() {
-                @Override
-                protected void process() {
-                    Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
-                }
+        Driver.TaskProcessor.appendTask(constructAxisToggle(false));
+        Driver.TaskProcessor.appendTask(
+                new Driver.TaskProcessor.Task() {
+                    @Override
+                    protected void process() {
+                        Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
+                    }
 
-                @Override
-                public boolean isStationery() {
-                    return false;
-                }
+                    @Override
+                    public boolean isStationery() {
+                        return false;
+                    }
 
-                @Override
-                public String toString() {
-                    return "T:Straight " + -BLOCK_DISTANCE;
+                    @Override
+                    public String toString() {
+                        return "T:Straight " + -BLOCK_DISTANCE;
+                    }
                 }
-            }
         );
     }
 
     @Override
     public void queueAddMoveRight() {
-        Driver.TaskProcessor.appendHead(constructAxisToggle(false));
-        Driver.TaskProcessor.appendHead(
-            new Driver.TaskProcessor.Task() {
-                @Override
-                protected void process() {
-                    Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
-                }
+        Driver.TaskProcessor.appendTask(constructAxisToggle(false));
+        Driver.TaskProcessor.appendTask(
+                new Driver.TaskProcessor.Task() {
+                    @Override
+                    protected void process() {
+                        Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
+                    }
 
-                @Override
-                public boolean isStationery() {
-                    return false;
-                }
+                    @Override
+                    public boolean isStationery() {
+                        return false;
+                    }
 
-                @Override
-                public String toString() {
-                    return "T:Straight " + BLOCK_DISTANCE;
+                    @Override
+                    public String toString() {
+                        return "T:Straight " + BLOCK_DISTANCE;
+                    }
                 }
-            }
         );
     }
 
