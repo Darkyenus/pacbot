@@ -87,6 +87,10 @@ public class Quit implements Command {
 
     }
 
+    /**
+     * @deprecated This is inherently unsafe and should not be used. Really.
+     */
+    @Deprecated
     private void stopOrKillThreads(Thread[] threads, boolean silent){
         for(Thread t:threads){
             if(t instanceof StoppableThread){

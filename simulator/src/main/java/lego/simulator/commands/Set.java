@@ -25,17 +25,7 @@ public class Set implements Command {
             }
 
             String s2 = args[0].toLowerCase();
-            if (s2.equals("enablecolors")) {
-                Print.setColorsEnabled("true".equals(args[1].toLowerCase()) || "1".equals(args[1]));
-                if (!silent) {
-                    if (Print.isColorsEnabled()) {
-                        Print.success("Colors has been enabled in terminal" + "\n");
-                    } else {
-                        Print.success("Colors has been disabled in terminal" + "\n");
-                    }
-                }
-
-            } else if (s2.equals("hideoutputs")) {
+            if (s2.equals("hideoutputs")) {
                 String s = args[1].toLowerCase();
                 if (s.equals("info")) {
                     RenderPermissions.setRenderInfos(false);

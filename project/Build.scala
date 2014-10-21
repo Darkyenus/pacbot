@@ -18,7 +18,8 @@ object Build extends Build {
     autoScalaLibrary := false,
     javacOptions ++= Seq(
       "-target", "6",
-      "-source", "6"
+      "-source", "6",
+      "-Xlint:deprecation"
     ),
     unmanagedBase := file("lejos") / "lib" / "nxt"
   )
