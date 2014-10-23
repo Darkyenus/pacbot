@@ -1,5 +1,6 @@
 package lego.nxt;
 
+import lego.nxt.util.TaskProcessor;
 import lego.robot.api.RobotInterface;
 import lejos.nxt.Motor;
 
@@ -8,8 +9,11 @@ import lejos.nxt.Motor;
  * User: jIRKA
  * Date: 9.10.2014
  * Time: 17:34
+ *
+ * @deprecated This uses Driver class and is old api. Will be deleted soon, probably.
  */
-public class CartesianRobotInterface extends RobotInterface{
+@Deprecated
+public class CartesianRobotInterface extends RobotInterface {
 
     public static final float BLOCK_DISTANCE = 28.5f;
     public static final int DEFAULT_SPEED = 800;
@@ -24,8 +28,8 @@ public class CartesianRobotInterface extends RobotInterface{
         this.inVerticalMode = inVerticalMode;
     }
 
-    private Driver.TaskProcessor.Task constructAxisToggle(final boolean targetInVertical){
-        return new Driver.TaskProcessor.Task() {
+    private TaskProcessor.Task constructAxisToggle(final boolean targetInVertical){
+        return new TaskProcessor.Task() {
             @Override
             protected void process() {
                 if(!targetInVertical && isInVerticalMode()) {
@@ -51,9 +55,9 @@ public class CartesianRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveForward() {
-        Driver.TaskProcessor.appendTask(constructAxisToggle(true));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(true));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -74,9 +78,9 @@ public class CartesianRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveBackward() {
-        Driver.TaskProcessor.appendTask(constructAxisToggle(true));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(true));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -98,9 +102,9 @@ public class CartesianRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveLeft() { //Relative movement * facing down = absolute move right
-        Driver.TaskProcessor.appendTask(constructAxisToggle(false));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(false));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -121,9 +125,9 @@ public class CartesianRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveRight() {
-        Driver.TaskProcessor.appendTask(constructAxisToggle(false));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(false));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -169,12 +173,12 @@ public class CartesianRobotInterface extends RobotInterface{
 
     @Override
     public boolean isQueueRunning() {
-        return !Driver.TaskProcessor.isIdle();
+        return !TaskProcessor.isIdle();
     }
 
     @Override
     public void waitUntilQueueIsEmpty() {
-        Driver.TaskProcessor.waitUntilIdle();
+        TaskProcessor.waitUntilIdle();
     }
 
     @Override

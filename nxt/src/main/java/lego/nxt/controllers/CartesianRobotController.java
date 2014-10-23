@@ -1,7 +1,8 @@
 package lego.nxt.controllers;
 
-import lego.api.BotController;
+import lego.api.controllers.CartesianController;
 import lego.nxt.Driver;
+import lego.nxt.util.TaskProcessor;
 import lejos.nxt.Motor;
 
 /**
@@ -10,7 +11,7 @@ import lejos.nxt.Motor;
  * Date: 21/10/14
  * Time: 20:30
  */
-public final class CartesianRobotController extends BotController {
+public class CartesianRobotController extends CartesianController {
 
     @Override
     protected void initialize() {
@@ -22,18 +23,21 @@ public final class CartesianRobotController extends BotController {
 
     private boolean inVerticalMode = true;
 
+    @Override
     public boolean isInVerticalMode(){
         return inVerticalMode;
     }
 
+    @Override
     public void setInVerticalMode(boolean inVerticalMode){
         this.inVerticalMode = inVerticalMode;
     }
 
-    private Driver.TaskProcessor.Task constructAxisToggle(final boolean targetInVertical){
-        return new Driver.TaskProcessor.Task() {
+    private TaskProcessor.Task constructAxisToggle(final boolean targetInVertical){
+        return new TaskProcessor.Task() {
             @Override
             protected void process() {
+                Motor.A.setStallThreshold(30,250);//This should prevent mishaps TODO QQQ
                 if(!targetInVertical && isInVerticalMode()) {
                     Motor.A.rotate(-450);
                     setInVerticalMode(false);
@@ -55,10 +59,11 @@ public final class CartesianRobotController extends BotController {
         };
     }
 
+    @Override
     public void queueAddMoveForward() {
-        Driver.TaskProcessor.appendTask(constructAxisToggle(true));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(true));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -77,10 +82,11 @@ public final class CartesianRobotController extends BotController {
         );
     }
 
+    @Override
     public void queueAddMoveBackward() {
-        Driver.TaskProcessor.appendTask(constructAxisToggle(true));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(true));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -100,10 +106,11 @@ public final class CartesianRobotController extends BotController {
     }
 
 
+    @Override
     public void queueAddMoveLeft() { //Relative movement * facing down = absolute move right
-        Driver.TaskProcessor.appendTask(constructAxisToggle(false));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(false));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(-BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -122,10 +129,11 @@ public final class CartesianRobotController extends BotController {
         );
     }
 
+    @Override
     public void queueAddMoveRight() {
-        Driver.TaskProcessor.appendTask(constructAxisToggle(false));
-        Driver.TaskProcessor.appendTask(
-                new Driver.TaskProcessor.Task() {
+        TaskProcessor.appendTask(constructAxisToggle(false));
+        TaskProcessor.appendTask(
+                new TaskProcessor.Task() {
                     @Override
                     protected void process() {
                         Driver.MotorManager.move(BLOCK_DISTANCE, 0, DEFAULT_SPEED, Driver.MotorManager.SMOOTH_ACCELERATION, isNextStationery() ? Driver.MotorManager.SMOOTH_ACCELERATION : Driver.MotorManager.NO_DECELERATION, isNextStationery());
@@ -145,31 +153,37 @@ public final class CartesianRobotController extends BotController {
     }
 
 
+    @Override
     public boolean scanLeft() {
         //TODO need to enhance robot hardware
         return false;
     }
 
+    @Override
     public boolean scanRight() {
         //TODO need to enhance robot hardware
         return false;
     }
 
+    @Override
     public boolean scanFront() {
         //TODO need to enhance robot hardware
         return false;
     }
 
+    @Override
     public boolean scanBack() {
         //TODO need to enhance robot hardware
         return false;
     }
 
+    @Override
     public boolean isQueueRunning() {
-        return !Driver.TaskProcessor.isIdle();
+        return !TaskProcessor.isIdle();
     }
 
+    @Override
     public void waitUntilQueueIsEmpty() {
-        Driver.TaskProcessor.waitUntilIdle();
+        TaskProcessor.waitUntilIdle();
     }
 }

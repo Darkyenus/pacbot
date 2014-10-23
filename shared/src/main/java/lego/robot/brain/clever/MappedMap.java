@@ -3,7 +3,10 @@ package lego.robot.brain.clever;
 import lego.util.TupleIntInt;
 import lego.util.Util;
 
-
+/**
+ * @deprecated Old API
+ */
+@Deprecated
 class MappedMap {
     private BlockType[][] map;
     public void init(TupleIntInt startPos){

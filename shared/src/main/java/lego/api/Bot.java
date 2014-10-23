@@ -9,18 +9,11 @@ package lego.api;
 public abstract class Bot <C extends BotController> {
 
     /**
-     * This should be written to only from Bootstrap and read only from controller() method.
+     * This should be written to only from Bootstrap.
      *
-     * Tl;dr: DON'T TOUCH
+     * Tl;dr: READ ONLY
      */
-    C controllerInstance;
-
-    /**
-     * Provided controller of robot. Use this to interact with outer world.
-     */
-    protected final C controller(){
-        return controllerInstance;
-    }
+    protected C controller;
 
     public abstract void run();
 

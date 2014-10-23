@@ -5,7 +5,10 @@ package lego.util;
  * User: jIRKA
  * Date: 9.10.2014
  * Time: 18:58
+ *
+ * @deprecated Too garbage inducing
  */
+@Deprecated
 public class Tuple3<A,B,C>{
 
     private A a = null;

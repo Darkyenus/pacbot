@@ -2,7 +2,10 @@ package lego.util;
 
 /**
  * Created by jIRKA on 4.10.2014.
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public class DebugRenderConstants {
 
     public static final String RENDER_BLOCK = "[x]";

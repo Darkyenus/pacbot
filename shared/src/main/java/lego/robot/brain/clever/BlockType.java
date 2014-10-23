@@ -1,6 +1,9 @@
 package lego.robot.brain.clever;
 
-
+/**
+ * @deprecated Old API
+ */
+@Deprecated
 enum BlockType {
     UNKNOWN,
     BLOCK,
@@ -8,6 +11,5 @@ enum BlockType {
     PAC_DOT,
     VISITED,
     PLANNED,
-    DEAD_END;
-
+    DEAD_END
 }

@@ -1,5 +1,6 @@
 package lego.nxt;
 
+import lego.nxt.util.TaskProcessor;
 import lego.robot.api.RobotInterface;
 
 /**
@@ -7,7 +8,10 @@ import lego.robot.api.RobotInterface;
  * User: jIRKA
  * Date: 9.10.2014
  * Time: 17:34
+ *
+ * @deprecated This uses Driver class and is old api. Will be deleted soon, probably.
  */
+@Deprecated
 public class DifferentialRobotInterface extends RobotInterface{
 
     public static final float BLOCK_DISTANCE = 28.5f;
@@ -15,23 +19,23 @@ public class DifferentialRobotInterface extends RobotInterface{
 
     @Override
     public void queueAddMoveForward() {
-        Driver.TaskProcessor.appendTask(Driver.constructStraightDrive(BLOCK_DISTANCE, DEFAULT_SPEED));
+        TaskProcessor.appendTask(Driver.constructStraightDrive(BLOCK_DISTANCE, DEFAULT_SPEED));
     }
 
     @Override
     public void queueAddMoveBackward() {
-        Driver.TaskProcessor.appendTask(Driver.constructStraightDrive(-BLOCK_DISTANCE, DEFAULT_SPEED));
+        TaskProcessor.appendTask(Driver.constructStraightDrive(-BLOCK_DISTANCE, DEFAULT_SPEED));
     }
 
 
     @Override
     public void queueAddTurnLeft() {
-        Driver.TaskProcessor.appendTask(Driver.constructTurnOnSpot(Driver.HALF_PI));
+        TaskProcessor.appendTask(Driver.constructTurnOnSpot(Driver.HALF_PI));
     }
 
     @Override
     public void queueAddTurnRight() {
-        Driver.TaskProcessor.appendTask(Driver.constructTurnOnSpot(-Driver.HALF_PI));
+        TaskProcessor.appendTask(Driver.constructTurnOnSpot(-Driver.HALF_PI));
     }
 
 
@@ -61,12 +65,12 @@ public class DifferentialRobotInterface extends RobotInterface{
 
     @Override
     public boolean isQueueRunning() {
-        return !Driver.TaskProcessor.isIdle();
+        return !TaskProcessor.isIdle();
     }
 
     @Override
     public void waitUntilQueueIsEmpty() {
-        Driver.TaskProcessor.waitUntilIdle();
+        TaskProcessor.waitUntilIdle();
     }
 
     @Override

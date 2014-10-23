@@ -28,7 +28,7 @@ MAIN_CLASS=$1
 
 if [ -n "$MAIN_CLASS" ]
 then
-    echo "Linking $PROGRAM_NAME..."
+    echo "Linking $PROGRAM_NAME (main: $MAIN_CLASS)..."
     ../../lejos/bin/nxjlink -v -od linkDump -o ${PROGRAM_NAME}.nxj ${MAIN_CLASS} > debugInfo.txt
     echo "Linked, output saved in $COMPILEDIR/debugInfo.txt"
 else

@@ -13,7 +13,10 @@ import java.util.HashMap;
  * User: jIRKA
  * Date: 8.10.2014
  * Time: 17:56
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public class Brain {
 
     public static final String[] supportedTypes = {"Random", "Testificate", "Clever"};

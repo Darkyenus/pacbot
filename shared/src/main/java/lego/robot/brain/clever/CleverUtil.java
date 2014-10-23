@@ -7,7 +7,10 @@ import lego.util.TupleIntInt;
  * User: jIRKA
  * Date: 10.10.2014
  * Time: 16:30
+ *
+ * @deprecated Old API
  */
+@Deprecated
 class CleverUtil {
 
     public static void generateDebugInfo(MappedMap map, CleverMain cm){

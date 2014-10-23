@@ -5,7 +5,10 @@ package lego.robot.brain.clever;
  * User: jIRKA
  * Date: 10.10.2014
  * Time: 16:49
+ *
+ * @deprecated Old API
  */
+@Deprecated
 enum Action {
 
     MOVE_FORWARD,

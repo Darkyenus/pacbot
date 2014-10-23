@@ -2,6 +2,7 @@ package lego.nxt.controllers;
 
 import lego.api.BotController;
 import lego.nxt.Driver;
+import lego.nxt.util.TaskProcessor;
 
 /**
  * Private property.
@@ -20,20 +21,20 @@ public final class DifferentialRobotController extends BotController {
     public static final int DEFAULT_SPEED = 800;
 
     public void queueAddMoveForward() {
-        Driver.TaskProcessor.appendTask(Driver.constructStraightDrive(BLOCK_DISTANCE, DEFAULT_SPEED));
+        TaskProcessor.appendTask(Driver.constructStraightDrive(BLOCK_DISTANCE, DEFAULT_SPEED));
     }
 
     public void queueAddMoveBackward() {
-        Driver.TaskProcessor.appendTask(Driver.constructStraightDrive(-BLOCK_DISTANCE, DEFAULT_SPEED));
+        TaskProcessor.appendTask(Driver.constructStraightDrive(-BLOCK_DISTANCE, DEFAULT_SPEED));
     }
 
 
     public void queueAddTurnLeft() {
-        Driver.TaskProcessor.appendTask(Driver.constructTurnOnSpot(Driver.HALF_PI));
+        TaskProcessor.appendTask(Driver.constructTurnOnSpot(Driver.HALF_PI));
     }
 
     public void queueAddTurnRight() {
-        Driver.TaskProcessor.appendTask(Driver.constructTurnOnSpot(-Driver.HALF_PI));
+        TaskProcessor.appendTask(Driver.constructTurnOnSpot(-Driver.HALF_PI));
     }
 
 
@@ -58,10 +59,10 @@ public final class DifferentialRobotController extends BotController {
     }
 
     public boolean isQueueRunning() {
-        return !Driver.TaskProcessor.isIdle();
+        return !TaskProcessor.isIdle();
     }
 
     public void waitUntilQueueIsEmpty() {
-        Driver.TaskProcessor.waitUntilIdle();
+        TaskProcessor.waitUntilIdle();
     }
 }

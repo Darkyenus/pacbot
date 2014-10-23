@@ -8,7 +8,10 @@ import lego.robot.api.RobotStrategy;
  * User: jIRKA
  * Date: 3.10.2014
  * Time: 20:30
+ *
+ * @deprecated Uses old API
  */
+@Deprecated
 public class TestificateMain extends RobotStrategy {
 
     public TestificateMain(AbstractRobotInterface ari){

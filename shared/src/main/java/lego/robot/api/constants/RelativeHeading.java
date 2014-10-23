@@ -5,7 +5,10 @@ package lego.robot.api.constants;
  * User: jIRKA
  * Date: 30.9.2014
  * Time: 20:29
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public enum RelativeHeading {
     LEFT,
     RIGHT

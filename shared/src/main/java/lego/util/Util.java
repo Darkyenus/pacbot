@@ -6,7 +6,10 @@ import lego.robot.api.constants.RelativeMovement;
 
 /**
  * Created by jIRKA on 3.10.2014.
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public class Util {
 
     public static TupleIntInt getTransformedPos(TupleIntInt actualPos, AbsoluteHeading heading, RelativeMovement movement){

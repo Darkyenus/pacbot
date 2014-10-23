@@ -10,7 +10,10 @@ import lego.util.TupleIntInt;
  * User: jIRKA
  * Date: 30.9.2014
  * Time: 20:29
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public class RobotEnvironment {
 
     final public static int mazeWidth = 9;

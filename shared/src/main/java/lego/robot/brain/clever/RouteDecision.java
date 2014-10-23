@@ -5,7 +5,10 @@ package lego.robot.brain.clever;
  * User: jIRKA
  * Date: 10.10.2014
  * Time: 16:51
+ *
+ * @deprecated Old API
  */
+@Deprecated
 class RouteDecision {
 
 

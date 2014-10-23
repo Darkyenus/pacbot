@@ -5,7 +5,10 @@ package lego.robot.api;
  * User: jIRKA
  * Date: 30.9.2014
  * Time: 20:29
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public interface AbstractRobotInterface {
 
     public RobotEnvironment getRobotEnvironment();

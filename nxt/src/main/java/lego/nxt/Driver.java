@@ -1,11 +1,10 @@
 package lego.nxt;
 
+import lego.nxt.util.TaskProcessor;
 import lego.robot.api.RobotInterface;
 import lego.robot.api.RobotStrategy;
 import lego.robot.brain.Brain;
 import lejos.nxt.*;
-import lejos.nxt.comm.NXTConnection;
-import lejos.nxt.comm.USB;
 import lejos.util.Delay;
 
 import java.io.*;
@@ -16,7 +15,10 @@ import java.util.HashMap;
  * User: Darkyen
  * Date: 04/12/13
  * Time: 22:02
+ *
+ * @deprecated This class is now irrelevant. It was crafted for something else than you need. Go away.
  */
+@Deprecated
 public class Driver {
 
     private Driver(){} //Driver is singleton, never instantiated
@@ -43,17 +45,9 @@ public class Driver {
     private static boolean virtualEscape = false;
 
     public static void initialize(){
-        Thread driverThread = new Thread("Driver"){
-            @Override
-            public void run() {
-                startSubsystems();
-                MotorManager.stop(MotorManager.MAX_ACCELERATION);
-
-                TaskProcessor.process();
-            }
-        };
-        driverThread.setDaemon(false);
-        driverThread.start();
+        startSubsystems();
+        MotorManager.stop(MotorManager.MAX_ACCELERATION);
+        TaskProcessor.initialize();
     }
 
     /**
@@ -94,172 +88,6 @@ public class Driver {
 
     private static void stopToolMotor(){
         toolMotor.flt(true);//Start spinning!
-    }
-
-    /**
-     * Singleton responsible for scheduling tasks.
-     * Task's create linked list structure that is being constantly consumed by Tasks themselves.
-     * Every Task can have one successor task.
-     * When active Task finishes, successor takes over. When there is no successor,
-     * TaskProcessor waits for more actions from outside and resumes processing as soon as any task arrives.
-     */
-    public static class TaskProcessor {
-        private TaskProcessor(){}
-
-        private static final Object PROCESSOR_LOCK = new Object();
-        private static Task stackHead = null;
-        private static boolean running = true;
-
-        /**
-         * @return when no task is being processed
-         */
-        public static boolean isIdle(){
-            return stackHead == null;
-        }
-
-        /**
-         * Will wait using 200ms delays until TaskProcessor is idle, then returns.
-         * Will return immediately when idle.
-         */
-        public static void waitUntilIdle(){
-            while(isIdle()){
-                Delay.msDelay(200);
-            }
-        }
-
-        /**
-         * Will stop processing as soon as last task finishes.
-         * Will not then continue to its successors nor wait for more.
-         */
-        public static void scheduleExit() {
-            running = false;
-            synchronized (PROCESSOR_LOCK) {
-                PROCESSOR_LOCK.notifyAll();
-            }
-        }
-
-        /**
-         * Given task will be added to the end of queue.
-         * Then it will be executed asynchronously.
-         * Therefore, this method doesn't block.
-         *
-         * @param task to be added
-         */
-        public static void appendTask(Task task) {
-            if (task == null) {
-                return;
-            }
-            if (stackHead == null) {
-                stackHead = task;
-                synchronized (PROCESSOR_LOCK) {
-                    PROCESSOR_LOCK.notifyAll();
-                }
-            } else {
-                stackHead.appendTask(task);
-            }
-        }
-
-        /**
-         * Do not call this from user code, this is called by Driver class to actually process Task's.
-         */
-        public static void process() {
-            while (running) {
-                if (stackHead != null) {
-                    stackHead.process();
-                    stackHead = stackHead.nextTask;
-                } else {
-                    synchronized (PROCESSOR_LOCK) {
-                        try {
-                            PROCESSOR_LOCK.wait(1000);
-                        } catch (InterruptedException ignored) {
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
-         * Task contains logic for program.
-         * It has one optional successor Task that will be executed when this Task finishes.
-         * This goes down recursively.
-         */
-        public static class Task {
-
-            private Task nextTask;
-
-            /**
-             * Actual logic for task is here. Override this method.
-             */
-            protected void process() {
-            }
-
-            /**
-             * Given task will be forcefully added right after this task.
-             * So it will be this task's direct successor.
-             * Any previous successors will be appended to this successor.
-             * {@see appendTask(Task)} for how it will be done.
-             */
-            public Task pushTask(Task directSuccessor) {
-                directSuccessor.appendTask(nextTask);
-                nextTask = directSuccessor;
-                return this;
-            }
-
-            /**
-             * Given task will be added as successor to this Task.
-             * If this task has no successor, it will be direct successor.
-             * If this task has successor, it will be appended with same logic to him.
-             *
-             * So, given task will be at the end of this task queue.
-             */
-            public Task appendTask(Task successor) {
-                if (nextTask == null) {
-                    nextTask = successor;
-                } else {
-                    nextTask.appendTask(successor);
-                }
-                return this;
-            }
-
-            /**
-             * Override this if your task runs for any measurable amount of time.
-             * Returns true if robot doesn't move during this task.
-             * Moving tasks can use this knowledge to brake/not accelerate and thus speeding up the robot.
-             */
-            public boolean isStationery() {
-                return isNextStationery();
-            }
-
-            /**
-             * @return Whether direct successor isStationery. When there is none, returns true.
-             */
-            protected boolean isNextStationery() {
-                return nextTask == null || nextTask.isStationery();
-            }
-
-            /**
-             * Returns debug info about this task. Please override this with custom info.
-             */
-            @Override
-            public String toString() {
-                return "T:Empty";
-            }
-
-            /**
-             * @return direct successor. May be null.
-             */
-            protected Task getNextTask() {
-                return nextTask;
-            }
-
-            /**
-             * Sets direct successor, discarding original one (if there was any).
-             * So anything queued after this Task will be discarded by this.
-             */
-            protected void setNextTask(Task nextTask) {
-                this.nextTask = nextTask;
-            }
-        }
     }
 
     public static TaskProcessor.Task parseTask(String input) {
@@ -631,7 +459,8 @@ public class Driver {
     }
 
     public static TaskProcessor.Task constructBrain(String input){
-        String[] args = input.split("(?<!\\\\) ");
+        if(true)throw new Error();
+        String[] args = null;//input.split("(?<!\\\\) ");
         if(args.length > 0){
             final String type = args[0];
             final HashMap<String, String> data = new HashMap<String, String>();
@@ -681,156 +510,28 @@ public class Driver {
         console.print(error);
     }
 
+    private static PrintStream errorStream = new PrintStream(new OutputStream() {
+
+        private StringBuilder stringBuilder = new StringBuilder();
+
+        @Override
+        public void write(int b) throws IOException {
+            if (b > 0)
+                stringBuilder.append((char) b);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            console.print(stringBuilder.toString());
+            stringBuilder = new StringBuilder();
+        }
+    });
+
     public static void error(Throwable error) {
         Sound.buzz();
         error.printStackTrace();
         LCD.asyncRefresh();
-        error.printStackTrace(console.stream);
-    }
-
-    public static class Console extends Thread {
-
-        private StringBuilder outBuffer = new StringBuilder();
-        private boolean connected = false;
-        private int sleepTime = 200;
-        private boolean shutdown = false;
-        private DataInputStream in;
-        private DataOutputStream out;
-
-        private PrintStream stream = new PrintStream(new OutputStream() {
-
-            private StringBuilder stringBuilder = new StringBuilder();
-
-            @Override
-            public void write(int b) throws IOException {
-                if (b > 0)
-                    stringBuilder.append((char) b);
-            }
-
-            @Override
-            public void flush() throws IOException {
-                print(stringBuilder.toString());
-                stringBuilder = new StringBuilder();
-            }
-        });
-
-        public Console() {
-            LCD.setAutoRefresh(false);
-            setDaemon(false);
-            setName("Console");
-            setPriority(Thread.MIN_PRIORITY);
-            start();
-        }
-
-        @Override
-        public void run() {
-            display('-', '?', '-');
-            NXTConnection connection = USB.waitForConnection();
-            connected = true;
-            in = connection.openDataInputStream();
-            out = connection.openDataOutputStream();
-            display('-', '-', '-');
-
-            while (connected) {
-                String incomingCache = null;
-                try {
-                    synchronized (this){
-                        try {
-                            if (outBuffer.length() == 0) {
-                                out.writeShort(0);//A small hack, should work
-                            } else {
-                                out.writeUTF(outBuffer.toString());
-                                outBuffer = new StringBuilder();
-                            }
-                        } catch (IOException e) {
-                            Sound.buzz();
-                            Sound.beep();
-                        }
-                        out.flush();
-                    }
-
-                    final String incoming = in.readUTF();
-
-                    incomingCache = incoming;
-                    if (!incoming.isEmpty()) {
-                        if (incoming.charAt(0) == '-') {
-                            if (incoming.length() == 1) {
-                                StringBuilder stats = new StringBuilder();
-                                stats.append("\nMemory: F").append(Runtime.getRuntime().freeMemory()).append(" T").append(Runtime.getRuntime().totalMemory()).append(' ').append((int) ((((float) Runtime.getRuntime().freeMemory()) / Runtime.getRuntime().totalMemory()) * 100)).append('%');
-                                stats.append("\nVoltage:").append(Battery.getVoltage());
-                                stats.append("\nThreads\n");
-                                for (VM.VMThread thread : VM.getVM().getVMThreads()) {
-                                    stats.append(thread.threadId).append(' ').append(thread.getJavaThread().getName()).append(" w:").append(thread.waitingOn).append(" p:").append(thread.priority).append(" d:").append(thread.daemon).append('\n');
-                                }
-                                stats.append("\nStack\n");
-                                TaskProcessor.Task head = TaskProcessor.stackHead;
-                                while (head != null) {
-                                    stats.append(head.toString()).append('\n');
-                                    head = head.nextTask;
-                                }
-                                console.print(stats.toString());
-                            } else if (incoming.charAt(1) == 'q') {//.equals("quit")
-                                if (incoming.length() > 2 && incoming.charAt(2) == 'h') {
-                                    Sound.beepSequence();
-                                    connection.close();
-                                    NXT.shutDown();
-                                } else if (incoming.length() > 2 && incoming.charAt(2) == 'c') {
-                                    connected = false;
-                                } else if (incoming.length() > 2 && incoming.charAt(2) == 's') {
-                                    TaskProcessor.scheduleExit();
-                                } else {
-                                    connected = false;
-                                    shutdown = true;
-                                }
-                            } else if (incoming.charAt(1) == 'b') {//beep
-                                Sound.beep();//For my own amusement
-                            } else if (incoming.charAt(1) == 'k') { //stop tool motor
-                                if (incoming.length() > 2 && incoming.charAt(2) == '+') {
-                                    toolMotor.backward();
-                                } else {
-                                    toolMotor.flt(true);
-                                }
-                            } else if (incoming.charAt(1) == 'p') {
-                                if(incoming.length() >= 3 && incoming.charAt(2) == '-'){
-                                    virtualEscape = true;
-                                }else{
-                                    virtualEnter = true;
-                                }
-                            }
-                        } else if (incoming.charAt(0) == '+') {
-                            FileExecutor.execute(incoming.substring(1));
-                        } else {
-                            TaskProcessor.appendTask(parseTask(incoming));
-                        }
-                    }
-                    Delay.msDelay(sleepTime);
-                } catch (Exception e) {
-                    console.print("Error for: " + incomingCache);
-                    error(e);
-                }
-            }
-            display('-', '/', '-');
-            connection.close();
-            if (shutdown) {
-                Sound.beepSequence();
-                System.exit(0);
-            }
-        }
-
-        public void print(String data) {
-            if (connected) {
-                try {
-                    synchronized (this){
-                        outBuffer.append(data).append('\n');
-                    }
-                } catch (Exception ex) {
-                    error(ex);
-                }
-            } else {
-                Sound.beep();
-            }
-        }
-
+        error.printStackTrace(errorStream);
     }
 
     public static void display(char one, char two, char three) {
@@ -894,7 +595,6 @@ public class Driver {
          * @param hold         whether motors should float after movement
          */
         public static void move(float leftCM, float rightCM, float speed, float acceleration, float deceleration, boolean hold) {
-            //console.print("move("+leftCM+','+rightCM+','+speed+','+acceleration+','+deceleration+','+hold+')');
             if (FLIP_DIRECTION) {
                 leftCM = -leftCM;
                 rightCM = -rightCM;

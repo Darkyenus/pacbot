@@ -38,7 +38,7 @@ object Build extends Build {
    * Implementation of NXT bot Controller.
    */
   lazy val nxtController = Project("nxt",file("nxt"),settings = sharedSettings ++ Seq(
-    mainClass := Some("Deleteme"),
+    mainClass := Some("lego.nxt.bootstrap.RandomBootstrap"),
     compileNXJ := {
       "./compileNXJ.sh".!
     },
@@ -46,14 +46,16 @@ object Build extends Build {
       s"./linkNXJ.sh ${mainClass.value.getOrElse(sys.error("Specify mainClass for nxtController first."))}".!
     },
     uploadNXJ := {
-      "./uploadNXJ.sh".!
+      "./uploadNXJ.sh -u".!
     },
     uploadRunNXJ := {
-      "./uploadNXJ.sh -r".!
+      "./uploadNXJ.sh -r -u".!
     },
     nxj := {
       compileNXJ.value //This creates some warnings, ignore them
+      Thread.sleep(500)
       linkNXJ.value
+      Thread.sleep(500)
       uploadRunNXJ.value
     }
   )) dependsOn shared

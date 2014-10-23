@@ -7,7 +7,10 @@ import lego.robot.api.constants.RelativeHeading;
  * User: jIRKA
  * Date: 30.9.2014
  * Time: 20:30
+ *
+ * @deprecated Old API
  */
+@Deprecated
 public abstract class RobotInterface implements AbstractRobotInterface {
 
     private RobotEnvironment re = null;

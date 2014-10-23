@@ -2,7 +2,10 @@ package lego.util;
 
 /**
  * Created by jIRKA on 3.10.2014.
+ *
+ * @deprecated Too garbage inducing
  */
+@Deprecated
 public class TupleIntInt {
 
     private int x = 0;
