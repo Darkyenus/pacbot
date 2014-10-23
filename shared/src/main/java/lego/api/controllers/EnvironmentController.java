@@ -32,7 +32,7 @@ public abstract class EnvironmentController extends BotController {
         */
         maze[x][y] = FieldStatus.START;
         maze[x-1][y] = FieldStatus.OBSTACLE;
-        maze[x-1][y] = FieldStatus.OBSTACLE;
+        maze[x+1][y] = FieldStatus.OBSTACLE;
         maze[x][y+1] = FieldStatus.FREE_UNVISITED;
     }
 
@@ -107,11 +107,17 @@ public abstract class EnvironmentController extends BotController {
     }
 
     public enum FieldStatus {
-        UNKNOWN,
-        OBSTACLE,
-        FREE_UNVISITED,
-        FREE_VISITED,
-        START
+        UNKNOWN('?'),
+        OBSTACLE('O'),
+        FREE_UNVISITED('.'),
+        FREE_VISITED(' '),
+        START('S');
+
+        public final char displayChar;
+
+        FieldStatus(char displayChar) {
+            this.displayChar = displayChar;
+        }
     }
 
     public static interface MoveFieldsTask {

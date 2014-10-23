@@ -39,11 +39,29 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         Thread debugViewThread = new Thread(){
             @Override
             public void run() {
-
+                LCD.setAutoRefresh(false);
+                //noinspection InfiniteLoopStatement
+                while(true){
+                    for (byte x = 0; x < mazeWidth; x++) {
+                        for (byte y = 0; y < mazeHeight; y++) {
+                            if(getX() == x && getY() == y){
+                                LCD.drawString(Character.toString(maze[x][y].displayChar), x, y,true);
+                            } else {
+                                LCD.drawChar(maze[x][y].displayChar, x, y);
+                            }
+                        }
+                    }
+                    LCD.drawString("H: "+TaskProcessor.getStackHead(),0,mazeHeight);
+                    LCD.asyncRefresh();
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ignored) {}
+                }
             }
         };
         debugViewThread.setDaemon(true);
         debugViewThread.setName("DebugView");
+        debugViewThread.start();
     }
 
     @Override

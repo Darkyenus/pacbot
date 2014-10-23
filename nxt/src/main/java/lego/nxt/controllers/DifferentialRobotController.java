@@ -9,7 +9,10 @@ import lego.nxt.util.TaskProcessor;
  * User: Darkyen
  * Date: 21/10/14
  * Time: 20:33
+ *
+ * @deprecated Uses old API
  */
+@Deprecated
 public final class DifferentialRobotController extends BotController {
 
     @Override

@@ -11,8 +11,6 @@ object Build extends Build {
 
   val uploadRunNXJ = TaskKey[Unit]("uploadRunNXJ","Uploads and runs linked NXJ program")
 
-  val nxj = TaskKey[Unit]("nxj","Compiles, links, uploads and runs NXJ program")
-
   val sharedSettings = Seq(
     crossPaths := false,
     autoScalaLibrary := false,
@@ -50,15 +48,9 @@ object Build extends Build {
     },
     uploadRunNXJ := {
       "./uploadNXJ.sh -r -u".!
-    },
-    nxj := {
-      compileNXJ.value //This creates some warnings, ignore them
-      Thread.sleep(500)
-      linkNXJ.value
-      Thread.sleep(500)
-      uploadRunNXJ.value
-    }
-  )) dependsOn shared
+    })
+    ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadRunNXJ")
+  ) dependsOn shared
 
   /**
    * PC only project.

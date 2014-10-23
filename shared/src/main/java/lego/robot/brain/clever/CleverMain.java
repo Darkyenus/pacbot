@@ -11,7 +11,10 @@ import lego.util.Util;
  * User: jIRKA
  * Date: 3.10.2014
  * Time: 20:30
+ *
+ * @deprecated Uses old API
  */
+@Deprecated
 public class CleverMain extends RobotStrategy{
 
     public CleverMain(AbstractRobotInterface ari){

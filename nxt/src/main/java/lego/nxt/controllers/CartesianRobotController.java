@@ -10,7 +10,10 @@ import lejos.nxt.Motor;
  * User: Darkyen
  * Date: 21/10/14
  * Time: 20:30
+ *
+ * @deprecated Uses old API
  */
+@Deprecated
 public class CartesianRobotController extends CartesianController {
 
     @Override
