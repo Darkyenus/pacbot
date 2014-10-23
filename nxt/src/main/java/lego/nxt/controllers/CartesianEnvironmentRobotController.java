@@ -6,6 +6,12 @@ import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;
 
 /**
+ *
+ * README:
+ * When starting a program using this, the robot should be on X axis wheels, that means, on big wheels.
+ *
+ * TODO It will be better to start at Y
+ *
  * Private property.
  * User: Darkyen
  * Date: 23/10/14
@@ -15,7 +21,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
     private static final int DEFAULT_SPEED = 800;
     private final MotorController xMotor = new MotorController(MotorPort.B);
-    private final MotorController yMotor = new MotorController(MotorPort.C); //TODO change to match bot
+    private final MotorController yMotor = new MotorController(MotorPort.C);
     {
         xMotor.setSpeed(DEFAULT_SPEED);
         yMotor.setSpeed(DEFAULT_SPEED);
@@ -45,7 +51,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                     for (byte x = 0; x < mazeWidth; x++) {
                         for (byte y = 0; y < mazeHeight; y++) {
                             if(getX() == x && getY() == y){
-                                LCD.drawString(Character.toString(maze[x][y].displayChar), x, y,true);
+                                LCD.drawString(Character.toString(maze[x][y].displayChar), x, y, true);
                             } else {
                                 LCD.drawChar(maze[x][y].displayChar, x, y);
                             }
@@ -95,6 +101,11 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         }
     }
 
+    /**
+     * Contains everything needed to process a single moving task by given amount of fields on given axis.
+     * It is a little bit messy because of supporting both axis.
+     * This also updates robot x, y and maze fields, but only using data available - that means touch sensor in front.
+     */
     private class MoveTask extends AbstractMoveTask {
 
         public static final float X_FIELD_DISTANCE = 370f;
@@ -108,14 +119,29 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             this.by = by;
         }
 
+        /**
+         * Will do reading from mounted ultrasonic detector and save it into maze map.
+         */
+        private void doDetectorReading(){
+            int distance = detector.getDistance();
+            LCD.drawString(distance+" cm  ",0,mazeHeight+1);//Hijacking debug loop rendering
+
+            //TODO Interpret read value and make decisions (write result)
+            Sound.beep(); //We can sing too. Beep.
+        }
+
+        private final int AXIS_CHANGE_DEGREES = 450;
+
         private void getOnX(){
-            axisMotor.rotate(450,true,false);
+            axisMotor.rotate(AXIS_CHANGE_DEGREES,true,false);
             CartesianEnvironmentRobotController.this.onX = true;
+            doDetectorReading();
         }
 
         private void getOnY(){
-            axisMotor.rotate(-450,true,false);
+            axisMotor.rotate(-AXIS_CHANGE_DEGREES,true,false);
             CartesianEnvironmentRobotController.this.onX = false;
+            doDetectorReading();
         }
 
         private boolean moveByField(byte directionSign){
@@ -126,13 +152,14 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             motor.rotate((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign,isNextStationery(),true);
             while(motor.isMoving() && !returningFromWall){
                 if(touch.isPressed()){
-                    //! collision
+                    //collision
                     if(motor.getProgress() < 0.75f){
                         returningFromWall = true;
                         motor.rotateTo(originalTachoCount,isNextStationery(),false);
                     }
                 }
             }
+            doDetectorReading();
             return !returningFromWall;
         }
 
@@ -143,34 +170,30 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             }else if(!onX && CartesianEnvironmentRobotController.this.onX){
                 getOnY();
             }
-            if(by > 0){
-                for (byte i = 0; i < by; i++) {
-                    if(moveByField((byte)1)){
-                        moved += 1;
-                    }else {
-                        break;
-                    }
-                }
-                if(onX){
-                    x += moved;
-                }else{
-                    y += moved;
-                }
-            }else{
-                for (byte i = 0; i < -by; i++) {
-                    if(moveByField((byte)-1)){
-                        moved += 1;
-                    }else{
-                        break;
-                    }
-                }
-                if(onX){
-                    x -= moved;
-                }else{
-                    y -= moved;
+
+            byte moveSignum = by >= 0 ? (byte)1 : (byte)-1;
+            byte oneDeltaX = onX ? moveSignum : 0;
+            byte oneDeltaY = !onX ? moveSignum : 0;
+            byte steps = (byte) (by * moveSignum); //Absolute value of 'by'. The beauty of maths.
+
+            for (byte i = 0; i < steps; i++) {
+                if(moveByField(moveSignum)){
+                    moved += 1;
+                    x += oneDeltaX;
+                    y += oneDeltaY;
+                    setField(x,y,FieldStatus.FREE_VISITED);
+                } else {
+                    setField((byte)(x+oneDeltaX),(byte)(y+oneDeltaY),FieldStatus.OBSTACLE);
+                    break;
                 }
             }
             doComplete();
+        }
+
+        @Override
+        public boolean isStationery() {
+            //Stationery if on different axis, because we'll need to stop
+            return onX != CartesianEnvironmentRobotController.this.onX;
         }
     }
 

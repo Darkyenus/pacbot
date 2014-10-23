@@ -2,7 +2,6 @@ package lego.bots.random;
 
 import lego.api.Bot;
 import lego.api.BotEvent;
-import lego.api.controllers.CartesianController;
 import lego.api.controllers.EnvironmentController;
 import lejos.nxt.Button;
 

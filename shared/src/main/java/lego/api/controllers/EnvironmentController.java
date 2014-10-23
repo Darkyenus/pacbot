@@ -1,6 +1,7 @@
 package lego.api.controllers;
 
 import lego.api.BotController;
+import lejos.nxt.Sound;
 
 /**
  * Private property.
@@ -36,17 +37,46 @@ public abstract class EnvironmentController extends BotController {
         maze[x][y+1] = FieldStatus.FREE_UNVISITED;
     }
 
+    /**
+     * @return Coordinate at which the robot currently is.
+     */
     public byte getX(){
         return x;
     }
 
+    /**
+     * @return Coordinate at which the robot currently is.
+     */
     public byte getY(){
         return y;
     }
 
+    /**
+     * @return status of given field. OBSTACLE if out of bounds.
+     */
     public FieldStatus getField(byte x, byte y){
         if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight)return FieldStatus.OBSTACLE;
         else return maze[x][y];
+    }
+
+    /**
+     * Updates information about given tile. That may be the same as already is.
+     * Updating tile out of bounds gives beep sequence down and buzz, then does nothing.
+     * Updating definitive tile gives beep sequence up and buzz, then updates as if nothing happened.
+     */
+    public void setField(byte x, byte y,FieldStatus to){
+        if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight){
+            Sound.beepSequence();
+            Sound.buzz();
+        }else{
+            FieldStatus now = maze[x][y];
+            if(to == now)return;
+            else if(to.definitive){
+                Sound.beepSequenceUp();
+                Sound.buzz();
+            }
+            maze[x][y] = to;
+        }
     }
 
     /**
@@ -107,16 +137,27 @@ public abstract class EnvironmentController extends BotController {
     }
 
     public enum FieldStatus {
-        UNKNOWN('?'),
-        OBSTACLE('O'),
-        FREE_UNVISITED('.'),
-        FREE_VISITED(' '),
-        START('S');
+        UNKNOWN('?', false),
+        OBSTACLE('O', true),
+        FREE_UNVISITED('.', false),
+        FREE_VISITED(' ', true),
+        START('S', true);
 
+        /**
+         * Char as which should be this block displayed in debug views without custom rendering.
+         */
         public final char displayChar;
+        /**
+         * True means, that field with this status is fully known and that status will not change unless error happens.
+         * For example, OBSTACLE is definitive, because obstacles can not be removed.
+         * On the other hand FREE_UNVISITED will be changed to FREE_VISITED during program run, so that will change and
+         * therefore is not definitive.
+         */
+        public final boolean definitive;
 
-        FieldStatus(char displayChar) {
+        FieldStatus(char displayChar, boolean definitive) {
             this.displayChar = displayChar;
+            this.definitive = definitive;
         }
     }
 
