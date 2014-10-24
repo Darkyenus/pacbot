@@ -1,7 +1,5 @@
 package lego.nxt.util;
 
-import lejos.util.Delay;
-
 /**
  * Singleton responsible for scheduling tasks.
  * Task's create linked list structure that is being constantly consumed by Tasks themselves.
@@ -43,7 +41,9 @@ public class TaskProcessor {
      */
     public static void waitUntilIdle(){
         while(!isIdle()){
-            Delay.msDelay(200);
+            try {
+                Thread.sleep(200); //TODO Do somehow through notifications, this smells
+            } catch (InterruptedException ignored) {}
         }
     }
 

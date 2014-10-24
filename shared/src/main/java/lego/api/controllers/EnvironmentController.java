@@ -1,7 +1,6 @@
 package lego.api.controllers;
 
 import lego.api.BotController;
-import lejos.nxt.Sound;
 
 /**
  * Private property.
@@ -11,11 +10,13 @@ import lejos.nxt.Sound;
  */
 public abstract class EnvironmentController extends BotController {
 
-    final public static byte mazeWidth = 9;
-    final public static byte mazeHeight = 6;
+    public static final byte mazeWidth = 9;
+    public static final byte mazeHeight = 6;
+    public static final byte startX = 4;
+    public static final byte startY = 2;
 
-    protected byte x = 4;
-    protected byte y = 2;
+    protected byte x = startX;
+    protected byte y = startY;
     protected FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
 
     {
@@ -61,23 +62,30 @@ public abstract class EnvironmentController extends BotController {
 
     /**
      * Updates information about given tile. That may be the same as already is.
-     * Updating tile out of bounds gives beep sequence down and buzz, then does nothing.
-     * Updating definitive tile gives beep sequence up and buzz, then updates as if nothing happened.
+     * Updating tile out of bounds gives ERROR_SET_OUT_OF_BOUNDS, then does nothing.
+     * Updating definitive tile gives ERROR_SET_DEFINITIVE, then updates as if nothing happened.
      */
     public void setField(byte x, byte y,FieldStatus to){
         if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight){
-            Sound.beepSequence();
-            Sound.buzz();
+            onError(ERROR_SET_OUT_OF_BOUNDS);
         }else{
             FieldStatus now = maze[x][y];
             if(to == now)return;
             else if(to.definitive){
-                Sound.beepSequenceUp();
-                Sound.buzz();
+                onError(ERROR_SET_DEFINITIVE);
             }
             maze[x][y] = to;
         }
     }
+
+    protected static final byte ERROR_SET_OUT_OF_BOUNDS = 0;
+    protected static final byte ERROR_SET_DEFINITIVE = 1;
+
+    /**
+     * Called when controller encounters an error.
+     * @param error one of this class static byte ERROR_* variable constants
+     */
+    protected abstract void onError(byte error);
 
     /**
      * Instruct robot to move by given amount of fields.
@@ -118,8 +126,23 @@ public abstract class EnvironmentController extends BotController {
 
     /**
      * Same as move but asynchronous.
+     * You may want to override this, if you need better implementation.
      */
-    public abstract MoveFieldsTask moveAsync(Direction in);
+    public MoveFieldsTask moveAsync(Direction in) {
+        switch (in){
+            case UP:
+                return moveByYAsync(Byte.MIN_VALUE);
+            case DOWN:
+                return moveByYAsync(Byte.MAX_VALUE);
+            case LEFT:
+                return moveByXAsync(Byte.MIN_VALUE);
+            case RIGHT:
+                return moveByYAsync(Byte.MAX_VALUE);
+            default:
+                //This will never return, above match is exhaustive. Unless in is null. Then you have bigger problems.
+                throw new Error();
+        }
+    }
 
     public enum Direction {
         UP((byte)0,(byte)-1),

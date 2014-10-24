@@ -7,5 +7,9 @@ package lego.api;
  * Time: 13:43
  */
 public enum BotEvent {
-    RUN_ENDED
+    RUN_ENDED,
+    ENTER_PRESSED,
+    ESCAPE_PRESSED,
+    LEFT_PRESSED,
+    RIGHT_PRESSED
 }

@@ -71,6 +71,20 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     }
 
     @Override
+    protected void onError(byte error) {
+        switch (error){
+            case ERROR_SET_DEFINITIVE:
+                Sound.beepSequence();
+                Sound.buzz();
+                break;
+            case ERROR_SET_OUT_OF_BOUNDS:
+                Sound.beepSequenceUp();
+                Sound.buzz();
+                break;
+        }
+    }
+
+    @Override
     public MoveFieldsTask moveByXAsync(byte x) {
         MoveTask result = new MoveTask(true,x);
         TaskProcessor.appendTask(result);
@@ -82,23 +96,6 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         MoveTask result = new MoveTask(false,y);
         TaskProcessor.appendTask(result);
         return result;
-    }
-
-    @Override
-    public MoveFieldsTask moveAsync(Direction in) {
-        switch (in){
-            case UP:
-                return moveByYAsync(Byte.MIN_VALUE);
-            case DOWN:
-                return moveByYAsync(Byte.MAX_VALUE);
-            case LEFT:
-                return moveByXAsync(Byte.MIN_VALUE);
-            case RIGHT:
-                return moveByYAsync(Byte.MAX_VALUE);
-            default:
-                //This will never return, above match is exhaustive. Unless in is null. Then you have bigger problems.
-                throw new Error();
-        }
     }
 
     /**

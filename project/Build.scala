@@ -18,8 +18,7 @@ object Build extends Build {
       "-target", "6",
       "-source", "6",
       "-Xlint:deprecation"
-    ),
-    unmanagedBase := file("lejos") / "lib" / "nxt"
+    )
   )
 
   /**
@@ -36,6 +35,7 @@ object Build extends Build {
    * Implementation of NXT bot Controller.
    */
   lazy val nxtController = Project("nxt",file("nxt"),settings = sharedSettings ++ Seq(
+    unmanagedBase := file("lejos") / "lib" / "nxt", //Only nxt controller can depend on nxt libs! They are not on pc!
     mainClass := Some("lego.nxt.bootstrap.RandomBootstrap"),
     compileNXJ := {
       "./compileNXJ.sh".!

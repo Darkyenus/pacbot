@@ -3,7 +3,6 @@ package lego.bots.random;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
-import lejos.nxt.Button;
 
 /**
  * Private property.
@@ -13,14 +12,17 @@ import lejos.nxt.Button;
  */
 public class RandomBot extends Bot<EnvironmentController> {
 
-
+    private boolean continueRunning = true;
 
     @Override
-    public void run() {
+    public synchronized void run() {
+        try {
+            this.wait();
+        } catch (InterruptedException ignored) {}
 
-        Button.waitForAnyPress();
+        continueRunning = true;
 
-        while(Button.ENTER.isUp()){
+        while(continueRunning){
             controller.moveByX((byte)-1);
             controller.moveByY((byte)-1);
             controller.moveByX((byte)1);
@@ -31,6 +33,15 @@ public class RandomBot extends Bot<EnvironmentController> {
 
     @Override
     public void onEvent(BotEvent event, Object param) {
-
+        switch (event){
+            case ESCAPE_PRESSED:
+                continueRunning = false;
+            case ENTER_PRESSED:
+            case LEFT_PRESSED:
+            case RIGHT_PRESSED:
+                synchronized (this){
+                    notifyAll(); //Should wake up the main thread.
+                }
+        }
     }
 }

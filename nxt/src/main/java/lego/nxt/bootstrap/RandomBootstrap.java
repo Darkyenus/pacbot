@@ -1,6 +1,5 @@
 package lego.nxt.bootstrap;
 
-import lego.api.AbstractBootstrap;
 import lego.bots.random.RandomBot;
 import lego.nxt.controllers.CartesianEnvironmentRobotController;
 
@@ -10,7 +9,7 @@ import lego.nxt.controllers.CartesianEnvironmentRobotController;
  * Date: 23/10/14
  * Time: 11:01
  */
-public class RandomBootstrap extends AbstractBootstrap {
+public class RandomBootstrap extends NXTBootstrap {
     public static void main(String[] args){
         main(new RandomBot(), new CartesianEnvironmentRobotController());
     }
