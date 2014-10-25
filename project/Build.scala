@@ -57,7 +57,8 @@ object Build extends Build {
    * Implementation of bot Controller that is used when dry-testing Bots.
    */
   lazy val simulatorController = Project("simulator",file("simulator"),settings = sharedSettings ++ Seq(
-    autoScalaLibrary := true
+    autoScalaLibrary := true,
+    mainClass := Some("lego.simulator.ui.UIMain")
     //TODO add dependency on pc lejos stuff
   )) dependsOn shared
 

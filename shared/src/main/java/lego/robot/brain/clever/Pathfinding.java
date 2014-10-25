@@ -8,7 +8,10 @@ import lego.util.TupleIntInt;
  * User: jIRKA
  * Date: 10.10.2014
  * Time: 17:27
+ *
+ * @deprecated Uses old API (and has zero usable code anyway)
  */
+@Deprecated
 class Pathfinding {
 
     public static void planRoute(MappedMap map, TupleIntInt pos, CleverMain cm){
