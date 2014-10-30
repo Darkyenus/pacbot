@@ -18,8 +18,8 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
     var moved = 0
 
     while(remaining > 0){
-      val nextX = xMove + direction
-      map.maze(nextX)(y) match {
+      val nextX = x + direction
+      map(nextX,y) match {
         case MapTile.START =>
           x = nextX.toByte
           moved += 1
@@ -47,8 +47,9 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
     var moved = 0
 
     while(remaining > 0){
-      val nextY = yMove + direction
-      map.maze(x)(nextY) match {
+      val nextY = y + direction
+
+      map(x,nextY) match {
         case MapTile.START =>
           y = nextY.toByte
           moved += 1
@@ -71,6 +72,9 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
   }
 
   private class MockMoveFieldTask(movedFields:Byte) extends MoveFieldsTask {
+
+    onStatusChanged()
+
     override def isDone: Boolean = true
 
     override def waitUntilDone(): Unit = {}

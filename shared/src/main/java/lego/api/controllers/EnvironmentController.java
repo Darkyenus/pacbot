@@ -19,6 +19,10 @@ public abstract class EnvironmentController extends BotController {
     protected byte y = startY;
     protected FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
 
+    public final FieldStatus[][] getMinMaze(){
+        return maze;
+    }
+
     {
         for (int x = 0; x < mazeWidth; x++) {
             for (int y = 0; y < mazeHeight; y++) {

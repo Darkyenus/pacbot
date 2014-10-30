@@ -28,7 +28,7 @@ public class RandomBot extends Bot<EnvironmentController> {
             //try { Thread.sleep(20000); } catch (InterruptedException e) {}
             controller.move(EnvironmentController.Direction.UP);
             //try { Thread.sleep(30000); } catch (InterruptedException e) {}
-            controller.move(EnvironmentController.Direction.RIGHT);//Y100
+            controller.move(EnvironmentController.Direction.RIGHT);
             //try { Thread.sleep(40000); } catch (InterruptedException e) {}
             //controller.moveByX((byte) -1);
             //controller.moveByY((byte)-1);

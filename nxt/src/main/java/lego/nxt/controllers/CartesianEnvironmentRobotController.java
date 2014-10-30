@@ -20,7 +20,7 @@ import lejos.nxt.*;
 public class CartesianEnvironmentRobotController extends EnvironmentController {
 
     private static final int DEFAULT_SPEED = 800;
-    private static final int BACKING_SPEED = 400;
+    private static final int BACKING_SPEED = 250;
     private static final MotorController xMotor = new MotorController(MotorPort.B);
     private static final MotorController yMotor = new MotorController(MotorPort.C);
     static {
@@ -60,8 +60,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                         }
                     }
                     LCD.drawString("H: "+TaskProcessor.getStackHead()+"   ",0,mazeHeight);
-                    //LCD.drawString("X: "+xMotor.getProgress(),mazeWidth+1,0);
-                    //LCD.drawString("Y: "+yMotor.getProgress(),mazeWidth+1,1);
+                    LCD.drawString(lastError,mazeWidth+1,0);
                     LCD.asyncRefresh();
                     try {
                         Thread.sleep(500);
@@ -70,6 +69,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             }
         };
         debugViewThread.setDaemon(true);
+        debugViewThread.setPriority(Thread.MIN_PRIORITY);
         debugViewThread.setName("DebugView");
         debugViewThread.start();
     }
@@ -86,20 +86,27 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         }
     }
 
+    private String lastError = "";
+
     @Override
     protected void onError(byte error) {
         switch (error){
             case ERROR_SET_DEFINITIVE:
-                Sound.beepSequence();
-                Sound.buzz();
-                //QQQ TODO
-                throw new Error();
-                //break;
+                lastError = "D"+x+" "+y;
+                break;
             case ERROR_SET_OUT_OF_BOUNDS:
-                Sound.beepSequenceUp();
-                Sound.buzz();
-                throw new Error();
-                //break; //QQQ
+                if(x < 0){
+                    x = 0;
+                }else if(x >= EnvironmentController.mazeWidth){
+                    x = EnvironmentController.mazeWidth - 1;
+                }
+                if(y < 0){
+                    y = 0;
+                }else if(y >= EnvironmentController.mazeHeight){
+                    y = EnvironmentController.mazeHeight - 1;
+                }
+                lastError = "OOB";
+                break;
         }
     }
 
@@ -174,20 +181,35 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             final float decidedDeceleration = decelerate ? acceleration : MAX_ACCELERATION;
 
             final float tachoTarget = motor.getTachoCount() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
-            motor.newMove(motor.getSpeed(),decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
+            motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
 
-            while(Math.abs(motor.getPosition() - tachoTarget) > 10 && !returningFromWall){
+            while(Math.abs(motor.getPosition() - tachoTarget) > 20 && !returningFromWall){
                 if(touch.isPressed()){
-                    Sound.beepSequence();
-                    Sound.beepSequenceUp();
                     //collision
                     returningFromWall = true;
-                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION);
-                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getPosition() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
+                    motor.stop(true);
+                    motor.resetTachoCount();
+                    motor.resetRelativeTachoCount();
+                    motor.stop(false);
+
+                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
+                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
                 }else{
                     try {
-                        Thread.sleep(100); //Give motor thread a bit of breathing space
+                        Thread.sleep(50); //Give motor thread a bit of breathing space
                     } catch (InterruptedException ignored) {}
+                }
+            }
+            motor.setSpeed(DEFAULT_SPEED);
+            if(!returningFromWall){
+                if(!decelerate){
+                    if(directionSign > 0){
+                        motor.forward();
+                    }else{
+                        motor.backward();
+                    }
+                }else{
+                    motor.stop(true);
                 }
             }
             doDetectorReading();
@@ -208,7 +230,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             byte steps = (byte) (by * moveSignum); //Absolute value of 'by'. The beauty of maths.
 
             for (byte i = 0; i < steps; i++) {
-                if(moveByField(moveSignum,i == 0,i+1 == steps && isNextStationery())){
+                if(moveByField(moveSignum,i == 0,i+1 == steps)){
                     moved += 1;
                     x += oneDeltaX;
                     y += oneDeltaY;

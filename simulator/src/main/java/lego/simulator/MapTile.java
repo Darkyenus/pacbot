@@ -7,5 +7,17 @@ package lego.simulator;
  * Time: 15:27
  */
 public enum MapTile {
-    FREE,OBSTACLE,START
+    FREE(' '),OBSTACLE('O'),START('S');
+
+    private final char display;
+
+    MapTile(char display) {
+        this.display = display;
+    }
+
+
+    @Override
+    public String toString() {
+        return Character.toString(display);
+    }
 }

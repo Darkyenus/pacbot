@@ -1,5 +1,5 @@
-import sbt._
 import sbt.Keys._
+import sbt._
 
 object Build extends Build {
 
@@ -10,6 +10,8 @@ object Build extends Build {
   val uploadNXJ = TaskKey[Unit]("uploadNXJ","Uploads linked NXJ program")
 
   val uploadRunNXJ = TaskKey[Unit]("uploadRunNXJ","Uploads and runs linked NXJ program")
+
+  val debugNXJ = inputKey[Unit]("Debugs using given debug numbers.")
 
   val sharedSettings = Seq(
     crossPaths := false,
@@ -48,6 +50,12 @@ object Build extends Build {
     },
     uploadRunNXJ := {
       "./uploadNXJ.sh -r -u".!
+    },
+    debugNXJ := {
+      import sbt.complete.DefaultParsers._
+      val args = spaceDelimited("<arg>").parsed
+
+      s"./debugNXJ.sh ${args.addString(new StringBuilder," ")}".!
     })
     ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadRunNXJ")
   ) dependsOn shared
@@ -58,7 +66,8 @@ object Build extends Build {
    */
   lazy val simulatorController = Project("simulator",file("simulator"),settings = sharedSettings ++ Seq(
     autoScalaLibrary := true,
-    mainClass := Some("lego.simulator.ui.UIMain")
+    mainClass := Some("lego.simulator.ui.UIMain"),
+    libraryDependencies += "com.google.guava" % "guava" % "18.0"
     //TODO add dependency on pc lejos stuff
   )) dependsOn shared
 

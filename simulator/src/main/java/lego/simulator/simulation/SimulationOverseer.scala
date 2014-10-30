@@ -12,7 +12,7 @@ import lego.simulator.controllers.EnvironmentSimulatorController
  */
 class SimulationOverseer {
   var mazeMap:MazeMap = _
-  var bot:Bot[_] = _
+  var bot:Bot[EnvironmentSimulatorController] = _
   var controller:EnvironmentSimulatorController = _
 
   def initialize(): Unit ={
@@ -27,14 +27,14 @@ class SimulationOverseer {
 }
 
 object SimulationOverseer {
-  def apply(bot:String,controller:String,mazeMap:MazeMap):Either[String,SimulationOverseer] = {
+  def apply(bot:String,controller:String,mazeMap:MazeMap,onStatusChanged:()=>Unit,onError:(Byte)=>Unit):Either[String,SimulationOverseer] = {
     try{
       val result = new SimulationOverseer
       result.mazeMap = mazeMap
       val botClass = Class.forName(bot)
       val controllerClass = Class.forName(controller)
 
-      result.bot = botClass.newInstance().asInstanceOf[Bot[_]]
+      result.bot = botClass.newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
 
       //SimulatorController constructor: map:MazeMap,onStatusChanged:()=>Unit,val onError:(Byte)=>Unit
       result.controller = controllerClass.getConstructor(classOf[MazeMap],classOf[()=>Unit],classOf[(Byte)=>Unit]).newInstance(mazeMap,()=>{result.onStatusChanged()},(err:Byte)=>{result.onError(err)}).asInstanceOf[EnvironmentSimulatorController]
