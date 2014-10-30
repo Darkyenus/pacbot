@@ -15,5 +15,6 @@ public abstract class AbstractBootstrap {
         controller.initialize();
         bot.controller = controller;
         bot.run();
+        controller.deinitialize();
     }
 }

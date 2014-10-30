@@ -16,17 +16,24 @@ public class RandomBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
+        continueRunning = true;
         try {
             this.wait();
         } catch (InterruptedException ignored) {}
 
-        continueRunning = true;
-
         while(continueRunning){
-            controller.moveByX((byte)-1);
-            controller.moveByY((byte)-1);
-            controller.moveByX((byte)1);
-            controller.moveByY((byte)1);
+            controller.move(EnvironmentController.Direction.DOWN);
+            //try { Thread.sleep(10000); } catch (InterruptedException e) {}
+            controller.move(EnvironmentController.Direction.LEFT);
+            //try { Thread.sleep(20000); } catch (InterruptedException e) {}
+            controller.move(EnvironmentController.Direction.UP);
+            //try { Thread.sleep(30000); } catch (InterruptedException e) {}
+            controller.move(EnvironmentController.Direction.RIGHT);//Y100
+            //try { Thread.sleep(40000); } catch (InterruptedException e) {}
+            //controller.moveByX((byte) -1);
+            //controller.moveByY((byte)-1);
+            //controller.moveByX((byte)1);
+            //controller.moveByY((byte)1);
         }
 
     }

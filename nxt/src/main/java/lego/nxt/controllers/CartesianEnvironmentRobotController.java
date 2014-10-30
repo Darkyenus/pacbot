@@ -20,23 +20,25 @@ import lejos.nxt.*;
 public class CartesianEnvironmentRobotController extends EnvironmentController {
 
     private static final int DEFAULT_SPEED = 800;
-    private final MotorController xMotor = new MotorController(MotorPort.B);
-    private final MotorController yMotor = new MotorController(MotorPort.C);
-    {
+    private static final int BACKING_SPEED = 400;
+    private static final MotorController xMotor = new MotorController(MotorPort.B);
+    private static final MotorController yMotor = new MotorController(MotorPort.C);
+    static {
         xMotor.setSpeed(DEFAULT_SPEED);
         yMotor.setSpeed(DEFAULT_SPEED);
     }
-    private final MotorController axisMotor = new MotorController(MotorPort.A);
-    {
+    private static final MotorController axisMotor = new MotorController(MotorPort.A);
+    static {
         axisMotor.setSpeed(MotorController.getMaxSpeed());
         axisMotor.setStallThreshold(20,200);
     }
 
-    private final TouchSensor xTouch = new TouchSensor(SensorPort.S2);
-    private final TouchSensor yTouch = new TouchSensor(SensorPort.S1);
-    private final UltrasonicSensor detector = new UltrasonicSensor(SensorPort.S3);
+    private static final TouchSensor xTouch = new TouchSensor(SensorPort.S1);
+    private static final TouchSensor yTouch = new TouchSensor(SensorPort.S2);
+    private static final UltrasonicSensor detector = new UltrasonicSensor(SensorPort.S4);
 
-    private boolean onX = true;
+    private static final boolean defaultOnX = true;
+    private static boolean onX = defaultOnX;
 
     @Override
     protected void initialize() {
@@ -57,7 +59,9 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                             }
                         }
                     }
-                    LCD.drawString("H: "+TaskProcessor.getStackHead(),0,mazeHeight);
+                    LCD.drawString("H: "+TaskProcessor.getStackHead()+"   ",0,mazeHeight);
+                    //LCD.drawString("X: "+xMotor.getProgress(),mazeWidth+1,0);
+                    //LCD.drawString("Y: "+yMotor.getProgress(),mazeWidth+1,1);
                     LCD.asyncRefresh();
                     try {
                         Thread.sleep(500);
@@ -70,17 +74,32 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         debugViewThread.start();
     }
 
+    @SuppressWarnings({"PointlessBooleanExpression", "ConstantConditions"}) //defaultOnX can be changed
+    @Override
+    protected void deinitialize() {
+        if(onX != defaultOnX){
+            if(onX){
+                getOnY();
+            }else{
+                getOnX();
+            }
+        }
+    }
+
     @Override
     protected void onError(byte error) {
         switch (error){
             case ERROR_SET_DEFINITIVE:
                 Sound.beepSequence();
                 Sound.buzz();
-                break;
+                //QQQ TODO
+                throw new Error();
+                //break;
             case ERROR_SET_OUT_OF_BOUNDS:
                 Sound.beepSequenceUp();
                 Sound.buzz();
-                break;
+                throw new Error();
+                //break; //QQQ
         }
     }
 
@@ -99,14 +118,43 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     }
 
     /**
+     * Will do reading from mounted ultrasonic detector and save it into maze map.
+     */
+    private void doDetectorReading(){
+        int distance = detector.getDistance();
+        LCD.drawString(distance+" cm  ",0,mazeHeight+1);//Hijacking debug loop rendering
+
+        //TODO Interpret read value and make decisions (write result)
+        //Sound.beep(); //We can sing too. Beep.
+    }
+
+    private final int AXIS_CHANGE_DEGREES = 450;
+
+    private void getOnX(){
+        axisMotor.rotate(AXIS_CHANGE_DEGREES,true,false);
+        CartesianEnvironmentRobotController.onX = true;
+        doDetectorReading();
+    }
+
+    private void getOnY(){
+        axisMotor.rotate(-AXIS_CHANGE_DEGREES,true,false);
+        CartesianEnvironmentRobotController.onX = false;
+        doDetectorReading();
+    }
+
+    /**
      * Contains everything needed to process a single moving task by given amount of fields on given axis.
      * It is a little bit messy because of supporting both axis.
      * This also updates robot x, y and maze fields, but only using data available - that means touch sensor in front.
      */
     private class MoveTask extends AbstractMoveTask {
 
-        public static final float X_FIELD_DISTANCE = 370f;
-        public static final float Y_FIELD_DISTANCE = 550f;
+        public static final float X_FIELD_DISTANCE = 380f;
+        public static final float Y_FIELD_DISTANCE = 560f;
+
+        public static final float X_ACCELERATION = 1000;
+        public static final float Y_ACCELERATION = 1500;
+        public static final float MAX_ACCELERATION = 6000;
 
         private final boolean onX;
         private final byte by;
@@ -116,44 +164,30 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             this.by = by;
         }
 
-        /**
-         * Will do reading from mounted ultrasonic detector and save it into maze map.
-         */
-        private void doDetectorReading(){
-            int distance = detector.getDistance();
-            LCD.drawString(distance+" cm  ",0,mazeHeight+1);//Hijacking debug loop rendering
-
-            //TODO Interpret read value and make decisions (write result)
-            Sound.beep(); //We can sing too. Beep.
-        }
-
-        private final int AXIS_CHANGE_DEGREES = 450;
-
-        private void getOnX(){
-            axisMotor.rotate(AXIS_CHANGE_DEGREES,true,false);
-            CartesianEnvironmentRobotController.this.onX = true;
-            doDetectorReading();
-        }
-
-        private void getOnY(){
-            axisMotor.rotate(-AXIS_CHANGE_DEGREES,true,false);
-            CartesianEnvironmentRobotController.this.onX = false;
-            doDetectorReading();
-        }
-
-        private boolean moveByField(byte directionSign){
+        private boolean moveByField(byte directionSign, boolean accelerate, boolean decelerate){
             MotorController motor = onX ? xMotor : yMotor;
             TouchSensor touch = onX ? xTouch : yTouch;
-            int originalTachoCount = motor.getTachoCount();
             boolean returningFromWall = false;
-            motor.rotate((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign,isNextStationery(),true);
-            while(motor.isMoving() && !returningFromWall){
+            final boolean nextStationery = isNextStationery();
+            final float acceleration = nextStationery ? (onX ? X_ACCELERATION : Y_ACCELERATION) : MAX_ACCELERATION;
+            final float decidedAcceleration = accelerate ? acceleration : MAX_ACCELERATION;
+            final float decidedDeceleration = decelerate ? acceleration : MAX_ACCELERATION;
+
+            final float tachoTarget = motor.getTachoCount() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
+            motor.newMove(motor.getSpeed(),decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
+
+            while(Math.abs(motor.getPosition() - tachoTarget) > 10 && !returningFromWall){
                 if(touch.isPressed()){
+                    Sound.beepSequence();
+                    Sound.beepSequenceUp();
                     //collision
-                    if(motor.getProgress() < 0.75f){
-                        returningFromWall = true;
-                        motor.rotateTo(originalTachoCount,isNextStationery(),false);
-                    }
+                    returningFromWall = true;
+                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION);
+                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getPosition() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
+                }else{
+                    try {
+                        Thread.sleep(100); //Give motor thread a bit of breathing space
+                    } catch (InterruptedException ignored) {}
                 }
             }
             doDetectorReading();
@@ -162,9 +196,9 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
         @Override
         protected void process() {
-            if(onX && !CartesianEnvironmentRobotController.this.onX){
+            if(onX && !CartesianEnvironmentRobotController.onX){
                 getOnX();
-            }else if(!onX && CartesianEnvironmentRobotController.this.onX){
+            }else if(!onX && CartesianEnvironmentRobotController.onX){
                 getOnY();
             }
 
@@ -174,7 +208,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             byte steps = (byte) (by * moveSignum); //Absolute value of 'by'. The beauty of maths.
 
             for (byte i = 0; i < steps; i++) {
-                if(moveByField(moveSignum)){
+                if(moveByField(moveSignum,i == 0,i+1 == steps && isNextStationery())){
                     moved += 1;
                     x += oneDeltaX;
                     y += oneDeltaY;
@@ -190,7 +224,12 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         @Override
         public boolean isStationery() {
             //Stationery if on different axis, because we'll need to stop
-            return onX != CartesianEnvironmentRobotController.this.onX;
+            return onX != CartesianEnvironmentRobotController.onX;
+        }
+
+        @Override
+        public String toString() {
+            return "MT "+(onX ? "x" : "y")+" "+by;
         }
     }
 

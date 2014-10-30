@@ -67,11 +67,13 @@ public abstract class EnvironmentController extends BotController {
      */
     public void setField(byte x, byte y,FieldStatus to){
         if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight){
-            onError(ERROR_SET_OUT_OF_BOUNDS);
+            if(to != FieldStatus.OBSTACLE){
+                onError(ERROR_SET_OUT_OF_BOUNDS);
+            }
         }else{
             FieldStatus now = maze[x][y];
             if(to == now)return;
-            else if(to.definitive){
+            else if(now.definitive){
                 onError(ERROR_SET_DEFINITIVE);
             }
             maze[x][y] = to;
@@ -131,13 +133,13 @@ public abstract class EnvironmentController extends BotController {
     public MoveFieldsTask moveAsync(Direction in) {
         switch (in){
             case UP:
-                return moveByYAsync(Byte.MIN_VALUE);
+                return moveByYAsync((byte)-100);
             case DOWN:
-                return moveByYAsync(Byte.MAX_VALUE);
+                return moveByYAsync((byte)100);
             case LEFT:
-                return moveByXAsync(Byte.MIN_VALUE);
+                return moveByXAsync((byte)-100);
             case RIGHT:
-                return moveByYAsync(Byte.MAX_VALUE);
+                return moveByXAsync((byte)100);
             default:
                 //This will never return, above match is exhaustive. Unless in is null. Then you have bigger problems.
                 throw new Error();

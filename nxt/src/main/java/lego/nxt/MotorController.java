@@ -336,6 +336,10 @@ public class MotorController {
     private float pendingLimit = 0;
     private boolean pendingHold = true;
 
+    /**
+     * DO NOT USE: I have no idea what it returns (-Darkyen 2014)
+     * You would think that it would return 0-1: NOPE WRONG!!!
+     */
     public float getProgress(){
         return tachoTCount / (currentLimit-baseTCount);
     }

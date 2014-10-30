@@ -7,7 +7,10 @@ import lego.api.BotController;
  * User: Darkyen
  * Date: 23/10/14
  * Time: 10:27
+ *
+ * @deprecated This is not the greatest design, use EnvironmentController instead
  */
+@Deprecated
 public abstract class CartesianController extends BotController {
 
     public abstract boolean isInVerticalMode();
