@@ -13,6 +13,8 @@ object Build extends Build {
 
   val debugNXJ = inputKey[Unit]("Debugs using given debug numbers.")
 
+  val nxjWin = TaskKey[Unit]("nxjWin","Compile link and upload nxt program on dumb operating systems.")
+
   val sharedSettings = Seq(
     crossPaths := false,
     autoScalaLibrary := false,
@@ -32,6 +34,20 @@ object Build extends Build {
   lazy val shared = Project("shared",file("shared"),settings = sharedSettings ++ Seq(
   ))
 
+  def listJavaFiles(root:File):List[String] = {
+    root.listFiles()
+      .filter(f => (f.isFile && f.getName.toLowerCase.endsWith(".java")) || f.isDirectory)
+      .foldLeft[List[String]](Nil)((files,file) => {
+        if(file.isDirectory){
+          listJavaFiles(file) ::: files
+        }else{
+          file.getCanonicalPath :: files
+        }
+    })
+  }
+
+  val nxjCompileDir = file("target") / "nxj"
+
   /**
    * NXT only project.
    * Implementation of NXT bot Controller.
@@ -39,6 +55,16 @@ object Build extends Build {
   lazy val nxtController = Project("nxt",file("nxt"),settings = sharedSettings ++ Seq(
     unmanagedBase := file("lejos") / "lib" / "nxt", //Only nxt controller can depend on nxt libs! They are not on pc!
     mainClass := Some("lego.nxt.bootstrap.RandomBootstrap"),
+    nxjWin := {
+      //TODO Make this thing working even on Bill Gate's OS
+      val parameters = (listJavaFiles(file("shared") / "src" / "main" / "java") ::: listJavaFiles(file("nxt") / "src" / "main" / "java"))
+        .addString(new StringBuilder("-d . -source 6 -target 6 ")," ").toString()
+      Process("..\\..\\lejos\\bin\\nxjcw.bat "+parameters,nxjCompileDir).!
+
+      Process(s"..\\..\\lejos\\bin\\nxjlinkw.bat -v -od linkDump -o NxtProgram.nxj ${mainClass.value}",nxjCompileDir).!
+
+      Process(s"..\\..\\lejos\\bin\\nxjuploadw.bat -r NxtProgram.nxj",nxjCompileDir).!
+    },
     compileNXJ := {
       "./compileNXJ.sh".!
     },
