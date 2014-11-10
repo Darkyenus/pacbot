@@ -79,10 +79,10 @@ object Build extends Build {
         })
       }
 
-      val sourceFiles = (listJavaFiles(file("shared") / "src" / "main" / "java") ::: listJavaFiles(file("shared") / "src" / "main" / "java"))
+      val sourceFiles = (listJavaFiles(file("shared") / "src" / "main" / "java") ::: listJavaFiles(file("nxt") / "src" / "main" / "java"))
         .addString(new StringBuilder," ").toString()
 
-      val PROGRAM_NAME = "NXWPRogram"
+      val PROGRAM_NAME = "NXWProgram"
 
       val batContent =
       "@echo off" + "\r\n" +
