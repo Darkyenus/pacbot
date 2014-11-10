@@ -1,3 +1,5 @@
+import java.lang.ProcessBuilder.Redirect
+
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import sbt.Keys._
@@ -36,7 +38,7 @@ object Build extends Build {
   lazy val shared = Project("shared",file("shared"),settings = sharedSettings ++ Seq(
   ))
 
-  val nxtCompileFolder = file("target") / "nxt"
+  val nxtCompileFolder = file("target") / "nxw"
   val nxwBat = nxtCompileFolder / "nxw.bat"
 
   /**
@@ -83,13 +85,22 @@ object Build extends Build {
       val PROGRAM_NAME = "NXWPRogram"
 
       val batContent =
-      s"""..\..\lejos\bin\nxjcw -d . -source 6 -target 6 $sourceFiles""" + "\r\n" +
-      s"""..\..\lejos\bin\nxjlinkw -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value}""" + "\r\n" +
-      s"""..\..\lejos\bin\nxjuploadw -r $PROGRAM_NAME.nxj"""
+      "echo Doing NXW Task" + "\r\n" +
+      s"..\\..\\lejos\\bin\\nxjc.bat -d . -source 6 -target 6 $sourceFiles" + "\r\n" +
+      s"..\\..\\lejos\\bin\\nxjlink.bat -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value.getOrElse(sys.error("Main class must be defined to use nxw task."))}" + "\r\n" +
+      s"..\\..\\lejos\\bin\\nxjupload.bat -r $PROGRAM_NAME.nxj"
 
       nxtCompileFolder.mkdirs()
       Files.write(batContent,nxwBat,Charsets.UTF_8)
-      Process(nxwBat.getName,nxtCompileFolder,("","")).!
+      nxwBat.setExecutable(true)
+
+      val processBuilder = new java.lang.ProcessBuilder()
+      processBuilder.directory(nxtCompileFolder)
+      processBuilder.command(nxwBat.getCanonicalPath)
+      processBuilder.redirectError(Redirect.INHERIT)
+      processBuilder.redirectOutput(Redirect.INHERIT)
+      val process = processBuilder.start()
+      process.waitFor()
     }
   )
     ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadRunNXJ")
