@@ -87,7 +87,7 @@ object Build extends Build {
       val batContent =
       "echo Doing NXW Task" + "\r\n" +
       s"..\\..\\lejos\\bin\\nxjc.bat -d . -source 6 -target 6 $sourceFiles" + "\r\n" +
-      s"..\\..\\lejos\\bin\\nxjlink.bat -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value.getOrElse(sys.error("Main class must be defined to use nxw task."))}" + "\r\n" +
+      s"..\\..\\lejos\\bin\\nxjlink.bat -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value.getOrElse(sys.error("Main class must be defined to use nxw task."))} > debugInfo.txt" + "\r\n" +
       s"..\\..\\lejos\\bin\\nxjupload.bat -r $PROGRAM_NAME.nxj"
 
       nxtCompileFolder.mkdirs()
