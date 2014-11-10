@@ -1,3 +1,5 @@
+import com.google.common.base.Charsets
+import com.google.common.io.Files
 import sbt.Keys._
 import sbt._
 
@@ -12,6 +14,8 @@ object Build extends Build {
   val uploadRunNXJ = TaskKey[Unit]("uploadRunNXJ","Uploads and runs linked NXJ program")
 
   val debugNXJ = inputKey[Unit]("Debugs using given debug numbers.")
+
+  val nxw = TaskKey[Unit]("nxw","Compiles, links and uploads program on dumb operating systems.")
 
   val sharedSettings = Seq(
     crossPaths := false,
@@ -31,6 +35,9 @@ object Build extends Build {
    */
   lazy val shared = Project("shared",file("shared"),settings = sharedSettings ++ Seq(
   ))
+
+  val nxtCompileFolder = file("target") / "nxt"
+  val nxwBat = nxtCompileFolder / "nxw.bat"
 
   /**
    * NXT only project.
@@ -56,7 +63,35 @@ object Build extends Build {
       val args = spaceDelimited("<arg>").parsed
 
       s"./debugNXJ.sh ${args.addString(new StringBuilder," ")}".!
-    })
+    },
+    nxw := {
+      def listJavaFiles(root:File):List[String] = {
+        root.listFiles().foldLeft[List[String]](Nil)((sources,file) => {
+          if(file.isDirectory){
+            listJavaFiles(file) ::: sources
+          }else if(file.isFile && file.getName.toLowerCase.endsWith(".java")){
+            file.getCanonicalPath :: sources
+          }else{
+            sources
+          }
+        })
+      }
+
+      val sourceFiles = (listJavaFiles(file("shared") / "src" / "main" / "java") ::: listJavaFiles(file("shared") / "src" / "main" / "java"))
+        .addString(new StringBuilder," ").toString()
+
+      val PROGRAM_NAME = "NXWPRogram"
+
+      val batContent =
+      s"""..\..\lejos\bin\nxjcw -d . -source 6 -target 6 $sourceFiles""" + "\r\n" +
+      s"""..\..\lejos\bin\nxjlinkw -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value}""" + "\r\n" +
+      s"""..\..\lejos\bin\nxjuploadw -r $PROGRAM_NAME.nxj"""
+
+      nxtCompileFolder.mkdirs()
+      Files.write(batContent,nxwBat,Charsets.UTF_8)
+      Process(nxwBat.getName,nxtCompileFolder,("","")).!
+    }
+  )
     ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadRunNXJ")
   ) dependsOn shared
 
