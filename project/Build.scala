@@ -89,7 +89,7 @@ object Build extends Build {
       "echo Doing NXW Task" + "\r\n" +
       s"call ..\\..\\lejos\\bin\\nxjc.bat -d . -source 6 -target 6 $sourceFiles" + "\r\n" +
       s"call ..\\..\\lejos\\bin\\nxjlink.bat -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value.getOrElse(sys.error("Main class must be defined to use nxw task."))} > debugInfo.txt" + "\r\n" +
-      s"call ..\\..\\lejos\\bin\\nxjupload.bat -r $PROGRAM_NAME.nxj"
+      s"call ..\\..\\lejos\\bin\\nxjupload.bat -u -r $PROGRAM_NAME.nxj"
 
       nxtCompileFolder.mkdirs()
       Files.write(batContent,nxwBat,Charsets.UTF_8)
@@ -100,6 +100,7 @@ object Build extends Build {
       processBuilder.command(nxwBat.getCanonicalPath)
       processBuilder.redirectError(Redirect.INHERIT)
       processBuilder.redirectOutput(Redirect.INHERIT)
+      processBuilder.environment().put("LEJOS_NXT_JAVA_HOME","C:\\Program Files (x86)\\Java\\jdk1.8.0_25\\")
       val process = processBuilder.start()
       process.waitFor()
     }

@@ -77,5 +77,5 @@ if "%OS%" == "Windows_NT" goto :winnt
 	)
 
 
-"%JAVAC%" -bootclasspath "%NXJ_CP_NXT%" -extdirs "" %*
+"%JAVAC%" -Xlint:deprecation -bootclasspath "%NXJ_CP_NXT%" -extdirs "" %*
 :eof

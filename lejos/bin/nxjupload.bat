@@ -77,5 +77,5 @@ if "%OS%" == "Windows_NT" goto :winnt
 	)
 
 
-"%JAVA%" "-Dnxj.home=%NXJ_HOME%" "-DCOMMAND_NAME=%NXJ_COMMAND%" -classpath "%NXJ_CP_PC%" lejos.pc.tools.NXJUpload  %*
+"%JAVA%" "-Dnxj.home=%NXJ_HOME%" -d32 "-DCOMMAND_NAME=%NXJ_COMMAND%" -classpath "%NXJ_CP_PC%" lejos.pc.tools.NXJUpload  %*
 :eof
