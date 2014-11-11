@@ -113,7 +113,7 @@ object Build extends Build {
    */
   lazy val simulatorController = Project("simulator",file("simulator"),settings = sharedSettings ++ Seq(
     autoScalaLibrary := true,
-    mainClass := Some("lego.simulator.ui.UIMain"),
+    mainClass in Compile := Some("lego.simulator.TerminalMain"),
     libraryDependencies += "com.google.guava" % "guava" % "18.0"
     //TODO add dependency on pc lejos stuff
   )) dependsOn shared
