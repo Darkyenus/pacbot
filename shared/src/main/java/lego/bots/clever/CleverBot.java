@@ -214,7 +214,7 @@ public class CleverBot extends Bot<EnvironmentController> {
             ps = target;
 
             if( count ++ > 100 ) {
-                System.out.println("E:PF");
+                controller.onError((byte)50);  // Cannot compute route, algo has stacked.
                 break;
             }
         }

@@ -82,5 +82,5 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
     override def moved(): Byte = movedFields
   }
 
-  override protected def onError(error: Byte): Unit = onError.apply(error)
+  override def onError(error: Byte): Unit = onError.apply(error)
 }

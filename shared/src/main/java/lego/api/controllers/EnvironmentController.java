@@ -91,7 +91,7 @@ public abstract class EnvironmentController extends BotController {
      * Called when controller encounters an error.
      * @param error one of this class static byte ERROR_* variable constants
      */
-    protected abstract void onError(byte error);
+    public abstract void onError(byte error);
 
     /**
      * Instruct robot to move by given amount of fields.

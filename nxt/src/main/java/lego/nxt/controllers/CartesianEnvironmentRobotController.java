@@ -89,7 +89,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     private String lastError = "";
 
     @Override
-    protected void onError(byte error) {
+    public void onError(byte error) {
         switch (error){
             case ERROR_SET_DEFINITIVE:
                 lastError = "D"+x+" "+y;
@@ -107,6 +107,8 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                 }
                 lastError = "OOB";
                 break;
+            default:
+                lastError = "!"+error;
         }
     }
 

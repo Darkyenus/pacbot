@@ -9,4 +9,5 @@ package lego.api;
 public abstract class BotController {
     protected void initialize(){}
     protected void deinitialize(){}
+    public void onError(byte errorid){}
 }
