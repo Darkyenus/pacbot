@@ -90,6 +90,7 @@ object TerminalMain extends App {
     }
   },map,onChanged,onError)
 
+
   val robotThread = new Thread(){
     override def run(): Unit = {
       AbstractBootstrap.main(bot,controller)

@@ -22,7 +22,6 @@ public class CleverBot extends Bot<EnvironmentController> {
     @Override
     public synchronized void run() {
 
-        System.out.println("Clever bot has compiled again //started!");
         continueRunning = true;
         try {
             this.wait();
@@ -32,47 +31,21 @@ public class CleverBot extends Bot<EnvironmentController> {
 
             calcDistances();
 
-            System.out.println();
-            for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
-                for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
-                    EnvironmentController.FieldStatus stat = controller.getField(x,y);
-                    if(stat == EnvironmentController.FieldStatus.OBSTACLE){
-                        System.out.print("[X]");
-                    }else if(stat == EnvironmentController.FieldStatus.START){
-                        System.out.print(" v ");
-                    }else{
-                        String val = Byte.toString(distances[x][y]);
-
-                        //You haven't seen this:
-                        if(val.length() == 1){
-                            val = " "+val+" ";
-                        }else if(val.length() == 2){
-                            val = "0"+val;
-                        }
-                        //Ok, the following code can be seen
-
-                        System.out.print(val);
-                    }
-                }
-                System.out.println();
-            }
-
-
             Stack<Pos> route = calcRoute();
-
-            System.out.println("Route is empty: "+route.isEmpty());
-
             Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
-            Queue<Integer> distances = new Queue<Integer>(STACK_SIZE);
+            Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
 
             EnvironmentController.Direction actualDir = null;
-            int movingDist = 0;
+            byte movingDist = 0;
 
-            Pos prev = route.pop();
-            System.out.println(prev.x + ", " + prev.y);
+
+            Pos prev = null;
+            if(!route.isEmpty()) {
+                prev = route.pop();
+            }
+
             while(!route.isEmpty()){
                 Pos next = route.pop();
-                System.out.println(next.x + ", " + next.y);
 
                 if(next.x == prev.x && next.y == prev.y + 1){
                     if(actualDir == EnvironmentController.Direction.DOWN){
@@ -130,18 +103,31 @@ public class CleverBot extends Bot<EnvironmentController> {
                 distances.pushNext(movingDist);
             }
 
-            System.out.println("Movement generated");
-
-            System.out.println("An it is empty: "+directions.isEmpty());
-
             while(!directions.isEmpty()){
                 actualDir = directions.retreiveFirst();
                 movingDist = distances.retreiveFirst();
                 if(directions.isEmpty()){
-                    System.out.println("Move "+actualDir);
-                    controller.move(actualDir);
+                    byte itMovedBy = movingDist;
+                    EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * itMovedBy), (byte)(controller.getY() + actualDir.y * itMovedBy));
+                    while(nextTile != EnvironmentController.FieldStatus.FREE_VISITED && nextTile != EnvironmentController.FieldStatus.START && nextTile != EnvironmentController.FieldStatus.OBSTACLE){
+                        itMovedBy ++;
+                        nextTile = controller.getField((byte)(controller.getX() + actualDir.x * itMovedBy), (byte)(controller.getY() + actualDir.y * itMovedBy));
+                    }
+                    if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
+                        controller.move(actualDir);
+                    }else{
+                        itMovedBy -= 1; //For some reason
+                        if(actualDir == EnvironmentController.Direction.DOWN){
+                            controller.moveByY(itMovedBy);
+                        }else if(actualDir == EnvironmentController.Direction.UP){
+                            controller.moveByY((byte)-itMovedBy);
+                        }else if(actualDir == EnvironmentController.Direction.LEFT){
+                            controller.moveByX((byte)-itMovedBy);
+                        }else if(actualDir == EnvironmentController.Direction.RIGHT){
+                            controller.moveByX(itMovedBy);
+                        }
+                    }
                 }else{
-                    System.out.println("Move "+actualDir+" by "+movingDist);
                     if(actualDir == EnvironmentController.Direction.DOWN){
                         controller.moveByY((byte)movingDist);
                     }else if(actualDir == EnvironmentController.Direction.UP){
@@ -153,15 +139,7 @@ public class CleverBot extends Bot<EnvironmentController> {
                     }
                 }
             }
-
-            System.out.println("Move iteration done. Next step incoming.");
-            try {
-                Thread.sleep(1000);
-            }catch (InterruptedException ignored){}
         }
-
-
-
     }
 
     private static class Pos{
@@ -198,15 +176,13 @@ public class CleverBot extends Bot<EnvironmentController> {
             }
         }
 
-        System.out.println("Robot pos: "+controller.getX()+", "+controller.getY());
-
-        if(target.x == Byte.MIN_VALUE && target.y == Byte.MIN_VALUE)
-            System.out.println("Route not found because all blocks have been visited");
+        if(target.x == Byte.MIN_VALUE && target.y == Byte.MIN_VALUE){
+            continueRunning = false;
+            return new Stack<Pos>(1);
+        }
 
         Stack<Pos> route = new Stack<Pos>(STACK_SIZE);
         route.push(target);
-
-        System.out.println("Target: "+target.x+", "+target.y);
 
         Pos ps = target;
         Pos robotPos = new Pos(controller.getX(), controller.getY());
@@ -226,16 +202,13 @@ public class CleverBot extends Bot<EnvironmentController> {
             }
 
             if( ps.x < EnvironmentController.mazeWidth - 1 && distances[ ps.x + 1 ][ ps.y ] < minDist ) {
-                minDist = distances[ ps.x + 1 ][ ps.y ];
-                target = new Pos((byte)(ps.x + 1), ps.y);
+                minDist = distances[ps.x + 1][ps.y];
+                target = new Pos((byte) (ps.x + 1), ps.y);
             }
 
             if( ps.y < EnvironmentController.mazeHeight - 1 && distances[ ps.x ][ ps.y + 1 ] < minDist ) {
                 target = new Pos( ps.x, (byte)(ps.y + 1));
-                minDist = distances[ ps.x ][ ps.y + 1];
             }
-
-            System.out.println("Nearest value: "+minDist);
 
             route.push(target);
             ps = target;
@@ -245,7 +218,6 @@ public class CleverBot extends Bot<EnvironmentController> {
                 break;
             }
         }
-        route.push(robotPos);
         return route;
     }
 
@@ -276,13 +248,13 @@ public class CleverBot extends Bot<EnvironmentController> {
                     distances[ps.x + 1][ps.y] = psDistNew;
                     toCalc.push(new Pos((byte) (ps.x + 1), ps.y));
                 }
-                if( ps.y > 0 && controller.getField(ps.x , (byte)(ps.y - 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(ps.x, ps.y) != EnvironmentController.FieldStatus.START && ( distances[ ps.x ][ ps.y - 1 ] > psDistNew ) ) {
+                if( ps.y > 0 && controller.getField(ps.x , (byte)(ps.y - 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(ps.x, ps.y) != EnvironmentController.FieldStatus.START  && ( distances[ ps.x ][ ps.y - 1 ] > psDistNew ) ) {
                     distances[ps.x][ps.y - 1] = psDistNew;
-                    toCalc.push(new Pos(ps.x, (byte)(ps.y - 1)));
+                    toCalc.push(new Pos(ps.x, (byte) (ps.y - 1)));
                 }
-                if( ps.y < EnvironmentController.mazeHeight && controller.getField(ps.x , (byte)(ps.y + 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(ps.x, (byte)(ps.y - 1)) != EnvironmentController.FieldStatus.START && ( distances[ ps.x ][ ps.y + 1 ] > psDistNew ) ) {
+                if( ps.y < EnvironmentController.mazeHeight && controller.getField(ps.x , (byte)(ps.y + 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(ps.x, (byte)(ps.y + 1)) != EnvironmentController.FieldStatus.START && ( distances[ ps.x ][ ps.y + 1 ] > psDistNew ) ) {
                     distances[ps.x][ps.y + 1] = psDistNew;
-                    toCalc.push(new Pos(ps.x, (byte)(ps.y + 1)));
+                    toCalc.push(new Pos(ps.x, (byte) (ps.y + 1)));
                 }
             }
         }
