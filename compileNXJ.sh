@@ -15,7 +15,7 @@ fi
 
 #######
 
-JAVAFILES="-d . -source 6 -target 6 "
+JAVAFILES=""
 
 for JAVAFILE in $(find ../../shared/src/main/java ../../nxt/src/main/java -name *.java)
 do
@@ -23,5 +23,5 @@ do
 done
 
 echo "Compiling..."
-../../lejos/bin/nxjc ${JAVAFILES}
+../../lejos/bin/nxjc -d . -source 6 -target 6 ${JAVAFILES}
 echo "Compiled"

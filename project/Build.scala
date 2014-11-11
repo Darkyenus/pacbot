@@ -1,3 +1,7 @@
+import java.lang.ProcessBuilder.Redirect
+
+import com.google.common.base.Charsets
+import com.google.common.io.Files
 import sbt.Keys._
 import sbt._
 
@@ -13,7 +17,7 @@ object Build extends Build {
 
   val debugNXJ = inputKey[Unit]("Debugs using given debug numbers.")
 
-  val nxjWin = TaskKey[Unit]("nxjWin","Compile link and upload nxt program on dumb operating systems.")
+  val nxw = TaskKey[Unit]("nxw","Compiles, links and uploads program on dumb operating systems.")
 
   val sharedSettings = Seq(
     crossPaths := false,
@@ -34,19 +38,8 @@ object Build extends Build {
   lazy val shared = Project("shared",file("shared"),settings = sharedSettings ++ Seq(
   ))
 
-  def listJavaFiles(root:File):List[String] = {
-    root.listFiles()
-      .filter(f => (f.isFile && f.getName.toLowerCase.endsWith(".java")) || f.isDirectory)
-      .foldLeft[List[String]](Nil)((files,file) => {
-        if(file.isDirectory){
-          listJavaFiles(file) ::: files
-        }else{
-          file.getCanonicalPath :: files
-        }
-    })
-  }
-
-  val nxjCompileDir = file("target") / "nxj"
+  val nxtCompileFolder = file("target") / "nxw"
+  val nxwBat = nxtCompileFolder / "nxw.bat"
 
   /**
    * NXT only project.
@@ -55,16 +48,6 @@ object Build extends Build {
   lazy val nxtController = Project("nxt",file("nxt"),settings = sharedSettings ++ Seq(
     unmanagedBase := file("lejos") / "lib" / "nxt", //Only nxt controller can depend on nxt libs! They are not on pc!
     mainClass := Some("lego.nxt.bootstrap.RandomBootstrap"),
-    nxjWin := {
-      //TODO Make this thing working even on Bill Gate's OS
-      val parameters = (listJavaFiles(file("shared") / "src" / "main" / "java") ::: listJavaFiles(file("nxt") / "src" / "main" / "java"))
-        .addString(new StringBuilder("-d . -source 6 -target 6 ")," ").toString()
-      Process("..\\..\\lejos\\bin\\nxjcw.bat "+parameters,nxjCompileDir).!
-
-      Process(s"..\\..\\lejos\\bin\\nxjlinkw.bat -v -od linkDump -o NxtProgram.nxj ${mainClass.value}",nxjCompileDir).!
-
-      Process(s"..\\..\\lejos\\bin\\nxjuploadw.bat -r NxtProgram.nxj",nxjCompileDir).!
-    },
     compileNXJ := {
       "./compileNXJ.sh".!
     },
@@ -82,7 +65,45 @@ object Build extends Build {
       val args = spaceDelimited("<arg>").parsed
 
       s"./debugNXJ.sh ${args.addString(new StringBuilder," ")}".!
-    })
+    },
+    nxw := {
+      def listJavaFiles(root:File):List[String] = {
+        root.listFiles().foldLeft[List[String]](Nil)((sources,file) => {
+          if(file.isDirectory){
+            listJavaFiles(file) ::: sources
+          }else if(file.isFile && file.getName.toLowerCase.endsWith(".java")){
+            file.getCanonicalPath :: sources
+          }else{
+            sources
+          }
+        })
+      }
+
+      val sourceFiles = (listJavaFiles(file("shared") / "src" / "main" / "java") ::: listJavaFiles(file("nxt") / "src" / "main" / "java"))
+        .addString(new StringBuilder," ").toString()
+
+      val PROGRAM_NAME = "NXWProgram"
+
+      val batContent =
+      "@echo off" + "\r\n" +
+      "echo Doing NXW Task" + "\r\n" +
+      s"call ..\\..\\lejos\\bin\\nxjc.bat -d . -source 6 -target 6 $sourceFiles" + "\r\n" +
+      s"call ..\\..\\lejos\\bin\\nxjlink.bat -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value.getOrElse(sys.error("Main class must be defined to use nxw task."))} > debugInfo.txt" + "\r\n" +
+      s"call ..\\..\\lejos\\bin\\nxjupload.bat -r $PROGRAM_NAME.nxj"
+
+      nxtCompileFolder.mkdirs()
+      Files.write(batContent,nxwBat,Charsets.UTF_8)
+      nxwBat.setExecutable(true)
+
+      val processBuilder = new java.lang.ProcessBuilder()
+      processBuilder.directory(nxtCompileFolder)
+      processBuilder.command(nxwBat.getCanonicalPath)
+      processBuilder.redirectError(Redirect.INHERIT)
+      processBuilder.redirectOutput(Redirect.INHERIT)
+      val process = processBuilder.start()
+      process.waitFor()
+    }
+  )
     ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadRunNXJ")
   ) dependsOn shared
 
@@ -92,7 +113,7 @@ object Build extends Build {
    */
   lazy val simulatorController = Project("simulator",file("simulator"),settings = sharedSettings ++ Seq(
     autoScalaLibrary := true,
-    mainClass := Some("lego.simulator.ui.UIMain"),
+    mainClass in Compile := Some("lego.simulator.TerminalMain"),
     libraryDependencies += "com.google.guava" % "guava" % "18.0"
     //TODO add dependency on pc lejos stuff
   )) dependsOn shared
