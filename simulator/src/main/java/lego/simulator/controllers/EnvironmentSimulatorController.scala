@@ -17,7 +17,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
     var remaining = xMove
     var moved = 0
 
-    while(remaining > 0){
+    while(remaining != 0){ //Used to work only in positive direction
       val nextX = x + direction
       map(nextX,y) match {
         case MapTile.START =>
@@ -46,7 +46,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
     var remaining = yMove
     var moved = 0
 
-    while(remaining > 0){
+    while(remaining != 0){ //Used to work only in positive direction
       val nextY = y + direction
 
       map(x,nextY) match {

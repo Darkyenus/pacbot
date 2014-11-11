@@ -45,7 +45,7 @@ object TerminalMain extends App {
       result.append('|')
       for(x <- 0 until EnvironmentController.mazeWidth){
         if(controller.getX == x && controller.getY == y){
-          result.append(" X ")
+          result.append("(-)")
         }else{
           result.append(" "+maze(x)(y)+" ")
         }
@@ -53,13 +53,13 @@ object TerminalMain extends App {
       result.append("| |")
       for(x <- 0 until EnvironmentController.mazeWidth){
         if(controller.getX == x && controller.getY == y){
-          result.append(" X ")
+          result.append("(-)")
         }else{
           result.append(mindMaze(x)(y) match {
-            case FieldStatus.FREE_UNVISITED => " U "
+            case FieldStatus.FREE_UNVISITED => " o "
             case FieldStatus.FREE_VISITED => "   "
-            case FieldStatus.OBSTACLE => " O "
-            case FieldStatus.START => " S "
+            case FieldStatus.OBSTACLE => "[X]"
+            case FieldStatus.START => " v "
             case FieldStatus.UNKNOWN => " ? "
           })
         }
