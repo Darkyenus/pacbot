@@ -23,8 +23,6 @@ public class DifferentialMotorManager {
     public DifferentialMotorManager(TachoMotorPort leftMotorPort,TachoMotorPort rightMotorPort) {
         leftMotor = new MotorController(leftMotorPort);
         rightMotor = new MotorController(rightMotorPort);
-        leftMotor.setSynchronizedMotor(rightMotor);
-        rightMotor.setSynchronizedMotor(leftMotor);
     }
 
     public static float MAX_SPEED() {

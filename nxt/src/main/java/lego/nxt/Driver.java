@@ -493,10 +493,6 @@ public class Driver {
     public static class MotorManager {
         private static final MotorController leftMotor = new MotorController(MotorPort.B);
         private static final MotorController rightMotor = new MotorController(MotorPort.C);
-        static{
-            leftMotor.setSynchronizedMotor(rightMotor);
-            rightMotor.setSynchronizedMotor(leftMotor);
-        }
 
         public static float MAX_SPEED() {
             return MotorController.getMaxSpeed()*0.825f;

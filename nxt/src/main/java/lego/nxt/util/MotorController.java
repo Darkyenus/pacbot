@@ -14,6 +14,7 @@ import lejos.util.Delay;
  * Date: 11/12/13
  * Time: 07:20
  */
+@SuppressWarnings("UnusedDeclaration")
 public class MotorController {
 
     protected static final int NO_LIMIT = Integer.MAX_VALUE;
@@ -345,12 +346,6 @@ public class MotorController {
      */
     public float getProgress(){
         return tachoTCount / (currentLimit-baseTCount);
-    }
-
-    private MotorController synchronizedMotor = null;
-
-    public synchronized void setSynchronizedMotor(MotorController synchronizedMotor){
-        this.synchronizedMotor = synchronizedMotor;
     }
 
     /**
