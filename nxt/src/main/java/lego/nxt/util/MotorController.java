@@ -308,16 +308,23 @@ public class MotorController {
     private static final float HOLD_I = 0.04f;
     private static final float HOLD_D = 8f;
 
-    private float basePower = 0; //used to calculate power
+    private float basePower = 0; //used to calculate power, but only in PID control
     private float err1 = 0; // used in smoothing
     private float err2 = 0; // used in smoothing
     private float currentVelocity = 0;
     private float baseVelocity = 0;
     private float baseTCount = 0;
+    /**
+     * Position in which motor should ideally be.
+     * Real position is cached in tachoTCount
+     */
     private float currentTCount = 0;
     private float currentAcceleration = 0;
     private float currentDeceleration = 0;
     private float currentTargetVelocity = 0;
+    /**
+     * Absolute degrees to which is motor trying to get.
+     */
     private float currentLimit = NO_LIMIT;
     private boolean currentHold = true;
     private float accelerationTCount = 0;
@@ -325,9 +332,21 @@ public class MotorController {
     private long now = 0;
     private long accelerationTime = 0;
     private boolean moving = false;
+    /**
+     * Contains raw, Controller updated value of motor's tacho count.
+     */
     private int tachoTCount;
+    /**
+     * Outgoing value, motor will be set to this power on every Controller update.
+     */
     private int power;
+    /**
+     * See power above.
+     */
     private int mode;
+    /**
+     * Active motor is being updated regularly.
+     */
     private boolean active = false;
     private int stallCount = 0;
 
@@ -668,12 +687,22 @@ public class MotorController {
                     delta = System.currentTimeMillis() - now;
                     MotorController[] motors = activeMotors;
                     now += delta;
-                    for (MotorController m : motors)
+                    //Highly optimized code below. Couldn't resist.
+                    int i;
+                    final int motorsLengthMinusOne = motors.length - 1; //Iterating backwards is slightly faster. Very slightly. Maybe.
+                    MotorController m;
+                    for (i = motorsLengthMinusOne; i >= 0; i++) {
+                        m = motors[i];
                         m.tachoTCount = m.tachoPort.getTachoCount();
-                    for (MotorController m : motors)
+                    }
+                    for (i = motorsLengthMinusOne; i >= 0; i++) {
+                        m = motors[i];
                         m.regulateMotor(delta);
-                    for (MotorController m : motors)
+                    }
+                    for (i = motorsLengthMinusOne; i >= 0; i++) {
+                        m = motors[i];
                         m.tachoPort.controlMotor(m.power, m.mode);
+                    }
                 }
                 Delay.msDelay(now + UPDATE_PERIOD - System.currentTimeMillis());
             }    // end keep going loop
