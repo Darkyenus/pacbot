@@ -1,7 +1,7 @@
 package lego.nxt.controllers;
 
 import lego.api.controllers.EnvironmentController;
-import lego.nxt.MotorController;
+import lego.nxt.util.MotorController;
 import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;

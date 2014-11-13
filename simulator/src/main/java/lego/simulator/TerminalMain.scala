@@ -98,7 +98,8 @@ object TerminalMain extends App {
   }
   robotThread.setDaemon(false)
   robotThread.setName("RobotThread")
+  println("Simulation is starting.")
   robotThread.start()
 
-  bot.onEvent(BotEvent.ENTER_PRESSED)
+  bot.onEvent(BotEvent.RUN_STARTED)
 }

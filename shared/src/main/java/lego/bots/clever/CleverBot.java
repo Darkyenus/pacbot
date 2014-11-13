@@ -131,13 +131,13 @@ public class CleverBot extends Bot<EnvironmentController> {
                         controller.move(actualDir);
                     }else {
                         if (actualDir == EnvironmentController.Direction.DOWN) {
-                            controller.moveByY((byte) movingDist);
+                            controller.moveByY(movingDist);
                         } else if (actualDir == EnvironmentController.Direction.UP) {
                             controller.moveByY((byte) -movingDist);
                         } else if (actualDir == EnvironmentController.Direction.LEFT) {
                             controller.moveByX((byte) -movingDist);
                         } else if (actualDir == EnvironmentController.Direction.RIGHT) {
-                            controller.moveByX((byte) movingDist);
+                            controller.moveByX(movingDist);
                         }
                     }
                 }

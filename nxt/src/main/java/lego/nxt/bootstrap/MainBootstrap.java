@@ -11,7 +11,7 @@ import lego.nxt.controllers.DifferentialEnvironmentRobotController;
  * Date: 23/10/14
  * Time: 11:01
  */
-public class CleverBootstrap extends NXTBootstrap {
+public class MainBootstrap extends NXTBootstrap {
     public static void main(String[] args){
         main(
                 new CleverBot()

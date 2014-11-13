@@ -13,7 +13,11 @@ import java.io.*;
 * User: Darkyen
 * Date: 23/10/14
 * Time: 19:49
+ *
+ * This is here just for copy-paste convenience. Don't actually use.
+ * @deprecated This only works in conjunction with Driver, witch is deprecated
 */
+@Deprecated
 public class Console extends Thread {
 
     private StringBuilder outBuffer = new StringBuilder();

@@ -1,7 +1,6 @@
 package lego.nxt.controllers.util;
 
-import lego.nxt.MotorController;
-import lejos.nxt.MotorPort;
+import lego.nxt.util.MotorController;
 import lejos.nxt.TachoMotorPort;
 
 /**
@@ -136,7 +135,7 @@ public class DifferentialMotorManager {
 
     public float asyncProgress(){
         if(asyncMoving()){
-            return
+            return 0f;//TODO Implement
         }else{
             return 1f;
         }

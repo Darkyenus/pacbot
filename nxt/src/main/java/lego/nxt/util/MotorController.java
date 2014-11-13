@@ -1,16 +1,19 @@
-package lego.nxt;
+package lego.nxt.util;
 
 import lejos.nxt.Battery;
 import lejos.nxt.TachoMotorPort;
 import lejos.util.Delay;
 
 /**
+ * Used to control single motor.
+ * Better than the default one. (Controller)
+ * But I don't remember how.
+ *
  * Private property.
  * User: Darkyen
  * Date: 11/12/13
  * Time: 07:20
  */
-
 public class MotorController {
 
     protected static final int NO_LIMIT = Integer.MAX_VALUE;
@@ -536,18 +539,6 @@ public class MotorController {
                 if (currentTargetVelocity == 0 && (pending || (Math.abs(error) < 2 && elapsed > accelerationTime + 100) || elapsed > accelerationTime + 500)) {
                     endMove(false);
                 }
-            }
-            if(synchronizedMotor != null && false){
-                //DriverMainLight.console.print("?");
-                float syncProgress = synchronizedMotor.getProgress();
-                //DriverMainLight.console.print("Sync prog: "+syncProgress);
-                float myProgress = getProgress();
-                //DriverMainLight.console.print("My prog: "+myProgress);
-                if(myProgress > syncProgress){
-                    //DriverMainLight.console.print("!");
-                    error -= (currentLimit - baseTCount)*(myProgress-syncProgress);
-                    Driver.console.print("Waiting for motor "+((currentLimit - baseTCount)*(myProgress-syncProgress)));
-                }else Driver.console.print("-");
             }
             // check for stall
             if (Math.abs(error) > stallLimit) {

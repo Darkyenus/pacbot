@@ -1,14 +1,11 @@
 package lego.nxt;
 
+import lego.nxt.util.MotorController;
 import lego.nxt.util.TaskProcessor;
-import lego.robot.api.RobotInterface;
-import lego.robot.api.RobotStrategy;
-import lego.robot.brain.Brain;
 import lejos.nxt.*;
 import lejos.util.Delay;
 
 import java.io.*;
-import java.util.HashMap;
 
 /**
  * Private property.
@@ -16,6 +13,7 @@ import java.util.HashMap;
  * Date: 04/12/13
  * Time: 22:02
  *
+ * This is here just for copy-paste convenience. Don't actually use.
  * @deprecated This class is now irrelevant. It was crafted for something else than you need. Go away.
  */
 @Deprecated
@@ -30,8 +28,6 @@ public class Driver {
     public static final float TWO_PI = (float) (Math.PI * 2.0);
 
     public static final float GRAD_TO_RAD = TWO_PI / 400f;
-
-    private static final RobotInterface robotInterface = new CartesianRobotInterface();
 
     private static MotorController toolMotor = new MotorController(MotorPort.A);
 
@@ -155,9 +151,6 @@ public class Driver {
                     }
                     case 'b':
                         return constructBlockMotors();
-                    //--------------------------------- HIGH LEVEL ONES
-                    case 'z':
-                        return constructBrain(input.substring(1));
                     //--------------------------------- DEBUG ONES
                     case 'a':
                         if(input.length() == 1){
@@ -454,50 +447,6 @@ public class Driver {
             @Override
             public String toString() {
                 return "T:TM-";
-            }
-        };
-    }
-
-    public static TaskProcessor.Task constructBrain(String input){
-        if(true)throw new Error();
-        String[] args = null;//input.split("(?<!\\\\) ");
-        if(args.length > 0){
-            final String type = args[0];
-            final HashMap<String, String> data = new HashMap<String, String>();
-            String key = "";
-            for(int i = 1; i < args.length; i++){
-                if(key.isEmpty()){
-                    key = args[i];
-                }else{
-                    data.put(key, args[i]);
-                    key = "";
-                }
-            }
-            if(key.isEmpty()){
-                return new TaskProcessor.Task(){
-                    @Override
-                    protected void process() {
-                        Brain b = new Brain(type);
-                        b.setData(data);
-                        RobotStrategy rs = b.getInstance(robotInterface);
-                        rs.run();
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "Z:"+type;
-                    }
-                };
-            }
-        }
-
-        return new TaskProcessor.Task(){
-            @Override
-            protected void process() {}
-
-            @Override
-            public String toString() {
-                return "Z:!";
             }
         };
     }
