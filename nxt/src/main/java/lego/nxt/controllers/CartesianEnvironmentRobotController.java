@@ -2,6 +2,7 @@ package lego.nxt.controllers;
 
 import lego.api.controllers.EnvironmentController;
 import lego.nxt.MotorController;
+import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;
 
@@ -158,8 +159,8 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
      */
     private class MoveTask extends AbstractMoveTask {
 
-        public static final float X_FIELD_DISTANCE = 380f;
-        public static final float Y_FIELD_DISTANCE = 560f;
+        public static final float X_FIELD_DISTANCE = 382f;
+        public static final float Y_FIELD_DISTANCE = 585f;
 
         public static final float X_ACCELERATION = 1000;
         public static final float Y_ACCELERATION = 1500;
@@ -186,15 +187,17 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
 
             while(Math.abs(motor.getPosition() - tachoTarget) > 20 && !returningFromWall){
-                if(touch.isPressed()){
+                if(touch.isPressed() && Math.abs(motor.getPosition() - tachoTarget) < (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE) - 60){
                     //collision
+                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
+                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign)*0.25f,false,true);
+
                     returningFromWall = true;
                     motor.stop(true);
                     motor.resetTachoCount();
                     motor.resetRelativeTachoCount();
                     motor.stop(false);
 
-                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
                     motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
                 }else{
                     try {
@@ -254,48 +257,6 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         @Override
         public String toString() {
             return "MT "+(onX ? "x" : "y")+" "+by;
-        }
-    }
-
-    private abstract class AbstractMoveTask extends TaskProcessor.Task implements MoveFieldsTask {
-
-        @Override
-        protected abstract void process();
-
-        protected byte moved;
-        protected volatile boolean done;
-
-        @Override
-        public boolean isDone() {
-            return done;
-        }
-
-        @Override
-        public byte moved() {
-            waitUntilDone();
-            return moved;
-        }
-
-        @Override
-        public void waitUntilDone() {
-            if(done)return;
-            synchronized (this) {
-                while (!done){
-                    try {
-                        this.wait();
-                    } catch (InterruptedException e) {
-                        done = true;
-                    }
-                }
-            }
-        }
-
-        protected void doComplete(){
-            if(done)return;
-            synchronized (this){
-                done = true;
-                this.notify();
-            }
         }
     }
 }

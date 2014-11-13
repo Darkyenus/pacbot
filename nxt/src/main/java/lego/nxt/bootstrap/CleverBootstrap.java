@@ -1,7 +1,9 @@
 package lego.nxt.bootstrap;
 
 import lego.bots.clever.CleverBot;
-import lego.nxt.controllers.CartesianEnvironmentRobotController;
+//import lego.nxt.controllers.CartesianEnvironmentRobotController;
+import lego.bots.random.RandomBot;
+import lego.nxt.controllers.DifferentialEnvironmentRobotController;
 
 /**
  * Private property.
@@ -11,6 +13,12 @@ import lego.nxt.controllers.CartesianEnvironmentRobotController;
  */
 public class CleverBootstrap extends NXTBootstrap {
     public static void main(String[] args){
-        main(new CleverBot(), new CartesianEnvironmentRobotController());
+        main(
+                new CleverBot()
+                //new RandomBot()
+                ,
+                //new CartesianEnvironmentRobotController()
+                new DifferentialEnvironmentRobotController()
+        );
     }
 }

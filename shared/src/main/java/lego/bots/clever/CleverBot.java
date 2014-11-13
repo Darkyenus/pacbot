@@ -21,8 +21,6 @@ public class CleverBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-
-        continueRunning = true;
         try {
             this.wait();
         } catch (InterruptedException ignored) {}
@@ -128,14 +126,19 @@ public class CleverBot extends Bot<EnvironmentController> {
                         }
                     }
                 }else{
-                    if(actualDir == EnvironmentController.Direction.DOWN){
-                        controller.moveByY((byte)movingDist);
-                    }else if(actualDir == EnvironmentController.Direction.UP){
-                        controller.moveByY((byte)-movingDist);
-                    }else if(actualDir == EnvironmentController.Direction.LEFT){
-                        controller.moveByX((byte)-movingDist);
-                    }else if(actualDir == EnvironmentController.Direction.RIGHT){
-                        controller.moveByX((byte)movingDist);
+                    EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * (movingDist + 1)), (byte)(controller.getY() + actualDir.y * (movingDist + 1)));
+                    if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
+                        controller.move(actualDir);
+                    }else {
+                        if (actualDir == EnvironmentController.Direction.DOWN) {
+                            controller.moveByY((byte) movingDist);
+                        } else if (actualDir == EnvironmentController.Direction.UP) {
+                            controller.moveByY((byte) -movingDist);
+                        } else if (actualDir == EnvironmentController.Direction.LEFT) {
+                            controller.moveByX((byte) -movingDist);
+                        } else if (actualDir == EnvironmentController.Direction.RIGHT) {
+                            controller.moveByX((byte) movingDist);
+                        }
                     }
                 }
             }
@@ -264,14 +267,18 @@ public class CleverBot extends Bot<EnvironmentController> {
     @Override
     public void onEvent(BotEvent event, Object param) {
         switch (event){
-            case ESCAPE_PRESSED:
+            case RUN_ENDED:
                 continueRunning = false;
-            case ENTER_PRESSED:
-            case LEFT_PRESSED:
-            case RIGHT_PRESSED:
                 synchronized (this){
                     notifyAll(); //Should wake up the main thread.
                 }
+                break;
+            case RUN_STARTED:
+                continueRunning = true;
+                synchronized (this){
+                    notifyAll(); //Should wake up the main thread.
+                }
+                break;
         }
     }
 }

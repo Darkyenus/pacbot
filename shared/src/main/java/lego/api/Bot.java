@@ -8,6 +8,12 @@ package lego.api;
  */
 public abstract class Bot <C extends BotController> {
 
+    public static Bot active = null;
+
+    {
+        active = this;
+    }
+
     /**
      * This should be written to only from Bootstrap.
      *

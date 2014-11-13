@@ -150,11 +150,11 @@ public abstract class EnvironmentController extends BotController {
         }
     }
 
-    public enum Direction {
+    public static enum Direction {
         UP((byte)0,(byte)-1),
+        RIGHT((byte)1,(byte)0),
         DOWN((byte)0,(byte)1),
-        LEFT((byte)-1,(byte)0),
-        RIGHT((byte)1,(byte)0);
+        LEFT((byte)-1,(byte)0);
 
         public final byte x;
         public final byte y;

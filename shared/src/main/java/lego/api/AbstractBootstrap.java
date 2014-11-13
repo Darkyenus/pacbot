@@ -7,7 +7,6 @@ package lego.api;
  * Time: 20:22
  */
 public abstract class AbstractBootstrap {
-
     /**
      * Call this method from non-abstract bootstrap with selected bot and controller.
      */
