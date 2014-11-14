@@ -25,7 +25,8 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private static final TouchSensor backTouch = new TouchSensor(SensorPort.S3);
 
     private String lastError = "";
-    private String sensorReadings = "";
+    private int displayLightReadings = 0;
+    private int displaySonicReadings = 0;
     private byte warnings = 0;
     private boolean glows = false;
 
@@ -64,7 +65,11 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     LCD.drawString(lastError,mazeWidth+1,0);
                     LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
                     readSensors();
-                    LCD.drawString(sensorReadings,0,mazeHeight+1);
+                    LCD.drawString("L:",0,mazeHeight+1);
+                    LCD.drawInt(displayLightReadings,3,mazeHeight+1);
+                    LCD.drawString("S:",0,mazeHeight+2);
+                    LCD.drawInt(displaySonicReadings,3,mazeHeight+2);
+
                     if(glows){
                         LCD.drawChar('U',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
                     }else{
@@ -185,14 +190,24 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             lowLightSum += lowLightReadings[i];
             highLightSum += highLightReadings[i];
         }
-        int sonicReading = -1;
-        if(sonicCount != 0){
-            sonicReading = sonicSum / sonicCount;
-        }
-        int lightReading = (highLightSum-lowLightSum) / READINGS;
+        Direction left = direction.left;
+        byte leftX = (byte) (x+left.x);
+        byte leftY = (byte) (y+left.y);
 
-        //TODO Interpret and use the data
-        sensorReadings = "U:"+sonicReading+" L:"+lightReading;
+        if(getField(leftX,leftY) == FieldStatus.UNKNOWN){
+            int lightReading = (highLightSum-lowLightSum) / READINGS;
+            displayLightReadings = lightReading;
+            if(false /* TODO Interpret value somehow */){
+                setField(leftX,leftY,FieldStatus.UNKNOWN /* TODO Interpret this value somehow */);
+            }
+
+        }
+
+        if(sonicCount != 0){
+            int sonicReading = sonicSum / sonicCount;
+            displaySonicReadings = sonicReading;
+            //TODO Interpret sonic reading
+        }
     }
 
     private static final float BLOCK_DISTANCE = 28.5f;

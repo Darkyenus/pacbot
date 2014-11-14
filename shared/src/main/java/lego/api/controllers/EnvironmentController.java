@@ -204,10 +204,21 @@ public abstract class EnvironmentController extends BotController {
 
         public final byte x;
         public final byte y;
+        public Direction right;
+        public Direction left;
 
         Direction(byte x, byte y) {
             this.x = x;
             this.y = y;
+        }
+
+        static { //I am not 100% this will work on nxt. But it should.
+            Direction[] values = values();
+            int length = values.length;
+            for (int i = 0; i < length; i++) {
+                values[i].right = values()[(i+1)%length];
+                values[i].left = values()[(i+length-1)%length];
+            }
         }
     }
 
