@@ -18,6 +18,7 @@ import lejos.util.Delay;
 @SuppressWarnings("UnusedDeclaration")
 public class MotorController {
 
+    public static final float DONT_STOP = Float.POSITIVE_INFINITY;
     protected static final int NO_LIMIT = Integer.MAX_VALUE;
     protected MotorPort tachoPort;
     protected boolean stalled = false;
@@ -369,10 +370,7 @@ public class MotorController {
      * You would think that it would return 0-1: NOPE WRONG!!!
      */
     public float getProgress(){
-        //target - actualTachoCount = remaining
-        //float leftMotorProgress = 1 - (remainingLeft / leftMotorJob)
         return 1f - ((currentLimit - currentTCount) / (currentLimit - baseTCount));
-        //return (tachoTCount-baseTCount) / (currentLimit-baseTCount);
     }
 
     /**
@@ -396,12 +394,11 @@ public class MotorController {
      * @param hold         at the end ?
      */
     private synchronized void startSubMove(float speed, float acceleration, float deceleration, float limit, boolean hold) {
-        //DriverMainLight.console.print("sSM "+speed+" "+acceleration+" "+deceleration+" "+limit+" "+hold);
         checkLimit = Math.abs(limit) != NO_LIMIT;
         baseTime = now;
         currentTargetVelocity = (limit - currentTCount >= 0 ? speed : -speed);
         currentAcceleration = currentTargetVelocity - currentVelocity >= 0 ? Math.abs(acceleration) : -Math.abs(acceleration);
-        currentDeceleration = currentTargetVelocity >= 0 ? Math.abs(deceleration) : -Math.abs(deceleration);
+        currentDeceleration = (currentTargetVelocity >= 0 ? Math.abs(deceleration) : -Math.abs(deceleration));
         accelerationTime = Math.round(((currentTargetVelocity - currentVelocity) / currentAcceleration) * 1000);
         accelerationTCount = (currentVelocity + currentTargetVelocity) * accelerationTime / (2 * 1000);
         baseTCount = currentTCount;
@@ -435,7 +432,6 @@ public class MotorController {
      */
     @SuppressWarnings("SpellCheckingInspection")
     public synchronized void newMove(float speed, float acceleration, float deceleration, float limit, boolean hold, boolean waitComplete) {
-        //DriverMainLight.console.print("nM "+speed+" "+acceleration+" "+deceleration+" "+limit+" "+hold+" "+waitComplete);
         if (!cont.activeMotors[tachoPort.getId()]) {
             resetRelativeTachoCount();
             cont.activeMotors[tachoPort.getId()] = true;
@@ -573,19 +569,11 @@ public class MotorController {
             // If we have a move limit, check for time to start the deceleration stage
             if (checkLimit) {
                 float proximity = (currentLimit - currentTCount);
-                //if(Math.random() < 0.08)DriverMainLight.console.print("sX "+proximity+" "+currentDeceleration);
                 if (Float.isInfinite(currentDeceleration)) {
                     if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
-                        //DriverMainLight.console.print("flt() "+proximity+" "+currentDeceleration);
-                        //Allow motor to rotate freely
+                        //This means don't stop. Ever.
                         moving = false;
-                        //currentTCount = tachoTCount;
-                        power = 0;
-                        mode = TachoMotorPort.STOP;
-                        //active = false;
-                        //cont.removeMotor(MotorController.this);
-                        //endMove(false);
-                        //flt(true);
+                        cont.activeMotors[tachoPort.getId()] = false;
                         notifyAll();
                     }
                 } else {
@@ -642,7 +630,7 @@ public class MotorController {
      * motor are also set at the same time.
      */
     protected static class Controller extends Thread {
-        static final int UPDATE_PERIOD = 5;//4
+        static final int UPDATE_PERIOD = 4;//4
         private final MotorController[] motors = new MotorController[3];
         /**
          * Active motor is being updated regularly.
@@ -653,8 +641,10 @@ public class MotorController {
         synchronized void shutdown() {
             // Shutdown all of the motors and prevent them from running
             running = false;
-            for (MotorController m : motors)
-                m.tachoPort.controlMotor(0, TachoMotorPort.FLOAT);
+            for (MotorController m : motors) {
+                if (m != null)
+                    m.tachoPort.controlMotor(0, TachoMotorPort.FLOAT);
+            }
         }
 
 

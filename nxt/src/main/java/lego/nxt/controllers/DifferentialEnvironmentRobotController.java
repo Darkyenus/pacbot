@@ -31,11 +31,16 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private boolean glows = false;
 
     // Sensor related
-    private byte readingPointer = 0;
     private boolean highLight = true;
     private final byte READINGS = 8;
-    private final int[] usReadings = new int[READINGS];
+    private byte sonicPointer = 0;
+    private int sonicSum = 0;
+    private final int[] sonicReadings = new int[READINGS];
+    private byte lowLightPointer = 0;
+    private int lowLightSum = 0;
     private final int[] lowLightReadings = new int[READINGS];
+    private byte highLightPointer = 0;
+    private int highLightSum = 0;
     private final int[] highLightReadings = new int[READINGS];
     //
 
@@ -50,7 +55,9 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 LCD.setAutoRefresh(false);
                 while(!frontTouch.isPressed()){}
                 while(frontTouch.isPressed()){}
+                Delay.msDelay(500);
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
+
                 //noinspection InfiniteLoopStatement
                 while(true){
                     if(Button.ESCAPE.isDown()){
@@ -83,7 +90,9 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     }else{
                         warningLight.controlMotor(0,BasicMotorPort.FLOAT);
                     }
-                    Delay.msDelay(200);
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {}
                 }
             }
         };
@@ -95,20 +104,38 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             @Override
             public void run() {
                 while(true){
-                    usReadings[readingPointer] = rightSonic.getDistance();
+                    int sonicDistance = rightSonic.getDistance();
+                    if(sonicDistance != 255){
+                        sonicSum -= sonicReadings[sonicPointer];
+                        sonicReadings[sonicPointer] = sonicDistance;
+                        sonicSum += sonicDistance;
+                        sonicPointer++;
+                        if(sonicPointer == READINGS){
+                            sonicPointer = 0;
+                        }
+                    }
+                    int lightReading = leftLight.getNormalizedLightValue();
                     if(highLight){
-                        highLightReadings[readingPointer] = leftLight.getNormalizedLightValue();
+                        highLightSum = highLightSum - highLightReadings[highLightPointer] + lightReading;
+                        highLightReadings[highLightPointer] = lightReading;
                         highLight = false;
+                        highLightPointer++;
+                        if(highLightPointer == READINGS){
+                            highLightPointer = 0;
+                        }
                     }else{
-                        lowLightReadings[readingPointer] = leftLight.getNormalizedLightValue();
+                        lowLightSum = lowLightSum - lowLightReadings[lowLightPointer] + lightReading;
+                        lowLightReadings[lowLightPointer] = lightReading;
                         highLight = true;
+                        lowLightPointer++;
+                        if(lowLightPointer == READINGS){
+                            lowLightPointer = 0;
+                        }
                     }
                     leftLight.setFloodlight(highLight);
-                    readingPointer += 1;
-                    if(readingPointer == READINGS){
-                        readingPointer = 0;
-                    }
-                    Delay.msDelay(100);
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException ignored) {}
                 }
             }
         };
@@ -177,19 +204,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     }
 
     private void readSensors(){
-        int sonicSum = 0;
-        int sonicCount = 0;
-        int lowLightSum = 0;
-        int highLightSum = 0;
-        for (int i = 0; i < READINGS; i++) {
-            int sonic = usReadings[i];
-            if(sonic != 255){
-                sonicSum += sonic;
-                sonicCount++;
-            }
-            lowLightSum += lowLightReadings[i];
-            highLightSum += highLightReadings[i];
-        }
         Direction left = direction.left;
         byte leftX = (byte) (x+left.x);
         byte leftY = (byte) (y+left.y);
@@ -203,26 +217,25 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
         }
 
-        if(sonicCount != 0){
-            int sonicReading = sonicSum / sonicCount;
-            displaySonicReadings = sonicReading;
-            //TODO Interpret sonic reading
-        }
+        int sonicReading = sonicSum / READINGS;
+        displaySonicReadings = sonicReading;
+        //TODO Interpret sonic reading
     }
 
-    private static final float BLOCK_DISTANCE = 28.5f;
+    private static final float BLOCK_DISTANCE = 28.5f;//28.5f
     private static final float BACKING_DISTANCE = BLOCK_DISTANCE*0.25f;
 
     private boolean driveForward(boolean accelerate,boolean decelerate){
         motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
-        while(motors.asyncProgress() < 0.93){
+        while(motors.asyncProgress() < 0.95){
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
                 warnings++;
                 Delay.msDelay(200);
                 motors.relax();
-                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,false);
+                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
+                        DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,false);
                 warnings--;
                 return false;
             }

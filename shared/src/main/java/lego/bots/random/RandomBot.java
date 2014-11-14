@@ -19,18 +19,27 @@ public class RandomBot extends Bot<EnvironmentController> {
         try {
             this.wait();
         } catch (InterruptedException ignored) {}
-        byte dist = 2;
         while(continueRunning){
-            controller.moveByY(dist);
-            controller.moveByX((byte)-dist);
-            controller.moveByY((byte)-dist);
-            controller.moveByX((byte) -dist);
-            controller.moveByY(dist);
-            controller.moveByX(dist);
-            controller.moveByY((byte) -dist);
-            controller.moveByX(dist);
+            tightLoop((byte)2);
         }
+    }
 
+    private void tightLoop(byte dist){
+        controller.moveByY(dist);
+        controller.moveByX((byte)1);
+        controller.moveByY((byte)-dist);
+        controller.moveByX((byte)-1);
+    }
+
+    private void figureEight(byte dist){
+        controller.moveByY(dist);
+        controller.moveByX((byte)-dist);
+        controller.moveByY((byte)-dist);
+        controller.moveByX((byte) -dist);
+        controller.moveByY(dist);
+        controller.moveByX(dist);
+        controller.moveByY((byte) -dist);
+        controller.moveByX(dist);
     }
 
     @Override

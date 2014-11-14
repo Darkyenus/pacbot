@@ -19,6 +19,8 @@ object Build extends Build {
 
   val nxw = TaskKey[Unit]("nxw","Compiles, links and uploads program on dumb operating systems.")
 
+  val debugNXW = inputKey[Unit]("Debugs using given debug markers on dumb operating systems.")
+
   val sharedSettings = Seq(
     crossPaths := false,
     autoScalaLibrary := false,
@@ -93,6 +95,27 @@ object Build extends Build {
 
       nxtCompileFolder.mkdirs()
       Files.write(batContent,nxwBat,Charsets.UTF_8)
+      nxwBat.setExecutable(true)
+
+      val processBuilder = new java.lang.ProcessBuilder()
+      processBuilder.directory(nxtCompileFolder)
+      processBuilder.command(nxwBat.getCanonicalPath)
+      processBuilder.redirectError(Redirect.INHERIT)
+      processBuilder.redirectOutput(Redirect.INHERIT)
+      processBuilder.environment().put("LEJOS_NXT_JAVA_HOME","C:\\Program Files (x86)\\Java\\jdk1.8.0_25\\")
+      val process = processBuilder.start()
+      process.waitFor()
+    },
+    debugNXW := {
+      import sbt.complete.DefaultParsers._
+      val args = spaceDelimited("<arg>").parsed
+
+      val debugBatContent =
+      "@echo off\r\n"+
+      s"call ..\\..\\lejos\\bin\\nxjdebugtool.bat -di linkDump -c -m ${args.addString(new StringBuilder," ")}\r\n"
+
+      nxtCompileFolder.mkdirs()
+      Files.write(debugBatContent,nxwBat,Charsets.UTF_8)
       nxwBat.setExecutable(true)
 
       val processBuilder = new java.lang.ProcessBuilder()

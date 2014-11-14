@@ -32,12 +32,12 @@ public class DifferentialMotorManager {
     }
 
     public static final float MAX_ACCELERATION = 9000;
-    public static final float SMOOTH_ACCELERATION = 1000;
-    public static final float NO_DECELERATION = MAX_ACCELERATION;
+    public static final float SMOOTH_ACCELERATION = 700;
+    public static final float NO_DECELERATION = MotorController.DONT_STOP;
 
-    public static final float wheelDiameterCM = 8.4f;
+    public static final float wheelDiameterCM = 8.2f;
     public static final float wheelCircumferenceCM = PI * wheelDiameterCM;
-    public static final float wheelDistanceCM = 7.05f;//Half distance between wheels
+    public static final float wheelDistanceCM = 7.4f;//Half distance between wheels
 
     public void go(boolean leftForward, boolean rightForward, float leftSpeed, float rightSpeed, float acceleration) {
         if (FLIP_DIRECTION) {
