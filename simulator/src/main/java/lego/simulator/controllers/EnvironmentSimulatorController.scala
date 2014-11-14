@@ -18,22 +18,21 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
     var moved = 0
 
     while(remaining != 0){ //Used to work only in positive direction
-      val nextX = x + direction
+      val nextX:Byte = (x + direction).toByte
       map(nextX,y) match {
         case MapTile.START =>
-          x = nextX.toByte
+          x = nextX
           moved += 1
           //No exploring, this is known
           remaining = (remaining - direction).toByte
         case MapTile.FREE =>
-          x = nextX.toByte
+          x = nextX
           moved += 1
-          setField(x,y,FieldStatus.OBSTACLE)
-          maze(x)(y) = FieldStatus.FREE_VISITED
+          setField(x,y,FieldStatus.FREE_VISITED)
           remaining = (remaining - direction).toByte
         case MapTile.OBSTACLE =>
           //No moving
-          setField(nextX.toByte,y,FieldStatus.OBSTACLE)
+          setField(nextX,y,FieldStatus.OBSTACLE)
           remaining = 0
       }
     }
@@ -58,8 +57,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
         case MapTile.FREE =>
           y = nextY.toByte
           moved += 1
-          setField(x,y,FieldStatus.OBSTACLE)
-          maze(x)(y) = FieldStatus.FREE_VISITED
+          setField(x,y,FieldStatus.FREE_VISITED)
           remaining = (remaining - direction).toByte
         case MapTile.OBSTACLE =>
           //No moving

@@ -53,11 +53,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                 while(true){
                     for (byte x = 0; x < mazeWidth; x++) {
                         for (byte y = 0; y < mazeHeight; y++) {
-                            if(getX() == x && getY() == y){
-                                LCD.drawString(Character.toString(maze[x][y].displayChar), x, y, true);
-                            } else {
-                                LCD.drawChar(maze[x][y].displayChar, x, y);
-                            }
+                            LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
                         }
                     }
                     LCD.drawString("H: "+TaskProcessor.getStackHead()+"   ",0,mazeHeight);

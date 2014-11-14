@@ -15,6 +15,11 @@ public abstract class EnvironmentController extends BotController {
     public static final byte startX = 4;
     public static final byte startY = 2;
 
+    private static final byte OBSTACLES = 13;
+    private static final byte FREE = 40;
+    private byte obstaclesDiscovered = 0;
+    private byte freeDiscovered = 0;
+
     protected byte x = startX;
     protected byte y = startY;
     protected FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
@@ -40,6 +45,8 @@ public abstract class EnvironmentController extends BotController {
         maze[x-1][y] = FieldStatus.OBSTACLE;
         maze[x+1][y] = FieldStatus.OBSTACLE;
         maze[x][y+1] = FieldStatus.FREE_UNVISITED;
+        obstaclesDiscovered = 2;
+        freeDiscovered = 1;
     }
 
     /**
@@ -81,6 +88,45 @@ public abstract class EnvironmentController extends BotController {
                 onError(ERROR_SET_DEFINITIVE);
             }
             maze[x][y] = to;
+            if(now == FieldStatus.UNKNOWN){
+                if(to == FieldStatus.OBSTACLE){
+                    obstaclesDiscovered++;
+                    predictRestFree();
+                }else if(to == FieldStatus.FREE_UNVISITED || to == FieldStatus.FREE_VISITED){
+                    freeDiscovered++;
+                    predictRestObstacles();
+                }
+            }
+        }
+    }
+
+    private void predictRestFree(){
+        if(obstaclesDiscovered == OBSTACLES){
+            //Rest undiscovered must be free
+            obstaclesDiscovered = 0;//So this doesn't get calculated again
+            freeDiscovered = 0;
+            for (int x = 0; x < mazeWidth; x++) {
+                for (int y = 0; y < mazeHeight; y++) {
+                    if(maze[x][y] == FieldStatus.UNKNOWN){
+                        maze[x][y] = FieldStatus.FREE_UNVISITED;
+                    }
+                }
+            }
+        }
+    }
+
+    private void predictRestObstacles(){
+        if(freeDiscovered == FREE){
+            //Rest undiscovered must be obstacles
+            obstaclesDiscovered = 0;//So this doesn't get calculated again
+            freeDiscovered = 0;
+            for (int x = 0; x < mazeWidth; x++) {
+                for (int y = 0; y < mazeHeight; y++) {
+                    if(maze[x][y] == FieldStatus.UNKNOWN){
+                        maze[x][y] = FieldStatus.OBSTACLE;
+                    }
+                }
+            }
         }
     }
 
