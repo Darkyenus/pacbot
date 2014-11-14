@@ -156,8 +156,8 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
     private boolean driveForward(boolean accelerate,boolean decelerate){
         motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
-                decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION,false);
-        while(motors.asyncProgress() < 0.95){
+                decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
+        while(motors.asyncProgress() < 0.93){
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
                 warnings++;
                 try {
@@ -211,6 +211,7 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
         protected void process() {
             ensureDirection(direction);
             lastError = "fwd: "+amount+"    ";
+            moved = 0;
             while(moved < amount){
                 if(driveForward(moved == 0,moved == amount - 1)){
                     moved += 1;
