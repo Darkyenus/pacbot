@@ -25,13 +25,16 @@ public class CleverBot extends Bot<EnvironmentController> {
             this.wait();
         } catch (InterruptedException ignored) {}
 
-        Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
-        Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
+        final Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
+        final Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
+
+        final PositionStack route = new PositionStack(STACK_SIZE);
 
         while(continueRunning){
             calcDistances();
 
-            PositionStack route = calcRoute();
+            route.clear();
+            calcRoute(route);
             directions.clear();
             distances.clear();
 
@@ -167,7 +170,7 @@ public class CleverBot extends Bot<EnvironmentController> {
 
     }
 
-    private PositionStack calcRoute() {
+    private void calcRoute(PositionStack outputRoute) {
         byte targetX = Byte.MIN_VALUE;
         byte targetY = Byte.MIN_VALUE;
         byte minDist = Byte.MAX_VALUE;
@@ -187,11 +190,10 @@ public class CleverBot extends Bot<EnvironmentController> {
 
         if(targetX == Byte.MIN_VALUE && targetY == Byte.MIN_VALUE){
             continueRunning = false;
-            return new PositionStack(1);//TODO Single instance
+            return;
         }
 
-        PositionStack route = new PositionStack(STACK_SIZE);//TODO Single instance
-        route.push(targetX,targetY);
+        outputRoute.push(targetX, targetY);
 
         byte psX = targetX;
         byte psY = targetY;
@@ -226,7 +228,7 @@ public class CleverBot extends Bot<EnvironmentController> {
                 targetY = (byte)(psY + 1);
             }
 
-            route.push(targetX,targetY);
+            outputRoute.push(targetX, targetY);
             psX = targetX;
             psY = targetY;
 
@@ -235,7 +237,6 @@ public class CleverBot extends Bot<EnvironmentController> {
                 break;
             }
         }
-        return route;
     }
 
     private final PositionStack toCalc = new PositionStack(STACK_SIZE); //Used in calcDistances function
