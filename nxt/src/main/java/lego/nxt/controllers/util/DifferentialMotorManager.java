@@ -1,12 +1,13 @@
 package lego.nxt.controllers.util;
 
 import lego.nxt.util.MotorController;
-import lejos.nxt.TachoMotorPort;
+import lejos.nxt.MotorPort;
 
 /**
  * Hi
  * Created by Darkyen on 13.11.2014.
  */
+@SuppressWarnings("UnusedDeclaration")
 public class DifferentialMotorManager {
 
     private static final boolean FLIP_DIRECTION = false;
@@ -20,18 +21,10 @@ public class DifferentialMotorManager {
     private final MotorController leftMotor;
     private final MotorController rightMotor;
 
-    private int leftMotorTarget = 0;
-    private int rightMotorTarget = 0;
-    private int leftMotorJob = 0;
-    private int rightMotorJob = 0;
-    private int leftMotorMovingDirection = 0;
-    private int rightMotorMovingDirection = 0;
 
-    public DifferentialMotorManager(TachoMotorPort leftMotorPort,TachoMotorPort rightMotorPort) {
+    public DifferentialMotorManager(MotorPort leftMotorPort, MotorPort rightMotorPort) {
         leftMotor = new MotorController(leftMotorPort);
         rightMotor = new MotorController(rightMotorPort);
-        leftMotor.setSynchronizedMotor(rightMotor);
-        rightMotor.setSynchronizedMotor(leftMotor);
     }
 
     public static float MAX_SPEED() {
@@ -136,26 +129,13 @@ public class DifferentialMotorManager {
         int toMoveLeft = (int) (leftCM / wheelCircumferenceCM * 360);
         int toMoveRight = (int) (rightCM / wheelCircumferenceCM * 360);
 
-        leftMotorTarget = leftMotor.getTachoCount() + toMoveLeft;
-        rightMotorTarget = leftMotor.getTachoCount() + toMoveRight;
-        leftMotorJob = Math.abs(toMoveLeft);
-        rightMotorJob = Math.abs(toMoveRight);
-        leftMotorMovingDirection = toMoveLeft > 0 ? 1 : 0;
-        rightMotorMovingDirection = toMoveRight > 0 ? 1 : 0;
-
         leftMotor.rotate(toMoveLeft, hold, true);
         rightMotor.rotate(toMoveRight, hold, true);
     }
 
     public float asyncProgress(){
         if(asyncMoving()){
-            int remainingLeft = (leftMotorTarget - leftMotor.getTachoCount()) * leftMotorMovingDirection;
-            int remainingRight = (leftMotorTarget - leftMotor.getTachoCount()) * rightMotorMovingDirection;
-
-            float leftMotorProgress = 1 - (remainingLeft / leftMotorJob);
-            float rightMotorProgress = 1 - (remainingRight / rightMotorJob);
-
-            return leftMotorProgress < rightMotorProgress ? leftMotorProgress : rightMotorProgress;
+            return (leftMotor.getProgress() + rightMotor.getProgress()) * 0.5f;
         }else{
             return 1f;
         }

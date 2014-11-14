@@ -14,8 +14,8 @@ import lego.nxt.controllers.DifferentialEnvironmentRobotController;
 public class MainBootstrap extends NXTBootstrap {
     public static void main(String[] args){
         main(
-                new CleverBot()
-                //new RandomBot()
+                //new CleverBot()
+                new RandomBot()
                 ,
                 //new CartesianEnvironmentRobotController()
                 new DifferentialEnvironmentRobotController()

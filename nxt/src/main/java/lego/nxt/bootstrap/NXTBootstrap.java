@@ -41,5 +41,6 @@ public abstract class NXTBootstrap extends AbstractBootstrap {
         Button.RIGHT.addButtonListener(buttonListener);
 
         AbstractBootstrap.main(bot,controller);
+        System.exit(0);
     }
 }

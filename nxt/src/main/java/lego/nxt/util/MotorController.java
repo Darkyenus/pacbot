@@ -1,6 +1,7 @@
 package lego.nxt.util;
 
 import lejos.nxt.Battery;
+import lejos.nxt.MotorPort;
 import lejos.nxt.TachoMotorPort;
 import lejos.util.Delay;
 
@@ -18,7 +19,7 @@ import lejos.util.Delay;
 public class MotorController {
 
     protected static final int NO_LIMIT = Integer.MAX_VALUE;
-    protected TachoMotorPort tachoPort;
+    protected MotorPort tachoPort;
     protected boolean stalled = false;
     protected float speed = 360;
     protected float acceleration = 6000;
@@ -46,9 +47,10 @@ public class MotorController {
      *
      * @param port to which this motor is connected
      */
-    public MotorController(TachoMotorPort port) {
+    public MotorController(MotorPort port) {
         tachoPort = port;
         port.setPWMMode(TachoMotorPort.PWM_BRAKE);
+        cont.motors[port.getId()] = this;
     }
 
     /**
@@ -65,10 +67,10 @@ public class MotorController {
         newMove(0, acceleration, deceleration, NO_LIMIT, false, true);
         // Now wait for the motor to become inactive
         if(waitForSuspension){
-            while (active)
+            while (cont.activeMotors[tachoPort.getId()])
                 Delay.msDelay(1);
             return true;
-        }else return !active;
+        }else return !cont.activeMotors[tachoPort.getId()];
     }
 
     /**
@@ -83,7 +85,7 @@ public class MotorController {
      * Returns the current position that the motor regulator is trying to
      * maintain. Normally this will be the actual position of the motor and will
      * be the same as the value returned by getTachoCount(). However in some
-     * circumstances (activeMotors that are in the process of stalling, or activeMotors
+     * circumstances (motors that are in the process of stalling, or motors
      * that have been forced out of position), the two values may differ. Note
      * this value is not valid if regulation has been terminated.
      *
@@ -312,7 +314,13 @@ public class MotorController {
     private float err1 = 0; // used in smoothing
     private float err2 = 0; // used in smoothing
     private float currentVelocity = 0;
+    /**
+     * Is currentVelocity at the start of sub move
+     */
     private float baseVelocity = 0;
+    /**
+     * This is currentTCount at the start of sub move.
+     */
     private float baseTCount = 0;
     /**
      * Position in which motor should ideally be.
@@ -344,10 +352,7 @@ public class MotorController {
      * See power above.
      */
     private int mode;
-    /**
-     * Active motor is being updated regularly.
-     */
-    private boolean active = false;
+
     private int stallCount = 0;
 
     //----------------------------------------------- Pending
@@ -364,7 +369,10 @@ public class MotorController {
      * You would think that it would return 0-1: NOPE WRONG!!!
      */
     public float getProgress(){
-        return tachoTCount / (currentLimit-baseTCount);
+        //target - actualTachoCount = remaining
+        //float leftMotorProgress = 1 - (remainingLeft / leftMotorJob)
+        return 1f - ((currentLimit - currentTCount) / (currentLimit - baseTCount));
+        //return (tachoTCount-baseTCount) / (currentLimit-baseTCount);
     }
 
     /**
@@ -428,9 +436,9 @@ public class MotorController {
     @SuppressWarnings("SpellCheckingInspection")
     public synchronized void newMove(float speed, float acceleration, float deceleration, float limit, boolean hold, boolean waitComplete) {
         //DriverMainLight.console.print("nM "+speed+" "+acceleration+" "+deceleration+" "+limit+" "+hold+" "+waitComplete);
-        if (!active) {
-            cont.addMotor(MotorController.this);
-            active = true;
+        if (!cont.activeMotors[tachoPort.getId()]) {
+            resetRelativeTachoCount();
+            cont.activeMotors[tachoPort.getId()] = true;
         }
         // ditch any existing pending command
         pending = false;
@@ -597,8 +605,7 @@ public class MotorController {
             currentTCount = tachoTCount;
             power = 0;
             mode = TachoMotorPort.FLOAT;
-            active = false;
-            cont.removeMotor(MotorController.this);
+            cont.activeMotors[tachoPort.getId()] = false;
         }
     }
 
@@ -635,45 +642,19 @@ public class MotorController {
      * motor are also set at the same time.
      */
     protected static class Controller extends Thread {
-        static final int UPDATE_PERIOD = 4;
-        MotorController[] activeMotors = new MotorController[0];
+        static final int UPDATE_PERIOD = 5;//4
+        private final MotorController[] motors = new MotorController[3];
+        /**
+         * Active motor is being updated regularly.
+         */
+        private final boolean[] activeMotors = new boolean[motors.length];
         boolean running = false;
-
-
-
-        /**
-         * Add a motor to the set of active motors.
-         *
-         * @param motor to add
-         */
-        synchronized void addMotor(MotorController motor) {
-            MotorController[] newMotors = new MotorController[activeMotors.length + 1];
-            System.arraycopy(activeMotors, 0, newMotors, 0, activeMotors.length);
-            newMotors[activeMotors.length] = motor;
-            motor.resetRelativeTachoCount();
-            activeMotors = newMotors;
-        }
-
-        /**
-         * Remove a motor from the set of active motors.
-         *
-         * @param motor to add
-         */
-        synchronized void removeMotor(MotorController motor) {
-            MotorController[] newMotors = new MotorController[activeMotors.length - 1];
-            int j = 0;
-            for (MotorController activeMotor : activeMotors)
-                if (activeMotor != motor)
-                    newMotors[j++] = activeMotor;
-            activeMotors = newMotors;
-        }
 
         synchronized void shutdown() {
             // Shutdown all of the motors and prevent them from running
             running = false;
-            for (MotorController m : activeMotors)
+            for (MotorController m : motors)
                 m.tachoPort.controlMotor(0, TachoMotorPort.FLOAT);
-            activeMotors = new MotorController[0];
         }
 
 
@@ -685,23 +666,29 @@ public class MotorController {
                 long delta;
                 synchronized (this) {
                     delta = System.currentTimeMillis() - now;
-                    MotorController[] motors = activeMotors;
+                    MotorController[] motors = this.motors;
                     now += delta;
                     //Highly optimized code below. Couldn't resist.
                     int i;
                     final int motorsLengthMinusOne = motors.length - 1; //Iterating backwards is slightly faster. Very slightly. Maybe.
                     MotorController m;
-                    for (i = motorsLengthMinusOne; i >= 0; i++) {
-                        m = motors[i];
-                        m.tachoTCount = m.tachoPort.getTachoCount();
+                    for (i = motorsLengthMinusOne; i >= 0; i--) {
+                        if(activeMotors[i]){
+                            m = motors[i];
+                            m.tachoTCount = m.tachoPort.getTachoCount();
+                        }
                     }
-                    for (i = motorsLengthMinusOne; i >= 0; i++) {
-                        m = motors[i];
-                        m.regulateMotor(delta);
+                    for (i = motorsLengthMinusOne; i >= 0; i--) {
+                        if(activeMotors[i]) {
+                            m = motors[i];
+                            m.regulateMotor(delta);
+                        }
                     }
-                    for (i = motorsLengthMinusOne; i >= 0; i++) {
-                        m = motors[i];
-                        m.tachoPort.controlMotor(m.power, m.mode);
+                    for (i = motorsLengthMinusOne; i >= 0; i--) {
+                        if(activeMotors[i]){
+                            m = motors[i];
+                            m.tachoPort.controlMotor(m.power, m.mode);
+                        }
                     }
                 }
                 Delay.msDelay(now + UPDATE_PERIOD - System.currentTimeMillis());

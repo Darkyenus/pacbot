@@ -39,4 +39,9 @@ public final class Queue<T> {
         internal[writePosition] = value;
         writePosition++;
     }
+
+    public void clear(){
+        writePosition = 0;
+        readPosition = 0;
+    }
 }

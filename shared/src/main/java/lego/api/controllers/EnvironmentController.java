@@ -166,16 +166,18 @@ public abstract class EnvironmentController extends BotController {
     }
 
     public enum FieldStatus {
-        UNKNOWN('?', false),
-        OBSTACLE('O', true),
-        FREE_UNVISITED('.', false),
-        FREE_VISITED(' ', true),
-        START('S', true);
+        UNKNOWN("?", false),
+        OBSTACLE("O", true),
+        FREE_UNVISITED(".", false),
+        FREE_VISITED(" ", true),
+        START("S", true);
 
         /**
          * Char as which should be this block displayed in debug views without custom rendering.
+         *
+         * NOTE: It is actually string, because it would have to be transformed to string during rendering anyway, which is wasteful.
          */
-        public final char displayChar;
+        public final String displayChar;
         /**
          * True means, that field with this status is fully known and that status will not change unless error happens.
          * For example, OBSTACLE is definitive, because obstacles can not be removed.
@@ -184,7 +186,7 @@ public abstract class EnvironmentController extends BotController {
          */
         public final boolean definitive;
 
-        FieldStatus(char displayChar, boolean definitive) {
+        FieldStatus(String displayChar, boolean definitive) {
             this.displayChar = displayChar;
             this.definitive = definitive;
         }

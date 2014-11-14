@@ -7,6 +7,7 @@ import lego.nxt.controllers.util.DifferentialMotorManager;
 import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;
+import lejos.util.Delay;
 
 /**
  * Hi
@@ -14,7 +15,7 @@ import lejos.nxt.*;
  * Created by Darkyen on 13.11.2014.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class DifferentialEnvironmentRobotController extends EnvironmentController {
+public final class DifferentialEnvironmentRobotController extends EnvironmentController {
 
     private static final DifferentialMotorManager motors = new DifferentialMotorManager(MotorPort.C,MotorPort.B);
     private static final MotorPort warningLight = MotorPort.A;
@@ -28,11 +29,21 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
     private byte warnings = 0;
     private boolean glows = false;
 
+    // Sensor related
+    private byte readingPointer = 0;
+    private boolean highLight = true;
+    private final byte READINGS = 8;
+    private final int[] usReadings = new int[READINGS];
+    private final int[] lowLightReadings = new int[READINGS];
+    private final int[] highLightReadings = new int[READINGS];
+    //
+
     @Override
     protected void initialize() {
         TaskProcessor.initialize();
 
-        Thread debugViewThread = new Thread(){
+        Thread debugViewThread = new Thread("DV"){
+            @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
             @Override
             public void run() {
                 LCD.setAutoRefresh(false);
@@ -47,34 +58,58 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
                     }
                     for (byte x = 0; x < mazeWidth; x++) {
                         for (byte y = 0; y < mazeHeight; y++) {
-                            if(getX() == x && getY() == y){
-                                LCD.drawString(Character.toString(maze[x][y].displayChar), x, y, true);
-                            } else {
-                                LCD.drawChar(maze[x][y].displayChar, x, y);
-                            }
+                            LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
                         }
                     }
-                    LCD.drawString("H: "+TaskProcessor.getStackHead()+"   ",0,mazeHeight);
                     LCD.drawString(lastError,mazeWidth+1,0);
+                    LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
                     readSensors();
                     LCD.drawString(sensorReadings,0,mazeHeight+1);
+                    if(glows){
+                        LCD.drawChar('U',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
+                    }else{
+                        LCD.drawChar(' ',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
+                    }
+
                     LCD.asyncRefresh();
+                    glows = !glows;
                     if(warnings > 0){
                         warningLight.controlMotor(glows ? 100 : 0, BasicMotorPort.FORWARD);
-                        glows = !glows;
                     }else{
                         warningLight.controlMotor(0,BasicMotorPort.FLOAT);
                     }
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {}
+                    Delay.msDelay(200);
                 }
             }
         };
         debugViewThread.setDaemon(true);
         debugViewThread.setPriority(Thread.MIN_PRIORITY);
-        debugViewThread.setName("DebugView");
         debugViewThread.start();
+
+        Thread sensorReadingThread = new Thread("SR"){
+            @Override
+            public void run() {
+                while(true){
+                    usReadings[readingPointer] = rightSonic.getDistance();
+                    if(highLight){
+                        highLightReadings[readingPointer] = leftLight.getNormalizedLightValue();
+                        highLight = false;
+                    }else{
+                        lowLightReadings[readingPointer] = leftLight.getNormalizedLightValue();
+                        highLight = true;
+                    }
+                    leftLight.setFloodlight(highLight);
+                    readingPointer += 1;
+                    if(readingPointer == READINGS){
+                        readingPointer = 0;
+                    }
+                    Delay.msDelay(100);
+                }
+            }
+        };
+        sensorReadingThread.setDaemon(true);
+        sensorReadingThread.setPriority(Thread.NORM_PRIORITY);
+        sensorReadingThread.start();
     }
 
     @Override
@@ -125,29 +160,39 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
     }
 
     private void turnLeft(){
-        lastError = "left";
         motors.turnRad(DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnRight(){
-        lastError = "right";
         motors.turnRad(-DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnAround(){
-        lastError = "around";
         motors.turnRad(DifferentialMotorManager.PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void readSensors(){
-        //TODO
-        leftLight.setFloodlight(false);
-        int off = leftLight.readNormalizedValue();
-        leftLight.setFloodlight(true);//TODO Wont work, do in different thread
-        int on = leftLight.readNormalizedValue();
-        leftLight.setFloodlight(false);
+        int sonicSum = 0;
+        int sonicCount = 0;
+        int lowLightSum = 0;
+        int highLightSum = 0;
+        for (int i = 0; i < READINGS; i++) {
+            int sonic = usReadings[i];
+            if(sonic != 255){
+                sonicSum += sonic;
+                sonicCount++;
+            }
+            lowLightSum += lowLightReadings[i];
+            highLightSum += highLightReadings[i];
+        }
+        int sonicReading = -1;
+        if(sonicCount != 0){
+            sonicReading = sonicSum / sonicCount;
+        }
+        int lightReading = (highLightSum-lowLightSum) / READINGS;
 
-        sensorReadings = "U: "+rightSonic.getDistance()+" L: "+(off-on);
+        //TODO Interpret and use the data
+        sensorReadings = "U:"+sonicReading+" L:"+lightReading;
     }
 
     private static final float BLOCK_DISTANCE = 28.5f;
@@ -160,11 +205,8 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
         while(motors.asyncProgress() < 0.93){
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
                 warnings++;
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException ignored) {}
+                Delay.msDelay(200);
                 motors.relax();
-                Sound.buzz();
                 motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,false);
                 warnings--;
                 return false;
@@ -198,7 +240,6 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
     }
 
     private class MoveTask extends AbstractMoveTask {
-
         private Direction direction;
         private byte amount;
 
@@ -210,8 +251,6 @@ public class DifferentialEnvironmentRobotController extends EnvironmentControlle
         @Override
         protected void process() {
             ensureDirection(direction);
-            lastError = "fwd: "+amount+"    ";
-            moved = 0;
             while(moved < amount){
                 if(driveForward(moved == 0,moved == amount - 1)){
                     moved += 1;
