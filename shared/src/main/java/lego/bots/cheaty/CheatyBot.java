@@ -3,6 +3,7 @@ package lego.bots.cheaty;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.util.Queue;
 
 /**
  * This bot is called cheaty, because it uses predefined map and it is cheat against the original rules. However after dozens of rule patches is this behaviour acceptable.
@@ -13,6 +14,8 @@ import lego.api.controllers.EnvironmentController;
  * Time: 10:23
  */
 public class CheatyBot extends Bot<EnvironmentController> {
+
+    private static final int STACK_SIZE = 16;
 
     private boolean continueRunning = true;
 
@@ -30,25 +33,58 @@ public class CheatyBot extends Bot<EnvironmentController> {
             {FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE}
     };
 
+    final Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
+    final Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
+
     @Override
     public synchronized void run() {
         try {
             this.wait();
         } catch (InterruptedException ignored) {}
 
-        preProcess();
+        directions.clear();
+        distances.clear();
 
-        while(continueRunning){
+        prepare();
 
+        EnvironmentController.Direction actualDir;
+        byte movingDist = 0;
+
+        /*
+          This actually runs previously computed route.
+          There should be some error handling done, like on unexpected collision: somehow recalculate path.
+        */
+
+        while(!directions.isEmpty() && continueRunning){
+            actualDir = directions.retreiveFirst();
+            movingDist = distances.retreiveFirst();
+
+            EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * (movingDist + 1)), (byte)(controller.getY() + actualDir.y * (movingDist + 1)));
+            if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
+                controller.move(actualDir);
+            }else {
+                if (actualDir == EnvironmentController.Direction.DOWN) {
+                    controller.moveByY(movingDist);
+                } else if (actualDir == EnvironmentController.Direction.UP) {
+                    controller.moveByY((byte) -movingDist);
+                } else if (actualDir == EnvironmentController.Direction.LEFT) {
+                    controller.moveByX((byte) -movingDist);
+                } else if (actualDir == EnvironmentController.Direction.RIGHT) {
+                    controller.moveByX(movingDist);
+                }
+            }
         }
     }
 
-    public void preProcess(){
+    public void prepare(){
         for(byte y = 0; y < preparedMap.length; y ++){
             for(byte x = 0; x < preparedMap[y].length; x++){
                 controller.setField(x, y, preparedMap[y][x]);
             }
         }
+
+        //TODO compute route
+
     }
 
 
