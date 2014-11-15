@@ -37,7 +37,7 @@ object TerminalMain extends App {
 
   val onChanged = () => {
     val maze = map.maze
-    val mindMaze:Array[Array[FieldStatus]] = controller.getMinMaze
+    val mindMaze:Array[Array[FieldStatus]] = controller.getMindMaze
 
     val result = new StringBuilder
     result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append('\n')
