@@ -189,7 +189,7 @@ public class CleverBot extends Bot<EnvironmentController> {
         }
 
         if(targetX == Byte.MIN_VALUE && targetY == Byte.MIN_VALUE){
-            //continueRunning = false;
+            continueRunning = false;
             return;
         }
 

@@ -44,6 +44,9 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private byte highLightPointer = 0;
     private int highLightSum = 0;
     private final int[] highLightReadings = new int[READINGS];
+
+    private final byte LIGHT_THRESHOLD = 50;
+    private final byte SONIC_BLOCK_SIZE = 28;
     //
 
     @Override
@@ -165,6 +168,9 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 }
                 lastError = "OOB";
                 break;
+            case ERROR_CAL_BLOCK_EXPECTED:
+                lastError = "cX";
+                break;
             default:
                 lastError = "!"+error;
         }
@@ -177,25 +183,26 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         warnings++;
         switch((direction.ordinal() - to.ordinal() + 4) % 4){//It's a kind of magic
             case 1:
-                if(lastMoved > 3)
-                    turnLeftSmooth();
-                else
-                    turnLeft();
+                turnLeft();
+                if(lastMoved > 3 && getField((byte)(x - to.x),(byte)(y - to.y)) == FieldStatus.OBSTACLE){
+                    calibrateBackward();
+                }
                 break;
             case 2:
                 turnAround();
                 break;
             case 3:
-                if(lastMoved > 3)
-                    turnRightSmooth();
-                else
-                    turnRight();
+                turnRight();
+                if(lastMoved > 3 && getField((byte)(x - to.x),(byte)(y - to.y)) == FieldStatus.OBSTACLE){
+                    calibrateBackward();
+                }
                 break;
             default:
                 throw new Error();
         }
         warnings--;
         direction = to;
+        lastMoved = 0;
         readSensors();
     }
 
@@ -207,13 +214,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         motors.turnRad(-DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
-    private void turnLeftSmooth(){
-        motors.move(-BLOCK_DISTANCE, -BLOCK_DISTANCE, DifferentialMotorManager.MAX_SPEED(), DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-        //TODO
-        //rotate with radius 1 BLOCK
-        motors.turnRad(DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
-    }
-
     private void turnAround(){
         motors.turnRad(DifferentialMotorManager.PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
@@ -223,18 +223,30 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         byte leftX = (byte) (x+left.x);
         byte leftY = (byte) (y+left.y);
 
-        if(getField(leftX,leftY) == FieldStatus.UNKNOWN){
-            int lightReading = (highLightSum-lowLightSum) / READINGS;
-            displayLightReadings = lightReading;
-            if(false /* TODO Interpret value somehow */){
-                setField(leftX,leftY,FieldStatus.UNKNOWN /* TODO Interpret this value somehow */);
-            }
-
+        displayLightReadings = (highLightSum-lowLightSum) / READINGS;
+        if(displayLightReadings > LIGHT_THRESHOLD){
+            setField(leftX, leftY, FieldStatus.OBSTACLE);
+        }else{
+            if(getField(leftX, leftY) != FieldStatus.FREE_VISITED && getField(leftX, leftY) != FieldStatus.START)
+                setField(leftX, leftY, FieldStatus.FREE_UNVISITED);
         }
 
-        int sonicReading = sonicSum / READINGS;
-        displaySonicReadings = sonicReading;
-        //TODO Interpret sonic reading
+        Direction right = direction.right;
+
+        displaySonicReadings = sonicSum / READINGS;
+
+        if(displaySonicReadings != 255) { //Invalid measurement, can mean either too far away or too close.
+
+            for (int i = 1; displaySonicReadings - i * SONIC_BLOCK_SIZE > 0; i++) {
+                byte rightX = (byte) (x + right.x * i);
+                byte rightY = (byte) (y + right.y * i);
+                if(getField(rightX, rightY) != FieldStatus.FREE_VISITED && getField(leftX, leftY) != FieldStatus.START)
+                    setField(rightX, rightY, FieldStatus.FREE_UNVISITED);
+            }
+            setField((byte) (x + right.x), (byte) (y + right.y), FieldStatus.OBSTACLE);
+        }
+
+        // sensors should work now.
     }
 
     private static final float BLOCK_DISTANCE = 28.5f;//28.5 cm
@@ -250,13 +262,42 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
                 Delay.msDelay(400);
                 motors.relax(false);
-                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 8,
+                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 7,
                         DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
                 warnings--;
                 return false;
             }
         }
         return true;
+    }
+
+    private void calibrateBackward(){
+        warnings++;
+        motors.moveAsync(-BLOCK_DISTANCE,-BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
+                DifferentialMotorManager.SMOOTH_ACCELERATION,
+                DifferentialMotorManager.SMOOTH_ACCELERATION,
+                true);
+
+        while(motors.asyncProgress() < 1){
+            if(frontTouch.isPressed()){
+                warnings++;
+
+                Delay.msDelay(400);
+                motors.relax(false);
+                motors.move(BACKING_DISTANCE,BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 8,
+                        DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
+                warnings--;
+                return;
+            }
+        }
+        onError(ERROR_CAL_BLOCK_EXPECTED);
+        motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
+                DifferentialMotorManager.SMOOTH_ACCELERATION,
+                DifferentialMotorManager.NO_DECELERATION,
+                true);
+        while(motors.asyncProgress() < 0.95f){
+            Delay.msDelay(50);
+        }
     }
 
     @Override
@@ -295,7 +336,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         @Override
         protected void process() {
             ensureDirection(direction);
-            moved = 0;
             while(moved < amount){
                 if(driveForward(moved == 0,moved == amount - 1)){
                     moved += 1;

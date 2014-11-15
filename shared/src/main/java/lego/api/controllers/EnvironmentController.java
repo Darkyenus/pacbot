@@ -132,6 +132,7 @@ public abstract class EnvironmentController extends BotController {
 
     protected static final byte ERROR_SET_OUT_OF_BOUNDS = 0;
     protected static final byte ERROR_SET_DEFINITIVE = 1;
+    protected static final byte ERROR_CAL_BLOCK_EXPECTED = 2;
 
     /**
      * Called when controller encounters an error.
@@ -212,7 +213,7 @@ public abstract class EnvironmentController extends BotController {
             this.y = y;
         }
 
-        static { //I am not 100% this will work on nxt. But it should.
+        static { //I am not 100% sure this will work on nxt. But it should.
             Direction[] values = values();
             int length = values.length;
             for (int i = 0; i < length; i++) {
