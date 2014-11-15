@@ -19,16 +19,18 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
     private static final DifferentialMotorManager motors = new DifferentialMotorManager(MotorPort.C,MotorPort.B);
     private static final MotorPort warningLight = MotorPort.A;
-    private static final LightSensor leftLight = new LightSensor(SensorPort.S4);
-    private static final UltrasonicSensor rightSonic = new UltrasonicSensor(SensorPort.S1);
-    private static final TouchSensor frontTouch = new TouchSensor(SensorPort.S2);
-    private static final TouchSensor backTouch = new TouchSensor(SensorPort.S3);
+    private static final LightSensor leftLight = new LightSensor(SensorPort.S3);
+    private static final UltrasonicSensor rightSonic = new UltrasonicSensor(SensorPort.S4);
+    private static final TouchSensor frontTouch = new TouchSensor(SensorPort.S1);
+    private static final TouchSensor backTouch = new TouchSensor(SensorPort.S2);
 
     private String lastError = "";
     private int displayLightReadings = 0;
     private int displaySonicReadings = 0;
     private byte warnings = 0;
     private boolean glows = false;
+
+    private byte lastMoved = 0;
 
     // Sensor related
     private boolean highLight = true;
@@ -175,13 +177,19 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         warnings++;
         switch((direction.ordinal() - to.ordinal() + 4) % 4){//It's a kind of magic
             case 1:
-                turnLeft();
+                if(lastMoved > 3)
+                    turnLeftSmooth();
+                else
+                    turnLeft();
                 break;
             case 2:
                 turnAround();
                 break;
             case 3:
-                turnRight();
+                if(lastMoved > 3)
+                    turnRightSmooth();
+                else
+                    turnRight();
                 break;
             default:
                 throw new Error();
@@ -197,6 +205,13 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
     private void turnRight(){
         motors.turnRad(-DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+    }
+
+    private void turnLeftSmooth(){
+        motors.move(-BLOCK_DISTANCE, -BLOCK_DISTANCE, DifferentialMotorManager.MAX_SPEED(), DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+        //TODO
+        //rotate with radius 1 BLOCK
+        motors.turnRad(DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnAround(){
@@ -222,8 +237,8 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         //TODO Interpret sonic reading
     }
 
-    private static final float BLOCK_DISTANCE = 28.5f;//28.5f
-    private static final float BACKING_DISTANCE = BLOCK_DISTANCE*0.25f;
+    private static final float BLOCK_DISTANCE = 28.5f;//28.5 cm
+    private static final float BACKING_DISTANCE = BLOCK_DISTANCE / 10;
 
     private boolean driveForward(boolean accelerate,boolean decelerate){
         motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
@@ -232,10 +247,11 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         while(motors.asyncProgress() < 0.95){
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
                 warnings++;
-                Delay.msDelay(200);
-                motors.relax();
-                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
-                        DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,false);
+
+                Delay.msDelay(400);
+                motors.relax(false);
+                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 8,
+                        DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
                 warnings--;
                 return false;
             }
@@ -279,6 +295,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         @Override
         protected void process() {
             ensureDirection(direction);
+            moved = 0;
             while(moved < amount){
                 if(driveForward(moved == 0,moved == amount - 1)){
                     moved += 1;
@@ -291,6 +308,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     break;
                 }
             }
+            lastMoved = moved;
             doComplete();
         }
     }

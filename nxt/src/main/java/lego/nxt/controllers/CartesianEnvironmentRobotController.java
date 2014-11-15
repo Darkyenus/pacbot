@@ -1,17 +1,18 @@
 package lego.nxt.controllers;
 
+import lego.api.Bot;
+import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.nxt.util.MotorController;
 import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;
+import lejos.util.Delay;
 
 /**
  *
  * README:
  * When starting a program using this, the robot should be on X axis wheels, that means, on big wheels.
- *
- * TODO It will be better to start at Y
  *
  * Private property.
  * User: Darkyen
@@ -36,7 +37,15 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
     private static final TouchSensor xTouch = new TouchSensor(SensorPort.S1);
     private static final TouchSensor yTouch = new TouchSensor(SensorPort.S2);
-    private static final UltrasonicSensor detector = new UltrasonicSensor(SensorPort.S4);
+    private static final LightSensor detector = new LightSensor(SensorPort.S4);
+
+    private final byte READINGS = 8;
+    private byte lowLightPointer = 0;
+    private int lowLightSum = 0;
+    private final int[] lowLightReadings = new int[READINGS];
+    private byte highLightPointer = 0;
+    private int highLightSum = 0;
+    private final int[] highLightReadings = new int[READINGS];
 
     private static final boolean defaultOnX = true;
     private static boolean onX = defaultOnX;
@@ -45,12 +54,27 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     protected void initialize() {
         TaskProcessor.initialize();
 
+        LCD.drawString("Press ENTER to", 2, 3);
+        LCD.drawString("get ready (on Y)", 1, 4);
+        Button.ENTER.waitForPressAndRelease();
+        LCD.clear();
+        getOnY();
+
         Thread debugViewThread = new Thread(){
             @Override
             public void run() {
                 LCD.setAutoRefresh(false);
+                while(!yTouch.isPressed()){}
+                while(yTouch.isPressed()){}
+                Delay.msDelay(500);
+                Bot.active.onEvent(BotEvent.RUN_STARTED);
+
                 //noinspection InfiniteLoopStatement
                 while(true){
+                    if(Button.ESCAPE.isDown()){
+                        Bot.active.onEvent(BotEvent.ESCAPE_PRESSED);
+                        Bot.active.onEvent(BotEvent.RUN_ENDED);
+                    }
                     for (byte x = 0; x < mazeWidth; x++) {
                         for (byte y = 0; y < mazeHeight; y++) {
                             LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
@@ -127,8 +151,26 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
      * Will do reading from mounted ultrasonic detector and save it into maze map.
      */
     private void doDetectorReading(){
-        int distance = detector.getDistance();
-        LCD.drawString(distance+" cm  ",0,mazeHeight+1);//Hijacking debug loop rendering
+
+        detector.setFloodlight(true);
+        Delay.msDelay(50); //Give chance to light to move to block and back. You know, light is very slow
+        int highLightReading = detector.getNormalizedLightValue();
+        Delay.msDelay(50);
+        detector.setFloodlight(false);
+        Delay.msDelay(50);
+        int lowLightReading = detector.getNormalizedLightValue();
+        Delay.msDelay(50);
+
+        int delta = highLightReading - lowLightReading;
+        boolean isBlock;
+
+        if(delta > 50){
+            isBlock = true;
+        }else{
+            isBlock = false;
+        }
+
+        LCD.drawString(delta+" l  ",0,mazeHeight+1);//Hijacking debug loop rendering
 
         //TODO Interpret read value and make decisions (write result)
         //Sound.beep(); //We can sing too. Beep.
@@ -185,16 +227,23 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             while(Math.abs(motor.getPosition() - tachoTarget) > 20 && !returningFromWall){
                 if(touch.isPressed() && Math.abs(motor.getPosition() - tachoTarget) < (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE) - 60){
                     //collision
-                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
-                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign)*0.25f,false,true);
-
-                    returningFromWall = true;
-                    motor.stop(true);
-                    motor.resetTachoCount();
-                    motor.resetRelativeTachoCount();
+                    long now = System.currentTimeMillis();
+                    motor.setSpeed(BACKING_SPEED);
+                    if(directionSign > 0){
+                        motor.forward();
+                    }else{
+                        motor.backward();
+                    }
+                    while( System.currentTimeMillis() - now < 1500 ){}
                     motor.stop(false);
 
+                    motor.resetTachoCount();
+                    motor.resetRelativeTachoCount();
+
+                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
+
                     motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
+                    returningFromWall = true;
                 }else{
                     try {
                         Thread.sleep(50); //Give motor thread a bit of breathing space
