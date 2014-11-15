@@ -1,4 +1,4 @@
-package lego.bots.clever;
+package lego.bots.weightnav;
 
 import lego.api.Bot;
 import lego.api.BotEvent;
@@ -7,12 +7,14 @@ import lego.util.PositionStack;
 import lego.util.Queue;
 
 /**
+ * Weight navigated bot. This computes weight of every field on map and navigates the shortest way to target (unvisited field with best weight)
+ *
  * Private property.
- * User: Darkyen
+ * User: jIRKA
  * Date: 23/10/14
  * Time: 10:23
  */
-public class CleverBot extends Bot<EnvironmentController> {
+public class WeightNavBot extends Bot<EnvironmentController> {
 
     private static final int STACK_SIZE = 16;
 

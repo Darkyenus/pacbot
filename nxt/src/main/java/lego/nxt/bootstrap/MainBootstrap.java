@@ -1,9 +1,7 @@
 package lego.nxt.bootstrap;
 
-import lego.bots.clever.CleverBot;
+import lego.bots.weightnav.WeightNavBot;
 //import lego.nxt.controllers.CartesianEnvironmentRobotController;
-import lego.bots.random.RandomBot;
-import lego.nxt.controllers.CartesianEnvironmentRobotController;
 import lego.nxt.controllers.DifferentialEnvironmentRobotController;
 
 /**
@@ -15,7 +13,7 @@ import lego.nxt.controllers.DifferentialEnvironmentRobotController;
 public class MainBootstrap extends NXTBootstrap {
     public static void main(String[] args){
         main(
-                new CleverBot()
+                new WeightNavBot()
                 //new RandomBot()
                 ,
                 //new CartesianEnvironmentRobotController()

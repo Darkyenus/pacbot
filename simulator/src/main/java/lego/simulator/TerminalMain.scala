@@ -79,7 +79,7 @@ object TerminalMain extends App {
 
   println(map.toPrintableString)
   println()
-  val defaultRobotMain = "lego.bots.clever.CleverBot"
+  val defaultRobotMain = "lego.bots.weightnav.WeightNavBot"
   println("Enter robot main ["+defaultRobotMain+"]:")
   val (bot,controller:EnvironmentSimulatorController) = create({
     val in = readLine()
