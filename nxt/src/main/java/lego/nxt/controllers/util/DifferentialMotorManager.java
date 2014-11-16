@@ -28,11 +28,11 @@ public class DifferentialMotorManager {
     }
 
     public static float MAX_SPEED() {
-        return MotorController.getMaxSpeed()*0.825f;
+        return MotorController.getMaxSpeed()*0.820f;
     }
 
     public static final float MAX_ACCELERATION = 9000;
-    public static final float SMOOTH_ACCELERATION = 1200;
+    public static final float SMOOTH_ACCELERATION = 1000;
     public static final float NO_DECELERATION = MotorController.DONT_STOP;
 
     public static final float wheelDiameterCM = 8.2f;
