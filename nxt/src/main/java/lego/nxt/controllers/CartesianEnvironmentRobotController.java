@@ -4,7 +4,6 @@ import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.nxt.util.LightMotorController;
-import lego.nxt.util.MotorController;
 import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;

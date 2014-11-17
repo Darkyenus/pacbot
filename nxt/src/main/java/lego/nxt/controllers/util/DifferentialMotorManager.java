@@ -1,7 +1,6 @@
 package lego.nxt.controllers.util;
 
 import lego.nxt.util.LightMotorController;
-import lego.nxt.util.MotorController;
 import lejos.nxt.MotorPort;
 
 /**
@@ -26,7 +25,7 @@ public class DifferentialMotorManager {
     }
 
     public static int MAX_SPEED() {
-        return (int) (MotorController.getMaxSpeed()*0.820f);
+        return (int) (LightMotorController.getMaxSpeed()*0.820f);
     }
 
     public static final int MAX_ACCELERATION = 0;
@@ -90,7 +89,7 @@ public class DifferentialMotorManager {
      */
     public int asyncProgress(){
         if(asyncMoving()){
-            return (leftMotor.getProgress() + rightMotor.getProgress()) / 2000;
+            return (leftMotor.getProgress() + rightMotor.getProgress()) / 2;
         }else{
             return 1000;
         }

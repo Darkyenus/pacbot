@@ -78,7 +78,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                         }
                     }
                     LCD.drawString(lastError,mazeWidth+1,0);
-                    LCD.drawString(motors.asyncProgress()+"%%   ",mazeWidth+1,1);
+                    LCD.drawString(motors.asyncProgress()+"%  ",mazeWidth+1,1);
                     //readSensors();
                     LCD.drawString("L:",0,mazeHeight+1);
                     LCD.drawInt(displayLightReadings,3,mazeHeight+1);
@@ -90,7 +90,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     }else{
                         LCD.drawChar(' ',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
                     }
-
                     LCD.asyncRefresh();
                     glows = !glows;
                     if(warnings > 0){
