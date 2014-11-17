@@ -223,12 +223,12 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                     //collision
                     motor.moveBy(3000*directionSign, BACKING_SPEED,1500,0,false);
                     try {
-                        Thread.sleep(1500); //Give motor thread a bit of breathing space
+                        Thread.sleep(1000); //Give motor thread a bit of breathing space
                     } catch (InterruptedException ignored) {}
                     motor.reset();
 
                     final int backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) / 2;
-                    motor.moveBy(((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)/4 ,BACKING_SPEED,backingAcceleration,backingAcceleration,true);
+                    motor.moveBy(((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)* -directionSign)/4 ,BACKING_SPEED,backingAcceleration,backingAcceleration,true);
                     motor.waitForComplete();
                     returningFromWall = true;
                 }else{
