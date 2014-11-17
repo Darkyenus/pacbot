@@ -161,7 +161,6 @@ public class LightMotorController {
     public synchronized void moveTo(int target, int speed, int acceleration, int deceleration, boolean hold){
         if(deceleration == 0){
             moveToSpeed(target,speed,acceleration,hold);
-            return;
         }
         targetTacho = target;
         baseTacho = currentTacho;
