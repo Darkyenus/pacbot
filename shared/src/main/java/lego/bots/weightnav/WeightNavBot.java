@@ -44,9 +44,8 @@ public class WeightNavBot extends Bot<EnvironmentController> {
             byte movingDist = 0;
 
 
-            byte prevX = route.peekX();
-            byte prevY = route.peekY();
-            route.pop();
+            byte prevX = 0;
+            byte prevY = 0;
             if(!route.isEmpty()) {
                 prevX = route.peekX();
                 prevY = route.peekY();
