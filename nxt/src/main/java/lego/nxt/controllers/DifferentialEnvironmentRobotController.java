@@ -264,14 +264,10 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         while(motors.asyncProgress() < 950){
             if(frontTouch.isPressed() && motors.asyncProgress() > 700){
                 warnings++;
-                Delay.msDelay(300);
+                Delay.msDelay(400);
                 motors.reset();
-                motors.moveAsync(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 3,
+                motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 3,
                         DifferentialMotorManager.MAX_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ignored) {}
-                motors.reset();
                 warnings--;
                 return false;
             }

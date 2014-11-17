@@ -3,7 +3,6 @@ package lego.nxt.bootstrap;
 import lego.bots.cheaty.CheatyBot;
 import lego.bots.random.RandomBot;
 import lego.bots.weightnav.WeightNavBot;
-import lego.nxt.controllers.CartesianEnvironmentRobotController;
 import lego.nxt.controllers.DifferentialEnvironmentRobotController;
 
 /**
