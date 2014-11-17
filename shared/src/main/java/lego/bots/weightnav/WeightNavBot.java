@@ -23,14 +23,16 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {}
-
         final Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
         final Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
 
         final PositionStack route = new PositionStack(STACK_SIZE);
+
+        try {
+            this.wait();
+        } catch (InterruptedException ignored) {
+            throw new Error("IE");
+        }
 
         while(continueRunning){
             calcDistances();

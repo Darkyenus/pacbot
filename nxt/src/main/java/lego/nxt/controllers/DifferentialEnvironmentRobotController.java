@@ -58,9 +58,12 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             @Override
             public void run() {
                 LCD.setAutoRefresh(false);
+                Sound.beep();
                 while(!frontTouch.isPressed()){}
+                Sound.beepSequenceUp();
                 while(frontTouch.isPressed()){}
                 Delay.msDelay(500);
+                Sound.beepSequence();
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
 
                 //noinspection InfiniteLoopStatement
@@ -75,8 +78,8 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                         }
                     }
                     LCD.drawString(lastError,mazeWidth+1,0);
-                    LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
-                    readSensors();
+                    LCD.drawString(motors.asyncProgress()+"%%   ",mazeWidth+1,1);
+                    //readSensors();
                     LCD.drawString("L:",0,mazeHeight+1);
                     LCD.drawInt(displayLightReadings,3,mazeHeight+1);
                     LCD.drawString("S:",0,mazeHeight+2);
@@ -210,15 +213,15 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     }
 
     private void turnLeft(){
-        motors.turnRad(DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+        motors.turnRad(DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED()/10,DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnRight(){
-        motors.turnRad(-DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+        motors.turnRad(-DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED()/10,DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnAround(){
-        motors.turnRad(DifferentialMotorManager.PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+        motors.turnRad(DifferentialMotorManager.PI,DifferentialMotorManager.MAX_SPEED()/10,DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void readSensors(){
@@ -258,24 +261,26 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private boolean driveForward(boolean accelerate,boolean decelerate){
         motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
-                decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
-        while(motors.asyncProgress() < 0.95){
-            if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
+                decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, decelerate);
+        while(motors.asyncProgress() < 950){
+            if(frontTouch.isPressed() && motors.asyncProgress() > 700){
                 warnings++;
-
                 Delay.msDelay(400);
-                motors.relax(false);
-                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 7,
-                        DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
+                motors.reset();
+                motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 3,
+                        DifferentialMotorManager.MAX_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
                 warnings--;
                 return false;
             }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {}
         }
         return true;
     }
 
     private void calibrateBackward(){
-        Sound.beep();
+        Sound.beepSequence();
         warnings++;
         motors.moveAsync(-BLOCK_DISTANCE,-BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION,
@@ -286,7 +291,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             if(backTouch.isPressed()){
 
                 Delay.msDelay(400);
-                motors.relax(false);
+                motors.reset();
                 motors.move(BACKING_DISTANCE,BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 8,
                         DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
                 warnings--;

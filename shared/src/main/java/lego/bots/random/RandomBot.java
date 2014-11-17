@@ -18,9 +18,11 @@ public class RandomBot extends Bot<EnvironmentController> {
     public synchronized void run() {
         try {
             this.wait();
-        } catch (InterruptedException ignored) {}
+        } catch (InterruptedException ignored) {
+            throw new Error("IE");
+        }
         while(continueRunning){
-            figureEight((byte)1);
+            figureEight((byte)2);
         }
     }
 
