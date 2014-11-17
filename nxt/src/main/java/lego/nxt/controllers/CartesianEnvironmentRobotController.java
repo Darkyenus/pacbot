@@ -3,7 +3,6 @@ package lego.nxt.controllers;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
-import lego.nxt.util.LightMotorController;
 import lego.nxt.util.MotorController;
 import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.TaskProcessor;
@@ -24,9 +23,17 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
     private static final int DEFAULT_SPEED = 800;
     private static final int BACKING_SPEED = 250;
-    private static final LightMotorController xMotor = new LightMotorController(MotorPort.B);
-    private static final LightMotorController yMotor = new LightMotorController(MotorPort.C);
-    private static final LightMotorController axisMotor = new LightMotorController(MotorPort.A);
+    private static final MotorController xMotor = new MotorController(MotorPort.B);
+    private static final MotorController yMotor = new MotorController(MotorPort.C);
+    static {
+        xMotor.setSpeed(DEFAULT_SPEED);
+        yMotor.setSpeed(DEFAULT_SPEED);
+    }
+    private static final MotorController axisMotor = new MotorController(MotorPort.A);
+    static {
+        axisMotor.setSpeed(MotorController.getMaxSpeed());
+        axisMotor.setStallThreshold(20,200);
+    }
 
     private static final TouchSensor xTouch = new TouchSensor(SensorPort.S1);
     private static final TouchSensor yTouch = new TouchSensor(SensorPort.S2);
@@ -170,19 +177,15 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     }
 
     private final int AXIS_CHANGE_DEGREES = 450;
-    private final int AXIS_CHANGE_SPEED = 800;
-    private final int AXIS_CHANGE_ACCELERATION = 9000;
 
     private void getOnX(){
-        axisMotor.moveBy(AXIS_CHANGE_DEGREES, AXIS_CHANGE_SPEED, AXIS_CHANGE_ACCELERATION, AXIS_CHANGE_ACCELERATION, true);
-        axisMotor.waitForComplete();
+        axisMotor.rotate(AXIS_CHANGE_DEGREES,true,false);
         CartesianEnvironmentRobotController.onX = true;
         doDetectorReading();
     }
 
     private void getOnY(){
-        axisMotor.moveBy(-AXIS_CHANGE_DEGREES, AXIS_CHANGE_SPEED, AXIS_CHANGE_ACCELERATION, AXIS_CHANGE_ACCELERATION, true);
-        axisMotor.waitForComplete();
+        axisMotor.rotate(-AXIS_CHANGE_DEGREES,true,false);
         CartesianEnvironmentRobotController.onX = false;
         doDetectorReading();
     }
@@ -194,12 +197,12 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
      */
     private class MoveTask extends AbstractMoveTask {
 
-        public static final int X_FIELD_DISTANCE = 382;
-        public static final int Y_FIELD_DISTANCE = 585;
+        public static final float X_FIELD_DISTANCE = 382f;
+        public static final float Y_FIELD_DISTANCE = 585f;
 
-        public static final int X_ACCELERATION = 1000;
-        public static final int Y_ACCELERATION = 1500;
-        public static final int MAX_ACCELERATION = 6000;
+        public static final float X_ACCELERATION = 1000;
+        public static final float Y_ACCELERATION = 1500;
+        public static final float MAX_ACCELERATION = 6000;
 
         private final boolean onX;
         private final byte by;
@@ -210,34 +213,43 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         }
 
         private boolean moveByField(byte directionSign, boolean accelerate, boolean decelerate){
-            LightMotorController motor = onX ? xMotor : yMotor;
+            MotorController motor = onX ? xMotor : yMotor;
             TouchSensor touch = onX ? xTouch : yTouch;
             boolean returningFromWall = false;
             final boolean nextStationery = isNextStationery();
-            final int acceleration = nextStationery ? (onX ? X_ACCELERATION : Y_ACCELERATION) : MAX_ACCELERATION;
+            final float acceleration = nextStationery ? (onX ? X_ACCELERATION : Y_ACCELERATION) : MAX_ACCELERATION;
+            final float decidedAcceleration = accelerate ? acceleration : MAX_ACCELERATION;
+            final float decidedDeceleration = decelerate ? acceleration : MAX_ACCELERATION;
 
-            final int tachoTarget = (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
-            motor.moveBy(tachoTarget,DEFAULT_SPEED,accelerate ? acceleration : 0,decelerate ? acceleration : 0,!decelerate);
+            final float tachoTarget = motor.getTachoCount() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
+            motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
 
-            while(motor.getProgress() < 960 && !returningFromWall){
-                if(touch.isPressed() && motor.getProgress() < 500){
+            while(Math.abs(motor.getPosition() - tachoTarget) > 20 && !returningFromWall){
+                if(touch.isPressed() && Math.abs(motor.getPosition() - tachoTarget) < (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE) - 60){
                     //collision
-                    motor.moveBy(3000*directionSign, BACKING_SPEED,1500,0,false);
-                    try {
-                        Thread.sleep(1500); //Give motor thread a bit of breathing space
-                    } catch (InterruptedException ignored) {}
-                    motor.reset();
+                    long now = System.currentTimeMillis();
+                    motor.setSpeed(BACKING_SPEED);
+                    if(directionSign > 0){
+                        motor.forward();
+                    }else{
+                        motor.backward();
+                    }
+                    while( System.currentTimeMillis() - now < 1500 ){}
+                    motor.stop(false);
 
-                    final int backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) / 2;
-                    motor.moveBy(((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)/4 ,BACKING_SPEED,backingAcceleration,backingAcceleration,true);
-                    motor.waitForComplete();
+                    motor.resetTachoCount();
+                    motor.resetRelativeTachoCount();
+
+                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
+
+                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
                     returningFromWall = true;
                 }else{
                     try {
                         Thread.sleep(50); //Give motor thread a bit of breathing space
                     } catch (InterruptedException ignored) {}
                 }
-            }/*
+            }
             motor.setSpeed(DEFAULT_SPEED);
             if(!returningFromWall){
                 if(!decelerate){
@@ -249,7 +261,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                 }else{
                     motor.stop(true);
                 }
-            }*/
+            }
             doDetectorReading();
             return !returningFromWall;
         }
