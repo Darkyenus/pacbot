@@ -168,6 +168,7 @@ public class LightMotorController {
         direction = targetTacho < currentTacho ? (byte)-1 : (byte)1;
         targetSpeed = speed;
         this.acceleration = acceleration;
+        this.deceleration = deceleration;
         time = 0;
         baseSpeed = currentSpeed;
         speedDirection = targetSpeed < currentSpeed ? (byte)-1 : (byte)1;
@@ -191,30 +192,15 @@ public class LightMotorController {
             accelerationDistance = (int)(acceleration * accelerationTime2 + 0.5f /* rounding */) >>> 1;
             // >>> 1 is like /2 which is like * 0.5f
         }
-        this.deceleration = deceleration;
-        if (deceleration == 0) {
-            decelerationDistance = 0;
-            if(targetSpeed == 0){
-                finishOrDecelerationTime = accelerationTime;
-            }else{
-                int totalDistance = (targetTacho - baseTacho)*direction;
-                int timeSpentTravelling = ((totalDistance - accelerationDistance))*1000 / targetSpeed;
-                finishOrDecelerationTime = accelerationTime + timeSpentTravelling;
-            }
-            //Deceleration time is now essentially end time.
-        } else {
-            //time to accelerate + time to travel + time to decelerate = total time
-            int totalDistance = (targetTacho - baseTacho)*direction;
-            int distanceTravelledDuringAcceleration = accelerationDistance;
-            float decelerationTime2 = (float)targetSpeed / (float)deceleration;
-            decelerationTime2 = decelerationTime2 * decelerationTime2;
-            decelerationDistance = (int)(deceleration * decelerationTime2 + 0.5f /* rounding */) >>> 1;
-
-            int timeSpentTravelling = ((totalDistance - distanceTravelledDuringAcceleration - decelerationDistance))*1000 / targetSpeed;
-
-            finishOrDecelerationTime = accelerationTime + timeSpentTravelling;
-        }
-
+        //Deceleration is now surely non zero.
+        //time to accelerate + time to travel + time to decelerate = total time
+        int totalDistance = (targetTacho - baseTacho)*direction;
+        int distanceTravelledDuringAcceleration = accelerationDistance;
+        float decelerationTime2 = (float)targetSpeed / (float)deceleration;
+        decelerationTime2 = decelerationTime2 * decelerationTime2;
+        decelerationDistance = (int)(deceleration * decelerationTime2 + 0.5f /* rounding */) >>> 1;
+        int timeSpentTravelling = ((totalDistance - distanceTravelledDuringAcceleration - decelerationDistance))*1000 / targetSpeed;
+        finishOrDecelerationTime = accelerationTime + timeSpentTravelling;
     }
 
     /**
@@ -263,7 +249,11 @@ public class LightMotorController {
                 accelerationTime2 = accelerationTime2 * accelerationTime2;
                 accelerationDistance = (int)(acceleration * accelerationTime2 + 0.5f /* rounding */) >>> 1;
 
-                finishOrDecelerationTime = ((totalDistance - accelerationDistance) * 1000)/speed;
+                if(speed == 0){
+                    finishOrDecelerationTime = accelerationTime;
+                }else{
+                    finishOrDecelerationTime = ((totalDistance - accelerationDistance) * 1000)/speed;
+                }
             }
         }
 
