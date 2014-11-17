@@ -6,6 +6,8 @@ import lego.api.controllers.EnvironmentController;
 import lego.util.PositionStack;
 import lego.util.Queue;
 
+import java.util.ArrayList;
+
 /**
  * This bot is called cheaty, because it uses predefined map and it is cheat against the original rules. However after dozens of rule patches is this behaviour acceptable.
  *
@@ -14,6 +16,7 @@ import lego.util.Queue;
  * Date: 23/10/14
  * Time: 10:23
  */
+@Deprecated
 public class CheatyBot extends Bot<EnvironmentController> {
 
     private static final int STACK_SIZE = 16;
@@ -34,13 +37,14 @@ public class CheatyBot extends Bot<EnvironmentController> {
             { FREE,  FREE,  FREE, BLOCK,  FREE,  FREE,  FREE, BLOCK,  FREE}
     };
 
-    final Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
-    final Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
-    final PositionStack route = new PositionStack(STACK_SIZE);
+    private final Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
+    private final Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
+    private final PositionStack route = new PositionStack(STACK_SIZE);
 
     private final byte[][] fieldValues = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
-    private final byte[][] areaIDs = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
+    private final ArrayList<Rectangle> activeRectangles = new ArrayList<Rectangle>();
+
 
     @Override
     public synchronized void run() {
@@ -152,36 +156,162 @@ public class CheatyBot extends Bot<EnvironmentController> {
         }
     }
 
+    private static class Rectangle{
+        public byte x = -1;
+        public byte y = -1;
+        public byte width = -1;
+        public byte height = -1;
+
+        public Rectangle(byte x, byte y, byte width, byte height){
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+    }
+
     public void findAreas(){
-        for(byte x = 0; x < areaIDs.length; x ++){
-            for(byte y = 0; y < areaIDs[x].length; y++){
-                areaIDs[x][y] = 0; //0 means no area
+        for(byte y = 0; y < preparedMap.length; y ++){
+            byte startX = -1;
+            for(byte x = 0; x < preparedMap[y].length; x ++){
+                if(preparedMap[y][x] == EnvironmentController.FieldStatus.FREE_UNVISITED){
+                    if(startX == -1){
+                        startX = x;
+                    }
+                }else{
+                    if(startX != -1 && x - startX > 1){
+                        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+                            if(r.y + 1 == y){ //Rec is relevant for us
+                                byte end = (byte)(r.x + r.width);
+                                byte start = (byte)(Math.max(r.x, startX));
+                                byte width = (byte)Math.min(end - start, x - start);
+                                byte height = (byte)(r.height + 1);
+                                if(width > 1)
+                                    activeRectangles.add(new Rectangle(start, y, width, height));
+                            }
+                        }
+                        activeRectangles.add(new Rectangle(startX, y, (byte)(x - startX), (byte)1));
+                        startX = -1;
+                    }
+                }
+            }
+            if(startX != -1 && preparedMap[y].length - startX > 1){
+                for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+                    if(r.y + 1 == y){ //Rec is relevant for us
+                        byte end = (byte)(r.x + r.width);
+                        byte start = (byte)(Math.max(r.x, startX));
+                        byte width = (byte)Math.min(end - start, preparedMap[y].length - start);
+                        byte height = (byte)(r.height + 1);
+                        if(width > 1)
+                            activeRectangles.add(new Rectangle(start, y, width, height));
+                    }
+                }
+                activeRectangles.add(new Rectangle(startX, y, (byte)(preparedMap[y].length - startX), (byte)1));
             }
         }
-        byte highestID = 0;
-        for(byte x = 0; x < areaIDs.length - 1; x ++){
-            for(byte y = 0; y < areaIDs[x].length - 1; y++){
-                byte id = areaIDs[x][y];
-                if(preparedMap[y][x] != EnvironmentController.FieldStatus.OBSTACLE){
-                    if((preparedMap[y][x + 1] != EnvironmentController.FieldStatus.OBSTACLE && (areaIDs[x + 1][y] == id || areaIDs[x + 1][y] == 0)) &&
-                            (preparedMap[y + 1][x] != EnvironmentController.FieldStatus.OBSTACLE && (areaIDs[x][y + 1] == id || areaIDs[x][y + 1] == 0)) &&
-                            (preparedMap[y + 1][x + 1] != EnvironmentController.FieldStatus.OBSTACLE && (areaIDs[x + 1][y + 1] == id || areaIDs[x + 1][y + 1] == 0))){
 
-                        if(id == 0){
-                            id = highestID ++;
+        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            if(r.height == 1){
+                activeRectangles.remove(r);
+            }
+        }
+
+        for(Rectangle r1: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            for(Rectangle r2: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+                if(r1 != r2) {
+                    if (r1.x == r2.x && r1.width == r2.width) {
+                        if (r1.y - r1.height == r2.y - r2.height) {
+                            if (r1.height < r2.height) {
+                                activeRectangles.remove(r1);
+                            } else {
+                                activeRectangles.remove(r2);
+                            }
+                        }else if(r1.y == r2.y){
+                            if (r1.height < r2.height) {
+                                activeRectangles.remove(r1);
+                            } else {
+                                activeRectangles.remove(r2);
+                            }
                         }
-                        areaIDs[x][y] = id;
-                        areaIDs[x + 1][y] = id;
-                        areaIDs[x][y + 1] = id;
-                        areaIDs[x + 1][y + 1] = id;
-                    }else{
-                        //TODO
                     }
                 }
             }
         }
 
+        System.out.println("Areas found:");
 
+        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            System.out.println("Rectangle (x: "+r.x+", y: "+r.y+", width: "+r.width+", height: "+r.height+")");
+            System.out.println("+---------------------------+");
+            for(int y = 0; y < 6; y++){
+                System.out.print("|");
+                for(int x = 0; x < 9; x++){
+                    if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
+                        System.out.print("###");
+                    }else{
+                        if(preparedMap[y][x] == EnvironmentController.FieldStatus.FREE_UNVISITED){
+                            System.out.print(" o ");
+                        }else if(preparedMap[y][x] == EnvironmentController.FieldStatus.START){
+                            System.out.print(" v ");
+                        }else if(preparedMap[y][x] == EnvironmentController.FieldStatus.OBSTACLE){
+                            System.out.print("[x]");
+                        }
+                    }
+                }
+                System.out.println("|");
+            }
+            System.out.println("+---------------------------+");
+
+        }
+
+    }
+
+    public boolean isOnArea(byte x, byte y){
+        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public byte getAreaDirection(byte x, byte y){
+        byte result = 0;
+        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
+                if(r.width > r.height){
+                    result |= 2;
+                }else if(r.width < r.height){
+                    result |= 1;
+                }else if(r.width == r.height){
+                    result |= 3;
+                }
+            }
+        }
+        return result;
+    }
+
+    public byte[] collectInArea(byte simX, byte simY, EnvironmentController.Direction movedIn){
+        byte areaDirection = getAreaDirection(simX, simY);
+        boolean startHorizontally = false;
+
+        if(areaDirection == 1){
+            System.out.println(" vertically");
+            startHorizontally = false;
+        }else if(areaDirection == 2){
+            System.out.println(" horizontally");
+            startHorizontally = true;
+        }else if(areaDirection == 3){
+            System.out.println("randomly, but: " + (movedIn.x == 0 ? "vertically" : "horizontally"));
+            if(movedIn.x == 0){
+                startHorizontally = false;
+            }else{
+                startHorizontally = true;
+            }
+        }
+
+        //TODO
+
+        return new byte[] {simX, simY};
     }
 
     public void prepare(){
@@ -200,51 +330,88 @@ public class CheatyBot extends Bot<EnvironmentController> {
         crossings.push(simX, simY);
 
         while(!crossings.isEmpty()){
-            byte possibleWays = possibleWays(simX, simY);
+            byte possibleWays = possibleWays(simX, simY, false);
             if (possibleWays == 0) {//No way
 
-                System.out.println("Returning to:");
+                byte moreWays = possibleWays(simX, simY, true);
+                if(moreWays == 0){ //Really no way
+                    System.out.print("Returning to ");
 
-                byte targetX = crossings.peekX();
-                byte targetY = crossings.peekY();
-                crossings.pop();
+                    byte targetX = crossings.peekX();
+                    byte targetY = crossings.peekY();
+                    crossings.pop();
 
-                calcDistances();
-                calcRoute(route, targetX, targetY);
+                    calcDistances();
+                    calcRoute(route, targetX, targetY);
 
-                simX = targetX;
-                simY = targetY;
+                    simX = targetX;
+                    simY = targetY;
 
-                System.out.println("X: "+simX+", Y: "+simY);
+                    System.out.println("x: "+simX+", y: "+simY);
+                } else { //There is way - enter area
+                    System.out.println("Entering area ");
+                    EnvironmentController.Direction dir = null;
+                    if ((moreWays & 8) == 8) {
+                        dir = EnvironmentController.Direction.UP;
+                        controller.moveByY((byte)-1);
+                    }
+                    if ((moreWays & 4) == 4) {
+                        dir = EnvironmentController.Direction.RIGHT;
+                        controller.moveByX((byte) 1);
+                    }
+                    if ((moreWays & 2) == 2) {
+                        dir = EnvironmentController.Direction.DOWN;
+                        controller.moveByY((byte) 1);
+                    }
+                    if ((moreWays & 1) == 1) {
+                        dir = EnvironmentController.Direction.LEFT;
+                        controller.moveByX((byte) -1);
+                    }
+
+                    simX += dir.x;
+                    simY += dir.y;
+
+                    controller.setField(simX, simY, EnvironmentController.FieldStatus.FREE_VISITED);
+                    route.push(simX, simY);
+
+                    byte[] newPos = collectInArea(simX, simY, dir);
+                    simX = newPos[0];
+                    simY = newPos[1];
+
+                }
 
             } else if ((possibleWays & (possibleWays - 1)) == 0) { //Kind of magic. Only one possible way
-                System.out.println("Only one way, chosen:");
+                System.out.print("Only one way, chosen ");
                 if ((possibleWays & 8) == 8) { //Possible way UP
                     simY -= 1;
+                    System.out.println("UP");
                     controller.moveByY((byte)-1);
                 }
                 if ((possibleWays & 4) == 4) { //Possible way RIGHT
                     simX += 1;
+                    System.out.println("RIGHT");
                     controller.moveByX((byte) 1);
                 }
                 if ((possibleWays & 2) == 2) { //Possible way DOWN
                     simY += 1;
+                    System.out.println("DOWN");
                     controller.moveByY((byte) 1);
                 }
                 if ((possibleWays & 1) == 1) { //Possible way LEFT
                     simX -= 1;
+                    System.out.println("LEFT");
                     controller.moveByX((byte) -1);
                 }
 
                 controller.setField(simX, simY, EnvironmentController.FieldStatus.FREE_VISITED);
-                //route.push(simX, simY);
+                route.push(simX, simY);
 
             } else { //Multiple possible ways
                 byte bestCount = Byte.MAX_VALUE;
                 EnvironmentController.Direction bestDirection = null;
-                resetToIterate();
 
                 if ((possibleWays & 8) == 8) { //Possible way UP
+                    resetToIterate();
                     byte count = countDots(simX, (byte) (simY - 1), EnvironmentController.Direction.DOWN, simX, simY);
                     if (count != -1 && count < bestCount) {
                         bestCount = count;
@@ -252,6 +419,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
                     }
                 }
                 if ((possibleWays & 4) == 4) { //Possible way RIGHT
+                    resetToIterate();
                     byte count = countDots((byte) (simX + 1), simY, EnvironmentController.Direction.LEFT, simX, simY);
                     if (count != -1 &&  count < bestCount) {
                         bestCount = count;
@@ -259,6 +427,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
                     }
                 }
                 if ((possibleWays & 2) == 2) { //Possible way DOWN
+                    resetToIterate();
                     byte count = countDots(simX, (byte) (simY + 1), EnvironmentController.Direction.UP, simX, simY);
                     if (count != -1 && count < bestCount) {
                         bestCount = count;
@@ -266,6 +435,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
                     }
                 }
                 if ((possibleWays & 1) == 1) { //Possible way LEFT
+                    resetToIterate();
                     byte count = countDots((byte) (simX - 1), simY, EnvironmentController.Direction.RIGHT, simX, simY);
                     if (count != -1 && count < bestCount) {
                         bestDirection = EnvironmentController.Direction.LEFT;
@@ -281,7 +451,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
                     simX += bestDirection.x;
                     simY += bestDirection.y;
 
-                    System.out.println("Multiple ways, chosen:");
+                    System.out.println("Multiple ways, chosen "+bestDirection);
 
 
                     if(bestDirection.x == 0){
@@ -289,7 +459,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
                     }else{
                         controller.moveByX(bestDirection.x);
                     }
-                    //controller.setField(simX, simY, EnvironmentController.FieldStatus.FREE_VISITED);
+                    controller.setField(simX, simY, EnvironmentController.FieldStatus.FREE_VISITED);
 
                     route.push(simX, simY);
 
@@ -299,18 +469,18 @@ public class CheatyBot extends Bot<EnvironmentController> {
         }
     }
 
-    private byte possibleWays(byte fromX, byte fromY){
+    private byte possibleWays(byte fromX, byte fromY, boolean includeAreas){
         byte result = 0;
-        if(controller.getField(fromX, (byte)(fromY - 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.getField(fromX, (byte)(fromY - 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED && controller.getField(fromX, fromY) != EnvironmentController.FieldStatus.START && !(!includeAreas && isOnArea(fromX, (byte)(fromY - 1)))){
             result = (byte) (result | 8);
         }
-        if(controller.getField((byte)(fromX + 1), fromY) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.getField((byte)(fromX + 1), fromY) == EnvironmentController.FieldStatus.FREE_UNVISITED && !(!includeAreas && isOnArea((byte)(fromX + 1), fromY))){
             result = (byte) (result | 4);
         }
-        if(controller.getField(fromX, (byte)(fromY + 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.getField(fromX, (byte)(fromY + 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED && controller.getField(fromX, (byte)(fromY + 1)) != EnvironmentController.FieldStatus.START && !(!includeAreas && isOnArea(fromX, (byte)(fromY + 1)))){
             result = (byte) (result | 2);
         }
-        if(controller.getField((byte)(fromX - 1), fromY) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.getField((byte)(fromX - 1), fromY) == EnvironmentController.FieldStatus.FREE_UNVISITED && !(!includeAreas && isOnArea((byte)(fromX - 1), fromY))){
             result = (byte) (result | 1);
         }
 
