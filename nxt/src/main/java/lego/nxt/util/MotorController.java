@@ -366,11 +366,14 @@ public class MotorController {
     private boolean pendingHold = true;
 
     /**
-     * DO NOT USE: I have no idea what it returns (-Darkyen 2014)
-     * You would think that it would return 0-1: NOPE WRONG!!!
+     * SHOULD Return value 0 to 1. Probably does.
      */
     public float getProgress(){
-        return 1f - ((currentLimit - currentTCount) / (currentLimit - baseTCount));
+        if(moving){
+            return ((currentTCount - baseTCount) / (currentLimit - baseTCount));
+        }else{
+            return 1f;
+        }
     }
 
     /**

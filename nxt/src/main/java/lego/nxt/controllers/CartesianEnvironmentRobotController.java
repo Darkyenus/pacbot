@@ -55,7 +55,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         TaskProcessor.initialize();
 
         LCD.drawString("Press ENTER to", 2, 3);
-        LCD.drawString("get ready (on Y)", 1, 4);
+        LCD.drawString("get ready (on Y)", 0, 4);
         Button.ENTER.waitForPressAndRelease();
         LCD.clear();
         getOnY();
@@ -179,13 +179,13 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     private final int AXIS_CHANGE_DEGREES = 450;
 
     private void getOnX(){
-        axisMotor.rotate(AXIS_CHANGE_DEGREES,true,false);
+        axisMotor.rotate(AXIS_CHANGE_DEGREES, true, false);
         CartesianEnvironmentRobotController.onX = true;
         doDetectorReading();
     }
 
     private void getOnY(){
-        axisMotor.rotate(-AXIS_CHANGE_DEGREES,true,false);
+        axisMotor.rotate(-AXIS_CHANGE_DEGREES, true, false);
         CartesianEnvironmentRobotController.onX = false;
         doDetectorReading();
     }
@@ -198,7 +198,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     private class MoveTask extends AbstractMoveTask {
 
         public static final float X_FIELD_DISTANCE = 382f;
-        public static final float Y_FIELD_DISTANCE = 585f;
+        public static final float Y_FIELD_DISTANCE = 540f;//585f;
 
         public static final float X_ACCELERATION = 1000;
         public static final float Y_ACCELERATION = 1500;
@@ -221,11 +221,13 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             final float decidedAcceleration = accelerate ? acceleration : MAX_ACCELERATION;
             final float decidedDeceleration = decelerate ? acceleration : MAX_ACCELERATION;
 
-            final float tachoTarget = motor.getTachoCount() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
+            final float tachoTarget = motor.getPosition() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
             motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
 
-            while(Math.abs(motor.getPosition() - tachoTarget) > 20 && !returningFromWall){
-                if(touch.isPressed() && Math.abs(motor.getPosition() - tachoTarget) < (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE) - 60){
+            while(motor.getProgress() < 0.95f && !returningFromWall){
+
+                if(touch.isPressed() && motor.getProgress() < 0.5f){//TODO second condition should probably be different
+                    //if(System.currentTimeMillis() > 0)throw new Error("P: "+ motor.getProgress());
                     //collision
                     long now = System.currentTimeMillis();
                     motor.setSpeed(BACKING_SPEED);
@@ -234,7 +236,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                     }else{
                         motor.backward();
                     }
-                    while( System.currentTimeMillis() - now < 1500 ){}
+                    while( System.currentTimeMillis() - now < 500 ){}
                     motor.stop(false);
 
                     motor.resetTachoCount();
