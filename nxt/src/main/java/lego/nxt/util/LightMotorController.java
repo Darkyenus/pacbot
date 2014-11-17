@@ -1,6 +1,9 @@
 package lego.nxt.util;
 
-import lejos.nxt.*;
+import lejos.nxt.LCD;
+import lejos.nxt.MotorPort;
+import lejos.nxt.Sound;
+import lejos.nxt.TachoMotorPort;
 
 /**
  * This is like standard old motor controller, but rewritten in clearer, more concise way.
@@ -367,17 +370,6 @@ public class LightMotorController {
         power = (newPower > TachoMotorPort.MAX_POWER ? TachoMotorPort.MAX_POWER : newPower < -TachoMotorPort.MAX_POWER ? -TachoMotorPort.MAX_POWER : Math.round(newPower));
 
         mode = (power == 0 ? TachoMotorPort.STOP : TachoMotorPort.FORWARD);
-    }
-
-    /**
-     * Returns max normally sustainable speed with current battery charge and moderate load.
-     * Believed to be current voltage in volts * 100.
-     *
-     * @return max sustainable speed
-     */
-    public static float getMaxSpeed() {
-        // It is generally assumed, that the maximum accurate speed of Motor is 100 degree/second * Voltage
-        return Battery.getVoltage() * 100.0f;
     }
 
     //----------------------------------------- Controller -------------------------------------------------------

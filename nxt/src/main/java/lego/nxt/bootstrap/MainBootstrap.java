@@ -15,8 +15,8 @@ public class MainBootstrap extends NXTBootstrap {
     public static void main(String[] args){
         main(
                 //new CheatyBot()
-                //new RandomBot()
-                new WeightNavBot()
+                new RandomBot()
+                //new WeightNavBot()
                 ,
                 //new CartesianEnvironmentRobotController()
                 new DifferentialEnvironmentRobotController()
