@@ -25,16 +25,16 @@ class MazeMap {
 
   def toPrintableString:String = {
     val result = new StringBuilder
-    result.append("+").append("-" * EnvironmentController.mazeWidth).append("+").append('\n')
+    result.append("+").append("-" * EnvironmentController.mazeWidth * 3).append("+").append('\n')
     for(y <- 0 until EnvironmentController.mazeHeight){
       result.append('|')
       for(x <- 0 until EnvironmentController.mazeWidth){
-        result.append(maze(x)(y))
+        result.append(" "+maze(x)(y)+" ")
       }
       result.append('|')
       result.append('\n')
     }
-    result.append("+").append("-" * EnvironmentController.mazeWidth).append("+")
+    result.append("+").append("-" * EnvironmentController.mazeWidth * 3).append("+")
     result.toString()
   }
 
