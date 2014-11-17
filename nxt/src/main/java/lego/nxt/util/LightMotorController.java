@@ -1,6 +1,8 @@
 package lego.nxt.util;
 
+import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
+import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
 
 /**
@@ -95,7 +97,7 @@ public class LightMotorController {
 
     public void reset(){
         port.resetTachoCount();
-        hardwareTacho = port.getTachoCount();
+        hardwareTacho = 0;
         baseTacho = hardwareTacho;
         targetTacho = hardwareTacho;
         currentSpeed = 0;
@@ -160,6 +162,7 @@ public class LightMotorController {
      */
     public synchronized void moveTo(int target, int speed, int acceleration, int deceleration, boolean hold){
         targetTacho = target;
+        currentTacho = hardwareTacho;//This should account for changes that happened while not moving.
         baseTacho = currentTacho;
         direction = targetTacho < currentTacho ? (byte)-1 : (byte)1;
         targetSpeed = speed;
@@ -209,6 +212,14 @@ public class LightMotorController {
         speedDirection = targetSpeed < currentSpeed ? (byte)-1 : (byte)1;
         this.hold = hold;
         moving = true;
+        if(accelerationTime > finishOrDecelerationTime){
+            Sound.buzz();
+            Sound.beepSequence();
+            Sound.beepSequenceUp();
+            Sound.beep();
+            Sound.buzz();
+            LCD.drawString(Math.abs(target-hardwareTacho)+","+speed+","+acceleration+","+deceleration+","+hold+")",0,6);
+        }
     }
 
     /** Direction signum of move */
