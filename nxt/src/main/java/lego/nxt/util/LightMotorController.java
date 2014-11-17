@@ -159,22 +159,12 @@ public class LightMotorController {
      *             This happens at the end of decelerating or manually.
      */
     public synchronized void moveTo(int target, int speed, int acceleration, int deceleration, boolean hold){
-        if(deceleration == 0){
-            moveToSpeed(target,speed,acceleration,hold);
-            return;
-        }
         targetTacho = target;
         baseTacho = currentTacho;
         direction = targetTacho < currentTacho ? (byte)-1 : (byte)1;
         targetSpeed = speed;
         this.acceleration = acceleration;
-        this.deceleration = deceleration;
         time = 0;
-        baseSpeed = currentSpeed;
-        speedDirection = targetSpeed < currentSpeed ? (byte)-1 : (byte)1;
-        this.hold = hold;
-        moving = true;
-
         if(acceleration == 0){
             currentSpeed = speed;
             accelerationTime = 0;
@@ -192,71 +182,33 @@ public class LightMotorController {
             accelerationDistance = (int)(acceleration * accelerationTime2 + 0.5f /* rounding */) >>> 1;
             // >>> 1 is like /2 which is like * 0.5f
         }
-        //Deceleration is now surely non zero.
-        //time to accelerate + time to travel + time to decelerate = total time
-        int totalDistance = (targetTacho - baseTacho)*direction;
-        int distanceTravelledDuringAcceleration = accelerationDistance;
-        float decelerationTime2 = (float)targetSpeed / (float)deceleration;
-        decelerationTime2 = decelerationTime2 * decelerationTime2;
-        decelerationDistance = (int)(deceleration * decelerationTime2 + 0.5f /* rounding */) >>> 1;
-        int timeSpentTravelling = ((totalDistance - distanceTravelledDuringAcceleration - decelerationDistance))*1000 / targetSpeed;
-        finishOrDecelerationTime = accelerationTime + timeSpentTravelling;
-    }
+        this.deceleration = deceleration;
+        if (deceleration == 0) {
+            decelerationDistance = 0;
+            if(targetSpeed == 0){
+                finishOrDecelerationTime = accelerationTime;
+            }else{
+                int totalDistance = (targetTacho - baseTacho)*direction;
+                int timeSpentTravelling = ((totalDistance - accelerationDistance))*1000 / targetSpeed;
+                finishOrDecelerationTime = accelerationTime + timeSpentTravelling;
+            }
+            //Deceleration time is now essentially end time.
+        } else {
+            //time to accelerate + time to travel + time to decelerate = total time
+            int totalDistance = (targetTacho - baseTacho)*direction;
+            int distanceTravelledDuringAcceleration = accelerationDistance;
+            float decelerationTime2 = (float)targetSpeed / (float)deceleration;
+            decelerationTime2 = decelerationTime2 * decelerationTime2;
+            decelerationDistance = (int)(deceleration * decelerationTime2 + 0.5f /* rounding */) >>> 1;
 
-    /**
-     * This will get to given speed and to given target.
-     * It will try to use given acceleration, but may use a higher one, if it is too slow for given speed/distance.
-     * Direction is determined by target, not by speed.
-     *
-     * @param target tacho count
-     * @param speed to achieve. Must be positive.
-     * @param acceleration to try to use. Can be zero for immediate acceleration.
-     * @param hold whether or not try to hold at the end if speed is zero
-     */
-    public synchronized void moveToSpeed(int target, int speed, int acceleration, boolean hold){
-        targetTacho = target;
-        baseTacho = currentTacho;
-        direction = targetTacho < currentTacho ? (byte)-1 : (byte)1;
-        targetSpeed = speed;
-        time = 0;
+            int timeSpentTravelling = ((totalDistance - distanceTravelledDuringAcceleration - decelerationDistance))*1000 / targetSpeed;
+
+            finishOrDecelerationTime = accelerationTime + timeSpentTravelling;
+        }
+        baseSpeed = currentSpeed;
         speedDirection = targetSpeed < currentSpeed ? (byte)-1 : (byte)1;
         this.hold = hold;
         moving = true;
-
-        int totalDistance = (targetTacho - currentTacho) * direction;
-        if(acceleration == 0){
-            currentSpeed = speed;
-            accelerationTime = 0;
-            accelerationDistance = 0;
-            if(speed == 0){
-                finishOrDecelerationTime = 0;
-            }else{
-                finishOrDecelerationTime = (totalDistance*1000)/speed;
-            }
-        }else{
-            int totalVelocityChange = (targetSpeed - currentSpeed) * direction;
-            baseSpeed = currentSpeed;//We will be accelerating, so this has to be set.
-            int minimumAcceleration = ((totalVelocityChange * totalVelocityChange) >>> 2)/totalDistance;
-            if(acceleration <= minimumAcceleration){
-                this.acceleration = minimumAcceleration;
-                accelerationTime = (totalVelocityChange * 1000)/ minimumAcceleration;
-                accelerationDistance = totalDistance;
-                finishOrDecelerationTime = accelerationTime;
-            }else{
-                this.acceleration = acceleration;
-                accelerationTime = (Math.abs(targetSpeed - currentSpeed) * 1000) / this.acceleration;
-                float accelerationTime2 = accelerationTime / 1000f;
-                accelerationTime2 = accelerationTime2 * accelerationTime2;
-                accelerationDistance = (int)(acceleration * accelerationTime2 + 0.5f /* rounding */) >>> 1;
-
-                if(speed == 0){
-                    finishOrDecelerationTime = accelerationTime;
-                }else{
-                    finishOrDecelerationTime = ((totalDistance - accelerationDistance) * 1000)/speed;
-                }
-            }
-        }
-
     }
 
     /** Direction signum of move */
@@ -344,9 +296,9 @@ public class LightMotorController {
     private float err1 = 0; // used in smoothing
     private float err2 = 0; // used in smoothing
 
-    //private boolean errorPositive = true;
-    //private float cumulativeError = 0;
-    //float error = 0;
+    private boolean errorPositive = true;
+    private float cumulativeError = 0;
+    float error = 0;
     /**
      * Calculates and sets motor power and mode based on error.
      * Calculates power from error using double smoothing and PID like control
