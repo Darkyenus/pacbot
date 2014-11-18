@@ -1,9 +1,6 @@
 package lego.nxt.util;
 
-import lejos.nxt.Battery;
-import lejos.nxt.MotorPort;
-import lejos.nxt.Sound;
-import lejos.nxt.TachoMotorPort;
+import lejos.nxt.*;
 import lejos.util.Delay;
 
 /**
@@ -229,7 +226,6 @@ public class MotorController {
         newMove(0, acceleration, deceleration, NO_LIMIT, true, waitForCompleteHalt);
         tachoPort.resetTachoCount();
         resetRelativeTachoCount();
-
     }
 
     /**
@@ -332,6 +328,11 @@ public class MotorController {
     private float currentAcceleration = 0;
     private float currentDeceleration = 0;
     private float currentTargetVelocity = 0;
+
+    /** Can be used by controllers to set some consistent location, that isn't broken by various calls.
+     * Only resetRelativeTachoCount resets this value to current tacho count. */
+    public float permanentSavedLocation = 0;
+
     /**
      * Absolute degrees to which is motor trying to get.
      */
@@ -383,6 +384,7 @@ public class MotorController {
     public synchronized void resetRelativeTachoCount() {
         currentTCount = tachoTCount = 0;//tachoPort.getTachoCount();
         now = System.currentTimeMillis();
+        permanentSavedLocation = 0f;
     }
 
     /**
@@ -409,6 +411,7 @@ public class MotorController {
         baseVelocity = currentVelocity;
         currentHold = hold;
         currentLimit = limit;
+        LCD.drawString(((int)limit) + "   ", 0, 6);///TODO QQQ
         moving = currentTargetVelocity != 0 || baseVelocity != 0;
     }
 

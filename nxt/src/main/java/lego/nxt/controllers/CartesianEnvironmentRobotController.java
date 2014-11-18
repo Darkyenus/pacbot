@@ -80,7 +80,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                             LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
                         }
                     }
-                    LCD.drawString("H: "+TaskProcessor.getStackHead()+"   ",0,mazeHeight);
+                    //LCD.drawString("H: "+TaskProcessor.getStackHead()+"   ",0,mazeHeight);
                     LCD.drawString(lastError,mazeWidth+1,0);
                     LCD.asyncRefresh();
                     try {
@@ -191,7 +191,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
         yMotor.resetTachoCount(false);
         doDetectorReading();
     }
-    //private static int crashes = 0;
+    private static int crashes = 0;
     /**
      * Contains everything needed to process a single moving task by given amount of fields on given axis.
      * It is a little bit messy because of supporting both axis.
@@ -199,8 +199,8 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
      */
     private class MoveTask extends AbstractMoveTask {
 
-        public static final float X_FIELD_DISTANCE = 305f;//Should be actually 365, but this works. Weird.
-        public static final float Y_FIELD_DISTANCE = 540f;//585f;
+        public static final float X_FIELD_DISTANCE = 405f;
+        public static final float Y_FIELD_DISTANCE = 603f;
 
         public static final float X_ACCELERATION = 1000;
         public static final float Y_ACCELERATION = 1500;
@@ -224,15 +224,16 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             final float decidedAcceleration = accelerate ? acceleration : MAX_ACCELERATION;
             final float decidedDeceleration = decelerate ? acceleration : NO_DECELERATION;
 
-            final float tachoTarget = motor.getPosition() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
+            final float tachoTarget = motor.permanentSavedLocation + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
+            motor.permanentSavedLocation = tachoTarget;
             motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
 
             while(motor.getProgress() < 0.95f && !returningFromWall){
                 Sound.playTone((int)(400+motor.getProgress()*1100),10);
-                if(touch.isPressed() && motor.getProgress() < 0.5f){
+                if(touch.isPressed() && motor.getProgress() < 0.5f && motor.getProgress() > 0.15f){//Drive a bit first, we may be back to wall
                     //This means that there is immediately an obstacle, so return false
                     //crashes++;
-                    //if(crashes == 2)throw new Error(moved+" "+ motor.getProgress());
+                    if(crashes == 2)throw new Error(moved+" "+ motor.getProgress());
                     //collision
                     motor.setSpeed(BACKING_SPEED);
                     if(directionSign > 0){
@@ -241,7 +242,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                         motor.backward();
                     }
                     try {
-                        Thread.sleep(400);
+                        Thread.sleep(300);
                     } catch (InterruptedException ignored) {}
 
                     motor.resetTachoCount(false);
