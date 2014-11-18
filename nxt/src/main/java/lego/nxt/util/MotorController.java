@@ -2,6 +2,7 @@ package lego.nxt.util;
 
 import lejos.nxt.Battery;
 import lejos.nxt.MotorPort;
+import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
 import lejos.util.Delay;
 
@@ -223,9 +224,9 @@ public class MotorController {
      * Reset the tachometer associated with this motor. Note calling this method
      * will cause any current move operation to be halted.
      */
-    public synchronized void resetTachoCount() {
+    public synchronized void resetTachoCount(boolean waitForCompleteHalt) {
         // Make sure we are stopped!
-        newMove(0, acceleration, deceleration, NO_LIMIT, true, true);
+        newMove(0, acceleration, deceleration, NO_LIMIT, true, waitForCompleteHalt);
         tachoPort.resetTachoCount();
         resetRelativeTachoCount();
 
@@ -380,7 +381,7 @@ public class MotorController {
      * Reset the tachometer readings
      */
     public synchronized void resetRelativeTachoCount() {
-        currentTCount = tachoTCount = tachoPort.getTachoCount();
+        currentTCount = tachoTCount = 0;//tachoPort.getTachoCount();
         now = System.currentTimeMillis();
     }
 
@@ -573,16 +574,16 @@ public class MotorController {
             if (checkLimit) {
                 float proximity = (currentLimit - currentTCount);
                 if (Float.isInfinite(currentDeceleration)) {
-                    if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
+                    //Sound.playTone((int)(800+getProgress()*1100),50);//TODO QQQ
+                    //if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
                         //This means don't stop. Ever.
-                        moving = false;
-                        cont.activeMotors[tachoPort.getId()] = false;
-                        notifyAll();
-                    }
+                        //moving = false;
+                        //cont.activeMotors[tachoPort.getId()] = false;
+                        //notifyAll();
+                    //}
                 } else {
                     float dec = (currentVelocity * currentVelocity) / (2 * (currentLimit - currentTCount));
                     if (currentDeceleration / dec < 1.0) {
-                        //DriverMainLight.console.print("dec() "+proximity+" "+currentDeceleration+" "+dec);
                         startSubMove(0, dec, dec, NO_LIMIT, currentHold);
                     }
                 }

@@ -181,15 +181,17 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
     private void getOnX(){
         axisMotor.rotate(AXIS_CHANGE_DEGREES, true, false);
         CartesianEnvironmentRobotController.onX = true;
+        xMotor.resetTachoCount(false);
         doDetectorReading();
     }
 
     private void getOnY(){
         axisMotor.rotate(-AXIS_CHANGE_DEGREES, true, false);
         CartesianEnvironmentRobotController.onX = false;
+        yMotor.resetTachoCount(false);
         doDetectorReading();
     }
-
+    //private static int crashes = 0;
     /**
      * Contains everything needed to process a single moving task by given amount of fields on given axis.
      * It is a little bit messy because of supporting both axis.
@@ -197,12 +199,13 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
      */
     private class MoveTask extends AbstractMoveTask {
 
-        public static final float X_FIELD_DISTANCE = 382f;
+        public static final float X_FIELD_DISTANCE = 305f;//Should be actually 365, but this works. Weird.
         public static final float Y_FIELD_DISTANCE = 540f;//585f;
 
         public static final float X_ACCELERATION = 1000;
         public static final float Y_ACCELERATION = 1500;
         public static final float MAX_ACCELERATION = 6000;
+        public static final float NO_DECELERATION = Float.POSITIVE_INFINITY;
 
         private final boolean onX;
         private final byte by;
@@ -219,28 +222,29 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             final boolean nextStationery = isNextStationery();
             final float acceleration = nextStationery ? (onX ? X_ACCELERATION : Y_ACCELERATION) : MAX_ACCELERATION;
             final float decidedAcceleration = accelerate ? acceleration : MAX_ACCELERATION;
-            final float decidedDeceleration = decelerate ? acceleration : MAX_ACCELERATION;
+            final float decidedDeceleration = decelerate ? acceleration : NO_DECELERATION;
 
             final float tachoTarget = motor.getPosition() + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
             motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
 
             while(motor.getProgress() < 0.95f && !returningFromWall){
-
-                if(touch.isPressed() && motor.getProgress() < 0.5f){//TODO second condition should probably be different
-                    //if(System.currentTimeMillis() > 0)throw new Error("P: "+ motor.getProgress());
+                Sound.playTone((int)(400+motor.getProgress()*1100),10);
+                if(touch.isPressed() && motor.getProgress() < 0.5f){
+                    //This means that there is immediately an obstacle, so return false
+                    //crashes++;
+                    //if(crashes == 2)throw new Error(moved+" "+ motor.getProgress());
                     //collision
-                    long now = System.currentTimeMillis();
                     motor.setSpeed(BACKING_SPEED);
                     if(directionSign > 0){
                         motor.forward();
                     }else{
                         motor.backward();
                     }
-                    while( System.currentTimeMillis() - now < 500 ){}
-                    motor.stop(false);
+                    try {
+                        Thread.sleep(400);
+                    } catch (InterruptedException ignored) {}
 
-                    motor.resetTachoCount();
-                    motor.resetRelativeTachoCount();
+                    motor.resetTachoCount(false);
 
                     final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
 
@@ -252,7 +256,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                     } catch (InterruptedException ignored) {}
                 }
             }
-            motor.setSpeed(DEFAULT_SPEED);
+            /*motor.setSpeed(DEFAULT_SPEED);
             if(!returningFromWall){
                 if(!decelerate){
                     if(directionSign > 0){
@@ -263,7 +267,7 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                 }else{
                     motor.stop(true);
                 }
-            }
+            }*/
             doDetectorReading();
             return !returningFromWall;
         }
