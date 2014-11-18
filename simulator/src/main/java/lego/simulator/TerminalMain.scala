@@ -26,7 +26,7 @@ object TerminalMain extends App {
 
 
 
-  val defaultMap = "map3.txt"
+  val defaultMap = "map4.txt"
   println("Enter Map Path ["+defaultMap+"]:")
   val map = MazeMap(new File({
     val in = readLine()
@@ -79,7 +79,7 @@ object TerminalMain extends App {
 
   println(map.toPrintableString)
   println()
-  val defaultRobotMain = "lego.bots.cheaty.CheatyBot"
+  val defaultRobotMain = "lego.bots.node.NodeBot"
   println("Enter robot main ["+defaultRobotMain+"]:")
   val (bot,controller:EnvironmentSimulatorController) = create({
     val in = readLine()
