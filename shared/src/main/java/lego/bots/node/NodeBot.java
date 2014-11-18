@@ -28,7 +28,7 @@ public class NodeBot extends Bot<EnvironmentController> {
 
 
 
-
+    /*
     private final EnvironmentController.FieldStatus[][] preparedMap = {
             { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
             { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
@@ -37,10 +37,11 @@ public class NodeBot extends Bot<EnvironmentController> {
             { FREE, BLOCK,  FREE, BLOCK, BLOCK, BLOCK,  FREE, BLOCK,  FREE},
             { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE}
     };
+    */
 
 
 
-    /*
+
     private final EnvironmentController.FieldStatus[][] preparedMap = {
             { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
             {BLOCK, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
@@ -49,7 +50,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             { FREE,  FREE,  FREE, BLOCK, BLOCK, BLOCK,  FREE, BLOCK,  FREE},
             { FREE,  FREE,  FREE, BLOCK,  FREE,  FREE,  FREE, BLOCK,  FREE}
     };
-    */
+
 
 
     private final PositionStack route = new PositionStack(STACK_SIZE);
@@ -65,7 +66,11 @@ public class NodeBot extends Bot<EnvironmentController> {
 
         System.out.println("Graph prepared");
 
+        long now = System.currentTimeMillis();
+
         findBestWay();
+
+        System.out.println((System.currentTimeMillis() - now) / 1000 / 60);
 
         System.out.println("Computation ended, waiting for start signal");
     }
@@ -90,8 +95,8 @@ public class NodeBot extends Bot<EnvironmentController> {
         price = 0;
         visited = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
-        for(int x = 0; x < EnvironmentController.mazeWidth; x ++){
-            for(int y = 0; y < EnvironmentController.mazeHeight; y ++){
+        for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
                 visited[x][y] = -1;
 
                 Node n = graph.nodes[x][y];
@@ -112,7 +117,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             }
         }
 
-        for(int i = 0; i < graph.edges.size(); i ++){
+        for(byte i = 0; i < graph.edges.size(); i ++){
             Byte[] edge = graph.edges.get(i);
             for(Byte e:edge){
                 byte x = (byte)((e >> 4) & 15);
@@ -121,7 +126,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             }
         }
 
-        for(int i = 0; i < edgesUsed.length; i++){
+        for(byte i = 0; i < edgesUsed.length; i++){
             edgesUsed[i] = 0;
         }
         path.clear();
@@ -154,8 +159,8 @@ public class NodeBot extends Bot<EnvironmentController> {
     private boolean checkCompletedMap(){
         boolean complete = true;
 
-        for(int x = 0; x < EnvironmentController.mazeWidth; x++){
-            for(int y = 0; y < EnvironmentController.mazeHeight; y++){
+        for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
                 if(visited[x][y] == 0){
                     complete = false;
                     x = EnvironmentController.mazeWidth;
@@ -278,6 +283,50 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
 
         revertLast();
+    }
+
+
+    public static Byte[] mergeEdges(Byte[] edge1, Byte[] edge2){
+        Byte edge1start = edge1[0];
+        Byte edge1end = edge1[edge1.length - 1];
+        Byte edge2start = edge2[0];
+        Byte edge2end = edge2[edge2.length - 1];
+        Byte[] result = new Byte[edge1.length + edge2.length - 1];
+
+        if(edge1start == edge2start){
+            System.out.println("1 start, 2 start");
+            for (byte i = 0; i < edge1.length; i++){
+                result[i] = edge1[edge1.length - 1 - i];
+            }
+            for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
+                result[i] = edge2[i - edge1.length + 1];
+            }
+        }else if(edge1end == edge2start){
+            System.out.println("1 end, 2 start");
+            for (byte i = 0; i < edge1.length; i++){
+                result[i] = edge1[i];
+            }
+            for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
+                result[i] = edge2[i - edge1.length + 1];
+            }
+        }else if(edge1start == edge2end){
+            for (byte i = 0; i < edge1.length; i++){
+                result[i] = edge1[edge1.length - 1 - i];
+            }
+            for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
+                result[i] = edge2[edge2.length + edge1.length - 2 - i];
+            }
+        }else if(edge1end == edge2end){
+            System.out.println("1 end, 2 end");
+            for (byte i = 0; i < edge1.length; i++){
+                result[i] = edge1[i];
+            }
+            for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
+                result[i] = edge2[edge2.length + edge1.length - 2 - i];
+            }
+        }
+
+        return result;
     }
 
     @Override

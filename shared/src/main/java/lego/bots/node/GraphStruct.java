@@ -20,6 +20,9 @@ public class GraphStruct {
     public Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
     private EnvironmentController.FieldStatus[][] map;
 
+    private final ArrayList<Rectangle> activeRectangles = new ArrayList<Rectangle>();
+
+
     public void prepareNodes(EnvironmentController.FieldStatus[][] map){
         this.map = map;
 
@@ -29,8 +32,299 @@ public class GraphStruct {
 
         nodes[n.x][n.y] = n;
 
+        findRectangles();
+
         getNextNodeStructure(n);
 
+        optimizeForRectangles();
+
+    }
+
+    private void optimizeForRectangles(){
+
+        boolean keepGlobal[][] = new boolean[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
+
+        for(Rectangle r:activeRectangles){
+            boolean keep[][] = new boolean[r.width][r.height];
+            for(byte x = r.x; x < r.x + r.width; x++){
+                for(byte y = (byte)(r.y - r.height + 1); y <= r.y; y++){
+                    Node n = nodes[x][y];
+
+                    keep[x - r.x][y - (r.y - r.height + 1)] = false;
+
+                    if(n != null) {
+
+                        if (n.verUpEdgeId != -1) {
+                            if (r.x > n.verUpLinkedX || r.x + r.width <= n.verUpLinkedX || r.y - r.height >= n.verUpLinkedY || r.y < n.verUpLinkedY) {
+                                keep[x - r.x][y - (r.y - r.height + 1)] = true;
+                            }
+                        }
+                        if (n.horRightEdgeId != -1) {
+                            if (r.x > n.horRightLinkedX || r.x + r.width <= n.horRightLinkedX || r.y - r.height >= n.horRightLinkedY || r.y < n.horRightLinkedY) {
+                                keep[x - r.x][y - (r.y - r.height + 1)] = true;
+                            }
+                        }
+                        if (n.verDownEdgeId != -1) {
+                            if (r.x > n.verDownLinkedX || r.x + r.width <= n.verDownLinkedX || r.y - r.height >= n.verDownLinkedY || r.y < n.verDownLinkedY) {
+                                keep[x - r.x][y - (r.y - r.height + 1)] = true;
+                            }
+                        }
+                        if (n.horLeftEdgeId != -1) {
+                            if (r.x > n.horLeftLinkedX || r.x + r.width <= n.horLeftLinkedX || r.y - r.height >= n.horLeftLinkedY || r.y < n.horLeftLinkedY) {
+                                keep[x - r.x][y - (r.y - r.height + 1)] = true;
+                            }
+                        }
+                    }
+                }
+            }
+            keep[0][0] = true; //Enough, it will mirror itself in all remaining corners
+
+            for(byte x = 0; x < r.width; x++){
+                keep[x][0] = keep[x][0] || keep[x][r.height - 1];
+                keep[x][r.height - 1] = keep[x][0] || keep[x][r.height - 1];
+            }
+            for(byte y = 0; y < r.height; y++){
+                keep[0][y] = keep[0][y] || keep[r.width - 1][y];
+                keep[r.width - 1][y] = keep[0][y] || keep[r.width - 1][y];
+            }
+
+            for(byte x = 0; x < r.width; x ++){
+                for(byte y = 0; y < r.height; y++){
+                    keepGlobal[r.x + x][r.y - y] = keepGlobal[r.x + x][r.y - y] || keep[x][y];
+                }
+            }
+        }
+        for(Rectangle r:activeRectangles){
+            for(byte y = (byte)(r.y - r.height + 1); y <= r.y; y++){
+                Node first = nodes[r.x][y];
+                byte specEdgeId = -1;
+                if(first == null && (y == r.y - r.height + 1 || y == r.y)){
+                    first = nodes[r.x + 1][y];
+                    specEdgeId = first.horLeftEdgeId;
+                    first = nodes[first.horLeftLinkedX][first.horLeftLinkedY];
+                }
+                Node n;
+                for(byte x = r.x; x < r.x + r.width; x++){
+                    n = nodes[x][y];
+                    if(first == null && keepGlobal[x][y]){
+                        first = n;
+                    }else if(n != null && keepGlobal[x][y]){
+                        if(first.horRightLinkedX != n.x || n.horLeftLinkedX != first.x) {
+                            Byte[] edge;
+                            if(specEdgeId != -1){
+                                edge = NodeBot.mergeEdges(getStraightEdge((byte)(r.x + 1), y, x, y), edges.get(specEdgeId));
+                            }else{
+                                edge = getStraightEdge(first.x, y, x, y);
+                            }
+                            edges.add(edge);
+                            byte price = getEdgePrice(edge);
+
+                            first.horRightLinkedX = x;
+                            first.horLeftLinkedY = y;
+                            first.horRightEdgeId = (byte) (edges.size() - 1);
+                            first.horRightPrice = price;
+                            n.horLeftLinkedX = first.x;
+                            n.horLeftLinkedY = first.y;
+                            n.horLeftEdgeId = (byte) (edges.size() - 1);
+                            n.horLeftPrice = price;
+                        }
+                        first = n;
+                    }
+                }
+                n = nodes[r.x + r.width - 1][y];
+                if(n == null && (y == r.y - r.height + 1 || y == r.y)){
+                    n = nodes[r.x + r.width - 2][y];
+                    specEdgeId = n.horRightEdgeId;
+                    n = nodes[n.horRightLinkedX][n.horRightLinkedY];
+
+                    Byte[] edge = NodeBot.mergeEdges(getStraightEdge((byte)(r.x + 1), y, (byte)(r.x + r.width - 2), y), edges.get(specEdgeId));
+                    edges.add(edge);
+                    byte price = getEdgePrice(edge);
+
+                    first.horRightLinkedX = (byte)(r.x + r.width - 2);
+                    first.horLeftLinkedY = y;
+                    first.horRightEdgeId = (byte) (edges.size() - 1);
+                    first.horRightPrice = price;
+                    n.horLeftLinkedX = first.x;
+                    n.horLeftLinkedY = first.y;
+                    n.horLeftEdgeId = (byte) (edges.size() - 1);
+                    n.horLeftPrice = price;
+                }
+            }
+            for(byte x = r.x; x < r.x + r.width; x++){
+                Node first = nodes[x][r.y - r.height + 1];
+                byte specEdgeId = -1;
+                if(first == null && (x == r.x || x == r.x + r.width)){
+                    first = nodes[x][r.y - r.height + 2];
+                    specEdgeId = first.horLeftEdgeId;
+                    first = nodes[first.horLeftLinkedX][first.horLeftLinkedY];
+                }
+                Node n;
+                for(byte y = (byte)(r.y - r.height + 1); y <= r.y; y++){
+                    n = nodes[x][y];
+                    if(first == null && keepGlobal[x][y]){
+                        first = n;
+                    }else if(n != null && keepGlobal[x][y]){
+                        if(first.verDownLinkedY != n.y || n.verUpLinkedY != first.y) {
+                            Byte[] edge;
+                            if(specEdgeId != -1){
+                                edge = NodeBot.mergeEdges(getStraightEdge(x, (byte)(r.y - r.height + 2), x, y), edges.get(specEdgeId));
+                            }else{
+                                edge = getStraightEdge(x, first.y, x, y);
+                            }
+                            edges.add(edge);
+                            byte price = getEdgePrice(edge);
+
+                            first.verDownLinkedX = x;
+                            first.verDownEdgeId = (byte) (edges.size() - 1);
+                            first.verDownPrice = price;
+                            n.verUpLinkedX = first.x;
+                            n.verUpEdgeId = (byte) (edges.size() - 1);
+                            n.verUpPrice = price;
+                        }
+                        first = n;
+                    }
+                }
+                n = nodes[x][r.y];
+                if(n == null && (x == r.x || x == r.x + r.width)){
+                    n = nodes[x][r.y - 1];
+                    specEdgeId = n.horRightEdgeId;
+                    n = nodes[n.horRightLinkedX][n.horRightLinkedY];
+
+                    Byte[] edge = NodeBot.mergeEdges(getStraightEdge(x, (byte)(r.y - r.height + 2), x, (byte)(r.y - 1)), edges.get(specEdgeId));
+                    edges.add(edge);
+                    byte price = getEdgePrice(edge);
+
+                    first.horRightLinkedX = x;
+                    first.horLeftLinkedY = (byte)(r.y - 1);
+                    first.horRightEdgeId = (byte) (edges.size() - 1);
+                    first.horRightPrice = price;
+                    n.horLeftLinkedX = first.x;
+                    n.horLeftLinkedY = first.y;
+                    n.horLeftEdgeId = (byte) (edges.size() - 1);
+                    n.horLeftPrice = price;
+                }
+            }
+        }
+    }
+
+    private Byte[] getStraightEdge(byte fromX, byte fromY, byte toX, byte toY){
+        byte tmp = toX; //Well, I will used third var, even when we have learned how to do this without 3rd var
+        if(fromX > toX){
+            toX = fromX;
+            fromX = tmp;
+        }
+        tmp = toY;
+        if(fromY > toY){
+            toY = fromY;
+            fromY = tmp;
+        }
+
+        byte length = (byte)((toX - fromX) + (toY - fromY) + 1);
+        Byte[] result = new Byte[length];
+
+        if(fromX == toX){
+            for (byte i = 0; i < length; i++) {
+                result[i] = (byte)(fromX << 4 | (fromY + i));
+            }
+        }else if(fromY == toY){
+            for (byte i = 0; i < length; i++) {
+                result[i] = (byte)((fromX + i) << 4 | fromY);
+            }
+        }
+        return result;
+    }
+
+    static class Rectangle{
+        public byte x = -1;
+        public byte y = -1;
+        public byte width = -1;
+        public byte height = -1;
+
+        public Rectangle(byte x, byte y, byte width, byte height){
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+    }
+
+    public void findRectangles(){
+        for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
+            byte startX = -1;
+            for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
+                if(map[y][x] == EnvironmentController.FieldStatus.FREE_UNVISITED){
+                    if(startX == -1){
+                        startX = x;
+                    }
+                }else{
+                    if(startX != -1 && x - startX > 1){
+                        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+                            if(r.y + 1 == y){ //Rec is relevant for us
+                                byte end = (byte)(r.x + r.width);
+                                byte start = (byte)(Math.max(r.x, startX));
+                                byte width = (byte)Math.min(end - start, x - start);
+                                byte height = (byte)(r.height + 1);
+                                if(width > 1)
+                                    activeRectangles.add(new Rectangle(start, y, width, height));
+                            }
+                        }
+                        activeRectangles.add(new Rectangle(startX, y, (byte)(x - startX), (byte)1));
+                    }
+                    startX = -1;
+                }
+            }
+            if(startX != -1 && EnvironmentController.mazeWidth - startX > 1){
+                for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+                    if(r.y + 1 == y){ //Rec is relevant for us
+                        byte end = (byte)(r.x + r.width);
+                        byte start = (byte)(Math.max(r.x, startX));
+                        byte width = (byte)Math.min(end - start, EnvironmentController.mazeWidth - start);
+                        byte height = (byte)(r.height + 1);
+                        if(width > 1)
+                            activeRectangles.add(new Rectangle(start, y, width, height));
+                    }
+                }
+                activeRectangles.add(new Rectangle(startX, y, (byte)(EnvironmentController.mazeWidth - startX), (byte)1));
+            }
+        }
+
+        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            if(r.height == 1){
+                activeRectangles.remove(r);
+            }
+        }
+
+        for(Rectangle r1: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            for(Rectangle r2: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+                if(r1 != r2) {
+                    if (r1.x == r2.x && r1.width == r2.width) {
+                        if (r1.y - r1.height == r2.y - r2.height) {
+                            if (r1.height < r2.height) {
+                                activeRectangles.remove(r1);
+                            } else {
+                                activeRectangles.remove(r2);
+                            }
+                        }else if(r1.y == r2.y){
+                            if (r1.height < r2.height) {
+                                activeRectangles.remove(r1);
+                            } else {
+                                activeRectangles.remove(r2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public Rectangle onRectangle(byte x, byte y){
+        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
+            if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
+                return r;
+            }
+        }
+        return null;
     }
 
     private void getNextNodeStructure(Node lastNode){
@@ -246,7 +540,9 @@ public class GraphStruct {
                 workX = lastNode.x;
                 workY = lastNode.y;
 
-            } else { //This should not happen, but who knows
+            } else {
+                //This should not happen, but who knows
+                //TODO remove exception before race
                 throw new Error("This should not happen. accessibility = "+Integer.toBinaryString((int)accessibility)+", workX = "+workX +", workY = "+workY);
             }
 
@@ -262,7 +558,7 @@ public class GraphStruct {
         byte price = 0;
 
         byte x = -1, y = -1;
-        byte prevX = -1, prevY = -1;
+        byte prevX, prevY;
 
         byte dir = -1;
 

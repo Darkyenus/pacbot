@@ -134,4 +134,27 @@ public class Debug {
 
     }
 
+    public static void printRectangle(GraphStruct.Rectangle r, EnvironmentController.FieldStatus[][] map){
+        System.out.println("Rectangle (x: "+r.x+", y: "+r.y+", width: "+r.width+", height: "+r.height+")");
+        System.out.println("+---------------------------+");
+        for(int y = 0; y < 6; y++){
+            System.out.print("|");
+            for(int x = 0; x < 9; x++){
+                if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
+                    System.out.print("###");
+                }else{
+                    if(map[y][x] == EnvironmentController.FieldStatus.FREE_UNVISITED){
+                        System.out.print(" o ");
+                    }else if(map[y][x] == EnvironmentController.FieldStatus.START){
+                        System.out.print(" v ");
+                    }else if(map[y][x] == EnvironmentController.FieldStatus.OBSTACLE){
+                        System.out.print("[x]");
+                    }
+                }
+            }
+            System.out.println("|");
+        }
+        System.out.println("+---------------------------+");
+    }
+
 }
