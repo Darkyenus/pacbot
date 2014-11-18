@@ -1,8 +1,6 @@
 package lego.nxt.util;
 
-import lejos.nxt.Battery;
-import lejos.nxt.MotorPort;
-import lejos.nxt.TachoMotorPort;
+import lejos.nxt.*;
 import lejos.util.Delay;
 
 /**
@@ -223,12 +221,11 @@ public class MotorController {
      * Reset the tachometer associated with this motor. Note calling this method
      * will cause any current move operation to be halted.
      */
-    public synchronized void resetTachoCount() {
+    public synchronized void resetTachoCount(boolean waitForCompleteHalt) {
         // Make sure we are stopped!
-        newMove(0, acceleration, deceleration, NO_LIMIT, true, true);
+        newMove(0, acceleration, deceleration, NO_LIMIT, true, waitForCompleteHalt);
         tachoPort.resetTachoCount();
         resetRelativeTachoCount();
-
     }
 
     /**
@@ -331,6 +328,11 @@ public class MotorController {
     private float currentAcceleration = 0;
     private float currentDeceleration = 0;
     private float currentTargetVelocity = 0;
+
+    /** Can be used by controllers to set some consistent location, that isn't broken by various calls.
+     * Only resetRelativeTachoCount resets this value to current tacho count. */
+    public float permanentSavedLocation = 0;
+
     /**
      * Absolute degrees to which is motor trying to get.
      */
@@ -366,19 +368,23 @@ public class MotorController {
     private boolean pendingHold = true;
 
     /**
-     * DO NOT USE: I have no idea what it returns (-Darkyen 2014)
-     * You would think that it would return 0-1: NOPE WRONG!!!
+     * SHOULD Return value 0 to 1. Probably does.
      */
     public float getProgress(){
-        return 1f - ((currentLimit - currentTCount) / (currentLimit - baseTCount));
+        if(moving){
+            return ((currentTCount - baseTCount) / (currentLimit - baseTCount));
+        }else{
+            return 1f;
+        }
     }
 
     /**
      * Reset the tachometer readings
      */
     public synchronized void resetRelativeTachoCount() {
-        currentTCount = tachoTCount = tachoPort.getTachoCount();
+        currentTCount = tachoTCount = 0;//tachoPort.getTachoCount();
         now = System.currentTimeMillis();
+        permanentSavedLocation = 0f;
     }
 
     /**
@@ -405,6 +411,7 @@ public class MotorController {
         baseVelocity = currentVelocity;
         currentHold = hold;
         currentLimit = limit;
+        LCD.drawString(((int)limit) + "   ", 0, 6);///TODO QQQ
         moving = currentTargetVelocity != 0 || baseVelocity != 0;
     }
 
@@ -570,16 +577,16 @@ public class MotorController {
             if (checkLimit) {
                 float proximity = (currentLimit - currentTCount);
                 if (Float.isInfinite(currentDeceleration)) {
-                    if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
+                    //Sound.playTone((int)(800+getProgress()*1100),50);//TODO QQQ
+                    //if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
                         //This means don't stop. Ever.
-                        moving = false;
-                        cont.activeMotors[tachoPort.getId()] = false;
-                        notifyAll();
-                    }
+                        //moving = false;
+                        //cont.activeMotors[tachoPort.getId()] = false;
+                        //notifyAll();
+                    //}
                 } else {
                     float dec = (currentVelocity * currentVelocity) / (2 * (currentLimit - currentTCount));
                     if (currentDeceleration / dec < 1.0) {
-                        //DriverMainLight.console.print("dec() "+proximity+" "+currentDeceleration+" "+dec);
                         startSubMove(0, dec, dec, NO_LIMIT, currentHold);
                     }
                 }

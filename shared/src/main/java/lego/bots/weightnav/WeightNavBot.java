@@ -23,16 +23,14 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
+        try {
+            this.wait();
+        } catch (InterruptedException ignored) {}
+
         final Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
         final Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
 
         final PositionStack route = new PositionStack(STACK_SIZE);
-
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {
-            throw new Error("IE");
-        }
 
         while(continueRunning){
             calcDistances();
@@ -46,9 +44,8 @@ public class WeightNavBot extends Bot<EnvironmentController> {
             byte movingDist = 0;
 
 
-            byte prevX = route.peekX();
-            byte prevY = route.peekY();
-            route.pop();
+            byte prevX = 0;
+            byte prevY = 0;
             if(!route.isEmpty()) {
                 prevX = route.peekX();
                 prevY = route.peekY();
