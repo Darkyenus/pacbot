@@ -64,8 +64,8 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             @Override
             public void run() {
                 LCD.setAutoRefresh(false);
-                while(!yTouch.isPressed()){}
-                while(yTouch.isPressed()){}
+                while(!xTouch.isPressed()){}
+                while(xTouch.isPressed()){}
                 Delay.msDelay(500);
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
 
@@ -201,6 +201,8 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
         public static final float X_FIELD_DISTANCE = 405f;
         public static final float Y_FIELD_DISTANCE = 603f;
+        public static final float X_BACKING_DISTANCE = X_FIELD_DISTANCE*0.11f;
+        public static final float Y_BACKING_DISTANCE = Y_FIELD_DISTANCE*0.136f;
 
         public static final float X_ACCELERATION = 1000;
         public static final float Y_ACCELERATION = 1500;
@@ -220,7 +222,8 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
             TouchSensor touch = onX ? xTouch : yTouch;
             boolean returningFromWall = false;
             final boolean nextStationery = isNextStationery();
-            final float acceleration = nextStationery ? (onX ? X_ACCELERATION : Y_ACCELERATION) : MAX_ACCELERATION;
+            final float axisAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION);
+            final float acceleration = nextStationery ? axisAcceleration : MAX_ACCELERATION;
             final float decidedAcceleration = accelerate ? acceleration : MAX_ACCELERATION;
             final float decidedDeceleration = decelerate ? acceleration : NO_DECELERATION;
 
@@ -230,26 +233,29 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
             while(motor.getProgress() < 0.95f && !returningFromWall){
                 Sound.playTone((int)(400+motor.getProgress()*1100),10);
-                if(touch.isPressed() && motor.getProgress() < 0.5f && motor.getProgress() > 0.15f){//Drive a bit first, we may be back to wall
+                if(touch.isPressed() && motor.getProgress() < 0.5f && motor.getProgress() > 0.09f){//Drive a bit first, we may be back to wall
                     //This means that there is immediately an obstacle, so return false
                     //crashes++;
-                    if(crashes == 2)throw new Error(moved+" "+ motor.getProgress());
+                    //if(crashes == 0)throw new Error(moved+" "+ motor.getProgress());
                     //collision
                     motor.setSpeed(BACKING_SPEED);
+                    motor.setAcceleration(axisAcceleration);
                     if(directionSign > 0){
                         motor.forward();
                     }else{
                         motor.backward();
                     }
                     try {
-                        Thread.sleep(300);
+                        Thread.sleep(500);
                     } catch (InterruptedException ignored) {}
 
-                    motor.resetTachoCount(false);
+                    motor.resetTachoCount(true);
 
-                    final float backingAcceleration = (onX ? X_ACCELERATION : Y_ACCELERATION) * 0.5f;
-
-                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,motor.getTachoCount() + ((onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*-directionSign)*0.25f,false,true);
+                    final float backingAcceleration = axisAcceleration * 0.9f;
+                    //Tacho was reset, so it can be absolute
+                    final float backingLimit = (onX ? X_BACKING_DISTANCE : Y_BACKING_DISTANCE)*directionSign;
+                    motor.newMove(BACKING_SPEED,backingAcceleration,backingAcceleration,-backingLimit,true,true);
+                    motor.stop(false);
                     returningFromWall = true;
                 }else{
                     try {
@@ -257,18 +263,6 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                     } catch (InterruptedException ignored) {}
                 }
             }
-            /*motor.setSpeed(DEFAULT_SPEED);
-            if(!returningFromWall){
-                if(!decelerate){
-                    if(directionSign > 0){
-                        motor.forward();
-                    }else{
-                        motor.backward();
-                    }
-                }else{
-                    motor.stop(true);
-                }
-            }*/
             doDetectorReading();
             return !returningFromWall;
         }
