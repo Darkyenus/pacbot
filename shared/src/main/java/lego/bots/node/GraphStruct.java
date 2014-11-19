@@ -1,6 +1,7 @@
 package lego.bots.node;
 
 import lego.api.controllers.EnvironmentController;
+import lego.util.ByteStack;
 
 import java.util.ArrayList;
 
@@ -12,9 +13,9 @@ import java.util.ArrayList;
  */
 public class GraphStruct {
 
-    private final byte PRICE_MOVE = 2;
-    private final byte PRICE_TURN_AROUND = 1;
-    private final byte PRICE_TURN = 3;
+    public static final byte PRICE_MOVE = 2;
+    public static final byte PRICE_TURN_AROUND = 1;
+    public static final byte PRICE_TURN = 1;
 
     public final ArrayList<Byte[]> edges = new ArrayList<Byte[]>();
     public Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
@@ -32,9 +33,13 @@ public class GraphStruct {
 
         nodes[n.x][n.y] = n;
 
+        getNextNodeStructure(n);
+
         findRectangles();
 
-        getNextNodeStructure(n);
+        for(Rectangle r : activeRectangles) {
+            Debug.printRectangle(r, map);
+        }
 
         optimizeForRectangles();
 
@@ -95,32 +100,22 @@ public class GraphStruct {
             }
         }
         for(Rectangle r:activeRectangles){
+            Node n;
+            Node first;
             for(byte y = (byte)(r.y - r.height + 1); y <= r.y; y++){
-                Node first = nodes[r.x][y];
-                byte specEdgeId = -1;
-                if(first == null && (y == r.y - r.height + 1 || y == r.y)){
-                    first = nodes[r.x + 1][y];
-                    specEdgeId = first.horLeftEdgeId;
-                    first = nodes[first.horLeftLinkedX][first.horLeftLinkedY];
-                }
-                Node n;
+                first = null;
                 for(byte x = r.x; x < r.x + r.width; x++){
                     n = nodes[x][y];
                     if(first == null && keepGlobal[x][y]){
                         first = n;
                     }else if(n != null && keepGlobal[x][y]){
                         if(first.horRightLinkedX != n.x || n.horLeftLinkedX != first.x) {
-                            Byte[] edge;
-                            if(specEdgeId != -1){
-                                edge = NodeBot.mergeEdges(getStraightEdge((byte)(r.x + 1), y, x, y), edges.get(specEdgeId));
-                            }else{
-                                edge = getStraightEdge(first.x, y, x, y);
-                            }
+                            Byte[] edge = getStraightEdge(first.x, y, x, y);
                             edges.add(edge);
                             byte price = getEdgePrice(edge);
 
                             first.horRightLinkedX = x;
-                            first.horLeftLinkedY = y;
+                            first.horRightLinkedY = y;
                             first.horRightEdgeId = (byte) (edges.size() - 1);
                             first.horRightPrice = price;
                             n.horLeftLinkedX = first.x;
@@ -131,85 +126,39 @@ public class GraphStruct {
                         first = n;
                     }
                 }
-                n = nodes[r.x + r.width - 1][y];
-                if(n == null && (y == r.y - r.height + 1 || y == r.y)){
-                    n = nodes[r.x + r.width - 2][y];
-                    specEdgeId = n.horRightEdgeId;
-                    n = nodes[n.horRightLinkedX][n.horRightLinkedY];
 
-                    Byte[] edge = NodeBot.mergeEdges(getStraightEdge((byte)(r.x + 1), y, (byte)(r.x + r.width - 2), y), edges.get(specEdgeId));
-                    edges.add(edge);
-                    byte price = getEdgePrice(edge);
-
-                    first.horRightLinkedX = (byte)(r.x + r.width - 2);
-                    first.horLeftLinkedY = y;
-                    first.horRightEdgeId = (byte) (edges.size() - 1);
-                    first.horRightPrice = price;
-                    n.horLeftLinkedX = first.x;
-                    n.horLeftLinkedY = first.y;
-                    n.horLeftEdgeId = (byte) (edges.size() - 1);
-                    n.horLeftPrice = price;
-                }
             }
+
             for(byte x = r.x; x < r.x + r.width; x++){
-                Node first = nodes[x][r.y - r.height + 1];
-                byte specEdgeId = -1;
-                if(first == null && (x == r.x || x == r.x + r.width)){
-                    first = nodes[x][r.y - r.height + 2];
-                    specEdgeId = first.horLeftEdgeId;
-                    first = nodes[first.horLeftLinkedX][first.horLeftLinkedY];
-                }
-                Node n;
+                first = null;
                 for(byte y = (byte)(r.y - r.height + 1); y <= r.y; y++){
                     n = nodes[x][y];
                     if(first == null && keepGlobal[x][y]){
                         first = n;
                     }else if(n != null && keepGlobal[x][y]){
                         if(first.verDownLinkedY != n.y || n.verUpLinkedY != first.y) {
-                            Byte[] edge;
-                            if(specEdgeId != -1){
-                                edge = NodeBot.mergeEdges(getStraightEdge(x, (byte)(r.y - r.height + 2), x, y), edges.get(specEdgeId));
-                            }else{
-                                edge = getStraightEdge(x, first.y, x, y);
-                            }
+                            Byte[] edge = getStraightEdge(x, first.y, x, y);
                             edges.add(edge);
                             byte price = getEdgePrice(edge);
 
                             first.verDownLinkedX = x;
+                            first.verDownLinkedY = y;
                             first.verDownEdgeId = (byte) (edges.size() - 1);
                             first.verDownPrice = price;
                             n.verUpLinkedX = first.x;
+                            n.verUpLinkedY = first.y;
                             n.verUpEdgeId = (byte) (edges.size() - 1);
                             n.verUpPrice = price;
                         }
                         first = n;
                     }
                 }
-                n = nodes[x][r.y];
-                if(n == null && (x == r.x || x == r.x + r.width)){
-                    n = nodes[x][r.y - 1];
-                    specEdgeId = n.horRightEdgeId;
-                    n = nodes[n.horRightLinkedX][n.horRightLinkedY];
-
-                    Byte[] edge = NodeBot.mergeEdges(getStraightEdge(x, (byte)(r.y - r.height + 2), x, (byte)(r.y - 1)), edges.get(specEdgeId));
-                    edges.add(edge);
-                    byte price = getEdgePrice(edge);
-
-                    first.horRightLinkedX = x;
-                    first.horLeftLinkedY = (byte)(r.y - 1);
-                    first.horRightEdgeId = (byte) (edges.size() - 1);
-                    first.horRightPrice = price;
-                    n.horLeftLinkedX = first.x;
-                    n.horLeftLinkedY = first.y;
-                    n.horLeftEdgeId = (byte) (edges.size() - 1);
-                    n.horLeftPrice = price;
-                }
             }
         }
     }
 
     private Byte[] getStraightEdge(byte fromX, byte fromY, byte toX, byte toY){
-        byte tmp = toX; //Well, I will used third var, even when we have learned how to do this without 3rd var
+        byte tmp = toX; //Well, I will use third var, even when we have learned how to do this without 3rd var
         if(fromX > toX){
             toX = fromX;
             fromX = tmp;
@@ -250,10 +199,11 @@ public class GraphStruct {
     }
 
     public void findRectangles(){
+        byte startX;
         for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
-            byte startX = -1;
+            startX = -1;
             for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
-                if(map[y][x] == EnvironmentController.FieldStatus.FREE_UNVISITED){
+                if(nodes[x][y] != null){
                     if(startX == -1){
                         startX = x;
                     }
@@ -337,12 +287,14 @@ public class GraphStruct {
         byte prevYSto = workY;
 
         byte lastDirectionLeaving = 0;
-        ArrayList<Byte> lastEdge = new ArrayList<Byte>();
+        ByteStack lastEdge = new ByteStack(NodeBot.STACK_SIZE);
 
         boolean cont = true;
 
+        byte accessibility;
+
         while(cont) {
-            byte accessibility = getAccessibility(workX, workY);
+            accessibility = getAccessibility(workX, workY);
 
             /* We don't want to return back */
             if ((accessibility & 8) == 8) { //Up
@@ -369,7 +321,7 @@ public class GraphStruct {
             if (workX == lastNode.x && workY == lastNode.y) {
 
                 lastEdge.clear();
-                lastEdge.add((byte) ((workX << 4) | workY));
+                lastEdge.push((byte) ((workX << 4) | workY));
 
                 if(lastNode.verUpEdgeId == -1 && (accessibility & 8) == 8){
                     workY -= 1;
@@ -387,7 +339,7 @@ public class GraphStruct {
                     cont = false;
                 }
 
-                lastEdge.add((byte) ((workX << 4) | workY));
+                lastEdge.push((byte) ((workX << 4) | workY));
 
             } else if (accessibility != 0 && (accessibility & (accessibility - 1)) != 0) { //Kind of magic. More possible ways
 
@@ -398,13 +350,13 @@ public class GraphStruct {
                     n.y = workY;
                 }
 
-                Byte[] lastEdgeArr = lastEdge.toArray(new Byte[lastEdge.size()]);
+                Byte[] lastEdgeArr = lastEdge.getCopyAsArray();
 
                 byte edgeId = (byte) edges.size();
                 byte edgePrice = getEdgePrice(lastEdgeArr);
 
                 if (prevX == workX && prevY == workY - 1 && n.verUpEdgeId == -1) { //Prev UP
-                    edges.add(lastEdgeArr);
+                    edges.add((Byte[])lastEdgeArr);
                     n.verUpEdgeId = edgeId;
                     n.verUpLinkedX = lastNode.x;
                     n.verUpLinkedY = lastNode.y;
@@ -470,7 +422,7 @@ public class GraphStruct {
                 } else if (accessibility == 1) { //Left
                     workX -= 1;
                 }
-                lastEdge.add((byte) ((workX << 4) | workY));
+                lastEdge.push((byte) ((workX << 4) | workY));
             } else if(accessibility == 0) { //Dead end
 
                 Node n = nodes[workX][workY];
@@ -480,7 +432,7 @@ public class GraphStruct {
                     n.y = workY;
                 }
 
-                Byte[] lastEdgeArr = lastEdge.toArray(new Byte[lastEdge.size()]);
+                Byte[] lastEdgeArr = lastEdge.getCopyAsArray();
 
                 byte edgeId = (byte) edges.size();
                 byte edgePrice = getEdgePrice(lastEdgeArr);
@@ -540,10 +492,6 @@ public class GraphStruct {
                 workX = lastNode.x;
                 workY = lastNode.y;
 
-            } else {
-                //This should not happen, but who knows
-                //TODO remove exception before race
-                throw new Error("This should not happen. accessibility = "+Integer.toBinaryString((int)accessibility)+", workX = "+workX +", workY = "+workY);
             }
 
             prevX = prevXSto;
