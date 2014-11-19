@@ -1,6 +1,7 @@
 package lego.api.controllers;
 
 import lego.api.BotController;
+import static lego.api.controllers.EnvironmentController.FieldStatus.*;
 
 /**
  * Private property.
@@ -22,7 +23,14 @@ public abstract class EnvironmentController extends BotController {
 
     protected byte x = startX;
     protected byte y = startY;
-    protected FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
+    protected final FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
+    /* Some map (Unfinished)
+     {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+     {FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,OBSTACLE,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+     {OBSTACLE,FREE_UNVISITED,}
+
+    */
 
     public final FieldStatus[][] getMindMaze(){
         return maze;
@@ -52,21 +60,21 @@ public abstract class EnvironmentController extends BotController {
     /**
      * @return Coordinate at which the robot currently is.
      */
-    public byte getX(){
+    public final byte getX(){
         return x;
     }
 
     /**
      * @return Coordinate at which the robot currently is.
      */
-    public byte getY(){
+    public final byte getY(){
         return y;
     }
 
     /**
      * @return status of given field. OBSTACLE if out of bounds.
      */
-    public FieldStatus getField(byte x, byte y){
+    public final FieldStatus getField(byte x, byte y){
         if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight)return FieldStatus.OBSTACLE;
         else return maze[x][y];
     }
@@ -76,7 +84,7 @@ public abstract class EnvironmentController extends BotController {
      * Updating tile out of bounds gives ERROR_SET_OUT_OF_BOUNDS, then does nothing.
      * Updating definitive tile gives ERROR_SET_DEFINITIVE, then updates as if nothing happened.
      */
-    public void setField(byte x, byte y,FieldStatus to){
+    public final void setField(byte x, byte y,FieldStatus to){
         if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight){
             if(to != FieldStatus.OBSTACLE){
                 onError(ERROR_SET_OUT_OF_BOUNDS);

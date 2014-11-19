@@ -146,11 +146,9 @@ public class NodeBot extends Bot<EnvironmentController> {
 
         for(Byte edgeId: bestPath){
             Debug.printEdge(graph.edges.get(edgeId));
-            try{
-                System.in.read();
-            }catch (IOException ignored){
-
-            }
+//            try{//Permission denied
+//                System.in.read();
+//            }catch (IOException ignored){}
         }
 
 

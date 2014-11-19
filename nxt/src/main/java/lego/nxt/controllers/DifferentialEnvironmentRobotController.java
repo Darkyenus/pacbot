@@ -33,6 +33,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private byte lastMoved = 0;
 
     // Sensor related
+    private static final boolean ENABLE_SENSORS = false;
     private boolean highLight = true;
     private final byte READINGS = 8;
     private byte sonicPointer = 0;
@@ -45,7 +46,9 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private int highLightSum = 0;
     private final int[] highLightReadings = new int[READINGS];
 
+    @SuppressWarnings("FieldCanBeLocal")
     private final byte LIGHT_THRESHOLD = 50;
+    @SuppressWarnings("FieldCanBeLocal")
     private final byte SONIC_BLOCK_SIZE = 28;
     //
 
@@ -93,7 +96,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     if(warnings > 0){
                         warningLight.controlMotor(glows ? 100 : 0, BasicMotorPort.FORWARD);
                     }else{
-                        warningLight.controlMotor(0,BasicMotorPort.FLOAT);
+                        warningLight.controlMotor(0,BasicMotorPort.FORWARD);
                     }
                     try {
                         Thread.sleep(200);
@@ -108,6 +111,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         Thread sensorReadingThread = new Thread("SR"){
             @Override
             public void run() {
+                //noinspection InfiniteLoopStatement
                 while(true){
                     int sonicDistance = rightSonic.getDistance();
                     if(sonicDistance != 255){
@@ -178,50 +182,68 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
     private Direction direction = Direction.DOWN;
 
-    private void ensureDirection(Direction to){
-        if(to == direction)return;
-        warnings++;
+    private boolean isInOppositeDirection(Direction to){
+        return to.x == -direction.x && to.y == -direction.y;
+    }
+
+    private boolean ensureDirection(Direction to,boolean stopAfterCalibrating){
+        if(to == direction)return false;
+        boolean calibrated = false;
+        //warnings++;
         switch((direction.ordinal() - to.ordinal() + 4) % 4){//It's a kind of magic
             case 1:
                 turnLeft();
                 if(lastMoved > 3 && getField((byte)(x - to.x),(byte)(y - to.y)) == FieldStatus.OBSTACLE){
-                    calibrateBackward();
+                    calibrateBackward(stopAfterCalibrating);
+                    calibrated = true;
                 }
                 break;
             case 2:
                 turnAround();
                 if(getField((byte)(x - to.x),(byte)(y - to.y)) == FieldStatus.OBSTACLE){
-                    calibrateBackward();
+                    calibrateBackward(stopAfterCalibrating);
+                    calibrated = true;
                 }
                 break;
             case 3:
                 turnRight();
                 if(lastMoved > 3 && getField((byte)(x - to.x),(byte)(y - to.y)) == FieldStatus.OBSTACLE){
-                    calibrateBackward();
+                    calibrateBackward(stopAfterCalibrating);
+                    calibrated = true;
                 }
                 break;
-            default:
-                throw new Error();
         }
-        warnings--;
+        //warnings--;
         direction = to;
         lastMoved = 0;
         readSensors();
+        return calibrated;
+    }
+
+    private static final float TURNING_BIAS = 0.055f;//-0.065f;//0.055f;
+
+    private float calculateBias(){
+        return TURNING_BIAS * lastDirection;
     }
 
     private void turnLeft(){
-        motors.turnRad(DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+        motors.reset();
+        motors.turnRad(DifferentialMotorManager.HALF_PI + calculateBias(),DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnRight(){
-        motors.turnRad(-DifferentialMotorManager.HALF_PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+        motors.reset();
+        motors.turnRad(-DifferentialMotorManager.HALF_PI - calculateBias(),DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
     private void turnAround(){
-        motors.turnRad(DifferentialMotorManager.PI,DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+        motors.reset();
+        motors.turnRad(DifferentialMotorManager.PI + calculateBias(),DifferentialMotorManager.MAX_SPEED(),DifferentialMotorManager.SMOOTH_ACCELERATION,DifferentialMotorManager.SMOOTH_ACCELERATION,true);
     }
 
+    @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions", "PointlessBooleanExpression"})
     private void readSensors(){
+        if(!ENABLE_SENSORS)return;
         Direction left = direction.left;
         byte leftX = (byte) (x+left.x);
         byte leftY = (byte) (y+left.y);
@@ -248,60 +270,107 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             }
         //    setField((byte) (x + right.x), (byte) (y + right.y), FieldStatus.OBSTACLE);
         }
-
-        // sensors should work now.
     }
 
     private static final float BLOCK_DISTANCE = 28.5f;//28.5 cm
-    private static final float BACKING_DISTANCE = BLOCK_DISTANCE / 10;
+    private static final float BACKING_DISTANCE = 5.5f;
+
+    private byte lastDirection = 1;
 
     private boolean driveForward(boolean accelerate,boolean decelerate){
+        lastDirection = 1;
         motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         while(motors.asyncProgress() < 0.95){
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
-                warnings++;
+                //warnings++;
 
                 Delay.msDelay(400);
-                motors.relax(false);
-                motors.move(-BACKING_DISTANCE,-BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 7,
-                        DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
-                warnings--;
+                motors.reset();
+                motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
+                        DifferentialMotorManager.SMOOTH_ACCELERATION,
+                        DifferentialMotorManager.SMOOTH_ACCELERATION, false);
+                //warnings--;
                 return false;
             }
+            try {
+                Thread.sleep(40);
+            } catch (InterruptedException ignored) {}
         }
         return true;
     }
 
-    private void calibrateBackward(){
-        Sound.beep();
-        warnings++;
+    private boolean driveBackward(boolean accelerate,boolean decelerate){
+        lastDirection = -1;
         motors.moveAsync(-BLOCK_DISTANCE,-BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
+                accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
+                decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
+        warnings++;
+        while(motors.asyncProgress() < 0.95){
+            //Sound.playTone(500+(int)(motors.asyncProgress() * 500),100);//TODO QQQ
+            if(backTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
+
+
+                Delay.msDelay(400);
+                motors.reset();
+                motors.move(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
+                        DifferentialMotorManager.SMOOTH_ACCELERATION,
+                        DifferentialMotorManager.SMOOTH_ACCELERATION, false);
+                warnings--;
+                return false;
+            }
+            try {
+                Thread.sleep(40);
+            } catch (InterruptedException ignored) {}
+        }
+        warnings--;
+        return true;
+    }
+
+    private void calibrateBackward(boolean stopAfterCalibrating){
+        Sound.beep();
+        //warnings++;
+        float speed = DifferentialMotorManager.MAX_SPEED()*0.8f;
+        motors.moveAsync(-BLOCK_DISTANCE,-BLOCK_DISTANCE,speed,
                 DifferentialMotorManager.SMOOTH_ACCELERATION,
                 DifferentialMotorManager.SMOOTH_ACCELERATION,
                 true);
 
-        while(motors.asyncProgress() < 1){
+        while(motors.asyncMoving()){
             if(backTouch.isPressed()){
-
                 Delay.msDelay(400);
-                motors.relax(false);
-                motors.move(BACKING_DISTANCE,BACKING_DISTANCE,DifferentialMotorManager.MAX_SPEED() / 8,
-                        DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.NO_DECELERATION,false);
-                warnings--;
+                motors.reset();
+                if(stopAfterCalibrating){
+                    motors.move(BACKING_DISTANCE,BACKING_DISTANCE,speed,
+                            DifferentialMotorManager.SMOOTH_ACCELERATION,
+                            DifferentialMotorManager.SMOOTH_ACCELERATION,true);
+                }else{
+                    motors.moveAsync(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
+                            DifferentialMotorManager.SMOOTH_ACCELERATION,
+                            DifferentialMotorManager.NO_DECELERATION, true);
+                    motors.waitForAsyncProgress(0.95f);
+                }
+                //warnings--;
                 return;
             }
         }
         onError(ERROR_CAL_BLOCK_EXPECTED);
-        motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
-                DifferentialMotorManager.SMOOTH_ACCELERATION,
-                DifferentialMotorManager.NO_DECELERATION,
-                true);
-        while(motors.asyncProgress() < 0.95f){
-            Delay.msDelay(50);
+        motors.reset();
+        if(stopAfterCalibrating){
+            motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,speed,
+                    DifferentialMotorManager.SMOOTH_ACCELERATION,
+                    DifferentialMotorManager.SMOOTH_ACCELERATION,
+                    true);
+        }else{
+            //We shall continue forward after returning to center
+            motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
+                    DifferentialMotorManager.SMOOTH_ACCELERATION,
+                    DifferentialMotorManager.NO_DECELERATION,
+                    true);
         }
-        warnings--;
+        motors.waitForAsyncProgress(0.95f);
+        //warnings--;
     }
 
     @Override
@@ -339,7 +408,22 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
         @Override
         protected void process() {
-            ensureDirection(direction);
+            //if(isInOppositeDirection(direction)){
+            //    processBackward();
+            //}else{
+                processForward();
+            //}
+            lastMoved = moved;
+            doComplete();
+        }
+
+        private void processForward(){
+            //Dont stop if were moving after this. Should never be true, but just in case
+            boolean stopAfterCalibrating = amount == 0;
+            boolean calibrated = ensureDirection(direction,stopAfterCalibrating);
+            if(!calibrated && amount >= 3 && getField((byte)(x - direction.x), (byte)(y - direction.y)) == FieldStatus.OBSTACLE){
+                calibrateBackward(stopAfterCalibrating);
+            }
             while(moved < amount){
                 if(driveForward(moved == 0,moved == amount - 1)){
                     moved += 1;
@@ -352,8 +436,22 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     break;
                 }
             }
-            lastMoved = moved;
-            doComplete();
+        }
+
+        private void processBackward(){//Controlled Heat Apocalypse Ordinary System
+            //TODO Maybe some calibrating?
+            while(moved < amount){
+                if(driveBackward(moved == 0,moved == amount - 1)){
+                    moved += 1;
+                    x -= direction.x;
+                    y -= direction.y;
+                    setField(x,y, FieldStatus.FREE_VISITED);
+                    readSensors();
+                }else{
+                    setField((byte)(x-direction.x),(byte)(y-direction.y),FieldStatus.OBSTACLE);
+                    break;
+                }
+            }
         }
     }
 }

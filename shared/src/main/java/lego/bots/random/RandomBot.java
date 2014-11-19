@@ -20,8 +20,16 @@ public class RandomBot extends Bot<EnvironmentController> {
             this.wait();
         } catch (InterruptedException ignored) {}
         while(continueRunning){
-            figureEight((byte)1);
+            //tightLoop((byte)2);
+            thereAndBackAgain((byte)2);
         }
+    }
+
+    private void thereAndBackAgain(byte dist){
+        controller.moveByY(dist);
+        controller.moveByY((byte)-dist);
+        controller.moveByX(dist);
+        controller.moveByX((byte)-dist);
     }
 
     private void tightLoop(byte dist){

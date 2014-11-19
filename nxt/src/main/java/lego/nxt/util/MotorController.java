@@ -411,7 +411,6 @@ public class MotorController {
         baseVelocity = currentVelocity;
         currentHold = hold;
         currentLimit = limit;
-        LCD.drawString(((int)limit) + "   ", 0, 6);///TODO QQQ
         moving = currentTargetVelocity != 0 || baseVelocity != 0;
     }
 
@@ -577,7 +576,7 @@ public class MotorController {
             if (checkLimit) {
                 float proximity = (currentLimit - currentTCount);
                 if (Float.isInfinite(currentDeceleration)) {
-                    //Sound.playTone((int)(800+getProgress()*1100),50);//TODO QQQ
+                    //Sound.playTone((int)(800+getProgress()*1100),50);
                     //if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
                         //This means don't stop. Ever.
                         //moving = false;
