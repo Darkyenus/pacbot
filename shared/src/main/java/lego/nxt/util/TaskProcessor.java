@@ -36,18 +36,6 @@ public class TaskProcessor {
     }
 
     /**
-     * Will wait using 200ms delays until TaskProcessor is idle, then returns.
-     * Will return immediately when idle.
-     */
-    public static void waitUntilIdle(){
-        while(!isIdle()){
-            try {
-                Thread.sleep(200); //TODO Do somehow through notifications, this smells
-            } catch (InterruptedException ignored) {}
-        }
-    }
-
-    /**
      * Will stop processing as soon as last task finishes.
      * Will not then continue to its successors nor wait for more.
      */

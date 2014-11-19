@@ -16,8 +16,6 @@ public class DifferentialMotorManager {
     public static final float PI = (float) Math.PI;
     public static final float TWO_PI = (float) (Math.PI * 2.0);
 
-    public static final float GRAD_TO_RAD = TWO_PI / 400f;
-
     private final MotorController leftMotor;
     private final MotorController rightMotor;
 
@@ -25,6 +23,7 @@ public class DifferentialMotorManager {
     public DifferentialMotorManager(MotorPort leftMotorPort, MotorPort rightMotorPort) {
         leftMotor = new MotorController(leftMotorPort);
         rightMotor = new MotorController(rightMotorPort);
+        stop(MAX_ACCELERATION,true);
     }
 
     public static float MAX_SPEED() {
@@ -35,30 +34,9 @@ public class DifferentialMotorManager {
     public static final float SMOOTH_ACCELERATION = 1000;
     public static final float NO_DECELERATION = MotorController.DONT_STOP;
 
-    public static final float wheelDiameterCM = 8.2f;
+    public static final float wheelDiameterCM = 8.3f;
     public static final float wheelCircumferenceCM = PI * wheelDiameterCM;
     public static final float wheelDistanceCM = 6.8f;//Half distance between wheels
-
-    public void go(boolean leftForward, boolean rightForward, float leftSpeed, float rightSpeed, float acceleration) {
-        if (FLIP_DIRECTION) {
-            leftForward = !leftForward;
-            rightForward = !rightForward;
-        }
-        leftMotor.setAcceleration(acceleration);
-        rightMotor.setAcceleration(acceleration);
-        leftMotor.setSpeed(leftSpeed);
-        rightMotor.setSpeed(rightSpeed);
-        if (leftForward) {
-            leftMotor.forward();
-        } else {
-            leftMotor.backward();
-        }
-        if (rightForward) {
-            rightMotor.forward();
-        } else {
-            rightMotor.backward();
-        }
-    }
 
     public void turnRad(float angleRad, float speed, float acceleration, float deceleration,boolean hold) {
         move(-wheelDistanceCM * angleRad, wheelDistanceCM * angleRad, speed, acceleration, deceleration, hold);
@@ -73,31 +51,8 @@ public class DifferentialMotorManager {
      * @param hold         whether motors should float after movement
      */
     public void move(float leftCM, float rightCM, float speed, float acceleration, float deceleration, boolean hold) {
-        if (FLIP_DIRECTION) {
-            leftCM = -leftCM;
-            rightCM = -rightCM;
-        }
-
-        if (leftCM < rightCM) {
-            rightMotor.setSpeed(speed);
-            leftMotor.setSpeed((leftCM / rightCM) * speed);
-        } else {
-            leftMotor.setSpeed(speed);
-            rightMotor.setSpeed((rightCM / leftCM) * speed);
-        }
-        leftMotor.setAcceleration(acceleration);
-        rightMotor.setAcceleration(acceleration);
-        leftMotor.setDeceleration(deceleration);
-        rightMotor.setDeceleration(deceleration);
-
-        int toMoveLeft = (int) (leftCM / wheelCircumferenceCM * 360);
-        int toMoveRight = (int) (rightCM / wheelCircumferenceCM * 360);
-
-        leftMotor.rotate(toMoveLeft, hold, true);
-        rightMotor.rotate(toMoveRight, hold, true);
-
-        leftMotor.waitComplete();
-        rightMotor.waitComplete();
+        moveAsync(leftCM, rightCM, speed, acceleration, deceleration, hold);
+        completeAsync();
     }
 
     /**
@@ -113,24 +68,24 @@ public class DifferentialMotorManager {
             leftCM = -leftCM;
             rightCM = -rightCM;
         }
+        float rightSpeed;
+        float leftSpeed;
 
         if (leftCM < rightCM) {
-            rightMotor.setSpeed(speed);
-            leftMotor.setSpeed((leftCM / rightCM) * speed);
+            rightSpeed = speed;
+            leftSpeed = (leftCM / rightCM) * speed;
         } else {
-            leftMotor.setSpeed(speed);
-            rightMotor.setSpeed((rightCM / leftCM) * speed);
+            leftSpeed = speed;
+            rightSpeed = (rightCM / leftCM) * speed;
         }
-        leftMotor.setAcceleration(acceleration);
-        rightMotor.setAcceleration(acceleration);
-        leftMotor.setDeceleration(deceleration);
-        rightMotor.setDeceleration(deceleration);
 
-        int toMoveLeft = (int) (leftCM / wheelCircumferenceCM * 360);
-        int toMoveRight = (int) (rightCM / wheelCircumferenceCM * 360);
+        float toMoveLeft = leftMotor.permanentSavedLocation + (leftCM / wheelCircumferenceCM) * 360f;
+        float toMoveRight = rightMotor.permanentSavedLocation + (rightCM / wheelCircumferenceCM) * 360f;
+        leftMotor.permanentSavedLocation = toMoveLeft;
+        rightMotor.permanentSavedLocation = toMoveRight;
 
-        leftMotor.rotate(toMoveLeft, hold, true);
-        rightMotor.rotate(toMoveRight, hold, true);
+        leftMotor.newMove(Math.abs(leftSpeed), acceleration, deceleration, toMoveLeft, hold, false);
+        rightMotor.newMove(Math.abs(rightSpeed), acceleration, deceleration, toMoveRight, hold, false);
     }
 
     public float asyncProgress(){
@@ -145,6 +100,14 @@ public class DifferentialMotorManager {
         return leftMotor.isMoving() || rightMotor.isMoving();
     }
 
+    public void waitForAsyncProgress(float minimalProgress){
+        while(asyncProgress() < minimalProgress){
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {}
+        }
+    }
+
     /**
      * Blocks until async move is complete.
      */
@@ -153,17 +116,32 @@ public class DifferentialMotorManager {
         rightMotor.waitComplete();
     }
 
-    public void stop(float deceleration) {
+    public void stop(float deceleration, boolean reset) {
         leftMotor.setAcceleration(deceleration);
         rightMotor.setAcceleration(deceleration);
         leftMotor.stop(true);
         rightMotor.stop(false);
         leftMotor.waitComplete();
+        if(reset){
+            leftMotor.resetTachoCount(true);
+            rightMotor.resetTachoCount(true);
+        }
     }
 
-    public void relax(boolean immediateReturn) {
+    public void relax(boolean immediateReturn, boolean reset) {
         leftMotor.flt(true);
         rightMotor.flt(immediateReturn);
         leftMotor.waitComplete();
+        if(reset){
+            leftMotor.resetTachoCount(true);
+            rightMotor.resetTachoCount(true);
+        }
+    }
+
+    public void reset(){
+        leftMotor.stop(true);
+        rightMotor.stop(true);
+        leftMotor.resetTachoCount(true);
+        rightMotor.resetTachoCount(true);
     }
 }
