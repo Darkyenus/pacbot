@@ -7,11 +7,11 @@ package lego.util;
  */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
 public final class ByteStack {
-    private Byte[] internal;
-    private int nextPosition = 0;
+    private byte[] internal;
+    private byte nextPosition = 0;
 
     public ByteStack(int initialSize) {
-        internal = new Byte[initialSize];
+        internal = new byte[initialSize];
     }
 
     public boolean isEmpty(){
@@ -26,20 +26,20 @@ public final class ByteStack {
      * Pops head of stack. Will throw an exception on underflow.
      * @return head of the stack
      */
-    public Byte pop(){
+    public byte pop(){
         nextPosition--;
-        Byte result = internal[nextPosition];
+        byte result = internal[nextPosition];
         return result;
     }
 
-    public Byte peek(){
+    public byte peek(){
         return internal[nextPosition - 1];
     }
 
-    public void push(Byte value){
+    public void push(byte value){
         int currentSize = internal.length;
         if(nextPosition == currentSize){
-            Byte[] newInternal = new Byte[currentSize<<2];
+            byte[] newInternal = new byte[currentSize<<2];
             System.arraycopy(internal,0,newInternal,0,currentSize);
             internal = newInternal;
         }
@@ -47,8 +47,8 @@ public final class ByteStack {
         nextPosition++;
     }
 
-    public Byte[] getCopyAsArray(){
-        Byte[] res = new Byte[nextPosition];
+    public byte[] getCopyAsArray(){
+        byte[] res = new byte[nextPosition];
         System.arraycopy(internal, 0, res, 0, nextPosition);
         return res;
     }

@@ -175,7 +175,19 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             case ERROR_CAL_BLOCK_EXPECTED:
                 lastError = "cX";
                 break;
+            case 20:
+                Sound.twoBeeps();
+                break;
+            case 21:
+                Sound.beepSequenceUp();
+                break;
+            case 22:
+                Sound.beepSequenceUp();
+            case 25:
+                Sound.beep();
+                break;
             default:
+                Sound.buzz();
                 lastError = "!"+error;
         }
     }

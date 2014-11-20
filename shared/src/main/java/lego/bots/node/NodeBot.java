@@ -6,8 +6,6 @@ import lego.api.controllers.EnvironmentController;
 import lego.util.ByteStack;
 import lego.util.PositionStack;
 
-import java.util.Arrays;
-
 /**
  * Private property.
  * User: jIRKA
@@ -81,45 +79,60 @@ public class NodeBot extends Bot<EnvironmentController> {
     */
 
 
+    private final Thread prepareThread = new Thread(){
+        @Override
+        public void run() {
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
+                for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
+                    controller.setField(x, y, preparedMap[y][x]);
+                }
+            }
+            prepare();
+        }
+    };
+
+    private boolean stopPreparing = false;
+
     private final PositionStack route = new PositionStack(STACK_SIZE);
 
     private final GraphStruct graph = new GraphStruct();
 
     private void prepare(){
+        controller.onError((byte)20);
         graph.prepareNodes(preparedMap);
         findBestWay();
-
 
 
         /*
         for(Byte edgeId: bestPath){
             Debug.printEdge(graph.edges.get(edgeId));
-            /*try{
+            try{
                 System.in.read();
             }catch (IOException ignored){
 
-            }*/
+            }
         }
-
         */
 
-        System.out.println();
+        //System.out.println();
+
+        controller.onError((byte)21);
 
         System.out.println("Price: "+bestPrice);
 
-        System.out.println();
+        //System.out.println();
 
-        System.out.println("Computation ended, waiting for start signal");
+        //System.out.println("Computation ended, waiting for start signal");
     }
 
 
-    Byte[] edgesUsed;
-    Byte[] edgesPrice;
+    byte[] edgesUsed;
+    byte[] edgesPrice;
 
     ByteStack path = new ByteStack(STACK_SIZE);
     short price = 0;
 
-    Byte[] bestPath = new Byte[0];
+    byte[] bestPath = new byte[0];
     short bestPrice = Short.MAX_VALUE;
 
     final byte[][] visited = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
@@ -129,8 +142,8 @@ public class NodeBot extends Bot<EnvironmentController> {
 
     public void findBestWay(){
 
-        edgesUsed = new Byte[graph.edges.size()];
-        edgesPrice = new Byte[graph.edges.size()];
+        edgesUsed = new byte[graph.edges.size()];
+        edgesPrice = new byte[graph.edges.size()];
 
         for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
@@ -155,8 +168,8 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
 
         for(byte i = 0; i < graph.edges.size(); i ++){
-            Byte[] edge = graph.edges.get(i);
-            for(Byte e:edge){
+            byte[] edge = graph.edges.get(i);
+            for(byte e:edge){
                 byte x = (byte)((e >> 4) & 15);
                 byte y = (byte)(e & 15);
                 visited[x][y] = 0;
@@ -193,9 +206,14 @@ public class NodeBot extends Bot<EnvironmentController> {
             if(price < bestPrice){
                 bestPath = path.getCopyAsArray();
                 bestPrice = price;
-                System.out.println("Have something (" + bestPrice + ")");
+                controller.onError((byte)25);
+                /*System.out.println("Have something (" + bestPrice + ")");
                 System.out.println("Path: "+Arrays.toString(bestPath));
-                System.out.println();
+                System.out.println();*/
+            }
+
+            if(stopPreparing){
+                //TODO
             }
 
             revertLast();
@@ -215,7 +233,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             price -= nodeTurnPrice((byte)(lastDir & 15), (byte)0);
             directionStack.pop();
 
-            Byte[] edge = graph.edges.get(edgeId);
+            byte[] edge = graph.edges.get(edgeId);
             for(int i = 1; i < edge.length - 1; i++){ //Affect everything except first and last
                 byte x = (byte)((edge[i] >> 4) & 15);
                 byte y = (byte)(edge[i] & 15);
@@ -243,11 +261,11 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
     }
 
-    private void logMovement(Byte edgeId, byte fromX, byte fromY,byte endX, byte endY, byte directionMoved){
+    private void logMovement(byte edgeId, byte fromX, byte fromY,byte endX, byte endY, byte directionMoved){
         path.push(edgeId);
         edgesUsed[edgeId] = (byte) (edgesUsed[edgeId] + 1);
 
-        Byte[] edge = graph.edges.get(edgeId);
+        byte[] edge = graph.edges.get(edgeId);
         for(int i = 1; i < edge.length - 1; i++){ //Affect everything except first and last
             byte x = (byte)((edge[i] >> 4) & 15);
             byte y = (byte)(edge[i] & 15);
@@ -632,12 +650,12 @@ public class NodeBot extends Bot<EnvironmentController> {
         return result;
     }
 
-    public static Byte[] mergeEdges(Byte[] edge1, Byte[] edge2){
+    public static byte[] mergeEdges(byte[] edge1, byte[] edge2){
         byte edge1start = edge1[0];
         byte edge1end = edge1[edge1.length - 1];
         byte edge2start = edge2[0];
         byte edge2end = edge2[edge2.length - 1];
-        Byte[] result = new Byte[edge1.length + edge2.length - 1];
+        byte[] result = new byte[edge1.length + edge2.length - 1];
 
         if(edge1start == edge2start){
             for (byte i = 0; i < edge1.length; i++){
@@ -674,21 +692,22 @@ public class NodeBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-        for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
-            for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-                controller.setField(x, y, preparedMap[y][x]);
-            }
+
+        try {
+            wait();
+        } catch (InterruptedException e) {
         }
 
-        prepare();
-
-        while(!continueRunning){
+        if(prepareThread.isAlive()){
             try {
-                Thread.sleep(60);
-            }catch (InterruptedException ignored){}
+                stopPreparing = true;
+                prepareThread.join();
+            } catch (InterruptedException ignored) {}
         }
 
-        Byte[] edgePath = graph.edges.get(bestPath[0]);
+        controller.onError((byte)22);
+
+        byte[] edgePath = graph.edges.get(bestPath[0]);
         byte i;
         for(i = 1; i < bestPath.length; i++){
             edgePath = mergeEdges(edgePath, graph.edges.get(bestPath[i]));
@@ -705,6 +724,7 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
 
         Movement.move(route, controller);
+        controller.onError((byte)23);
     }
 
 
@@ -722,6 +742,11 @@ public class NodeBot extends Bot<EnvironmentController> {
                 synchronized (this){
                     notifyAll(); //Should wake up the main thread.
                 }
+                break;
+            case RUN_PREPARE:
+                prepareThread.setPriority(Thread.MAX_PRIORITY);
+                prepareThread.setName("Prep");
+                prepareThread.start();
                 break;
         }
     }

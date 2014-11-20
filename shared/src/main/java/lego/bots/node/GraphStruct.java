@@ -1,6 +1,7 @@
 package lego.bots.node;
 
 import lego.api.controllers.EnvironmentController;
+import lego.util.ByteArrayArrayList;
 import lego.util.ByteStack;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class GraphStruct {
     public static final byte PRICE_TURN = 1;
 
 
-    public final ArrayList<Byte[]> edges = new ArrayList<Byte[]>();
+    public final ByteArrayArrayList edges = new ByteArrayArrayList(NodeBot.STACK_SIZE);
     public Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
     private EnvironmentController.FieldStatus[][] map;
 
@@ -111,7 +112,7 @@ public class GraphStruct {
                         first = n;
                     }else if(n != null && keepGlobal[x][y]){
                         if(first.horRightLinkedX != n.x || n.horLeftLinkedX != first.x) {
-                            Byte[] edge = getStraightEdge(first.x, y, x, y);
+                            byte[] edge = getStraightEdge(first.x, y, x, y);
                             edges.add(edge);
                             byte price = getEdgePrice(edge);
 
@@ -138,7 +139,7 @@ public class GraphStruct {
                         first = n;
                     }else if(n != null && keepGlobal[x][y]){
                         if(first.verDownLinkedY != n.y || n.verUpLinkedY != first.y) {
-                            Byte[] edge = getStraightEdge(x, first.y, x, y);
+                            byte[] edge = getStraightEdge(x, first.y, x, y);
                             edges.add(edge);
                             byte price = getEdgePrice(edge);
 
@@ -158,7 +159,7 @@ public class GraphStruct {
         }
     }
 
-    private Byte[] getStraightEdge(byte fromX, byte fromY, byte toX, byte toY){
+    private byte[] getStraightEdge(byte fromX, byte fromY, byte toX, byte toY){
         byte tmp = toX; //Well, I will use third var, even when we have learned how to do this without 3rd var
         if(fromX > toX){
             toX = fromX;
@@ -171,7 +172,7 @@ public class GraphStruct {
         }
 
         byte length = (byte)((toX - fromX) + (toY - fromY) + 1);
-        Byte[] result = new Byte[length];
+        byte[] result = new byte[length];
 
         if(fromX == toX){
             for (byte i = 0; i < length; i++) {
@@ -352,7 +353,7 @@ public class GraphStruct {
                     n.y = workY;
                 }
 
-                Byte[] lastEdgeArr = lastEdge.getCopyAsArray();
+                byte[] lastEdgeArr = lastEdge.getCopyAsArray();
 
                 byte edgeId = (byte) edges.size();
                 byte edgePrice = getEdgePrice(lastEdgeArr);
@@ -436,7 +437,7 @@ public class GraphStruct {
                     n.y = workY;
                 }
 
-                Byte[] lastEdgeArr = lastEdge.getCopyAsArray();
+                byte[] lastEdgeArr = lastEdge.getCopyAsArray();
 
                 byte edgeId = (byte) edges.size();
                 byte edgePrice = getEdgePrice(lastEdgeArr);
@@ -506,7 +507,7 @@ public class GraphStruct {
         }
     }
 
-    private byte getEdgePrice(Byte[] edge){
+    private byte getEdgePrice(byte[] edge){
         byte price = 0;
 
         byte x = -1, y = -1;
@@ -514,7 +515,7 @@ public class GraphStruct {
 
         byte dir = -1;
 
-        for(Byte b:edge){
+        for(byte b:edge){
             prevX = x;
             prevY = y;
             x = (byte)((b >> 4) & 15);
