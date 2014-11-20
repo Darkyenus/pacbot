@@ -33,52 +33,55 @@ public class Movement {
             byte nextY = route.peekY();
             route.pop();
 
-            if(nextX == prevX && nextY == prevY + 1){
-                if(actualDir == EnvironmentController.Direction.DOWN){
-                    movingDist ++;
-                }else{
-                    if(movingDist > 0) {
-                        directions.pushNext(actualDir);
-                        distances.pushNext(movingDist);
+            if(nextX != prevX || nextY != prevY) {
+
+                if (nextX == prevX && nextY == prevY + 1) {
+                    if (actualDir == EnvironmentController.Direction.DOWN) {
+                        movingDist++;
+                    } else {
+                        if (movingDist > 0) {
+                            directions.pushNext(actualDir);
+                            distances.pushNext(movingDist);
+                        }
+                        actualDir = EnvironmentController.Direction.DOWN;
+                        movingDist = 1;
                     }
-                    actualDir = EnvironmentController.Direction.DOWN;
-                    movingDist = 1;
                 }
-            }
-            if(nextX == prevX && nextY == prevY - 1){
-                if(actualDir == EnvironmentController.Direction.UP){
-                    movingDist ++;
-                }else{
-                    if(movingDist > 0) {
-                        directions.pushNext(actualDir);
-                        distances.pushNext(movingDist);
+                if (nextX == prevX && nextY == prevY - 1) {
+                    if (actualDir == EnvironmentController.Direction.UP) {
+                        movingDist++;
+                    } else {
+                        if (movingDist > 0) {
+                            directions.pushNext(actualDir);
+                            distances.pushNext(movingDist);
+                        }
+                        actualDir = EnvironmentController.Direction.UP;
+                        movingDist = 1;
                     }
-                    actualDir = EnvironmentController.Direction.UP;
-                    movingDist = 1;
                 }
-            }
-            if(nextX == prevX - 1 && nextY == prevY){
-                if(actualDir == EnvironmentController.Direction.LEFT){
-                    movingDist ++;
-                }else{
-                    if(movingDist > 0) {
-                        directions.pushNext(actualDir);
-                        distances.pushNext(movingDist);
+                if (nextX == prevX - 1 && nextY == prevY) {
+                    if (actualDir == EnvironmentController.Direction.LEFT) {
+                        movingDist++;
+                    } else {
+                        if (movingDist > 0) {
+                            directions.pushNext(actualDir);
+                            distances.pushNext(movingDist);
+                        }
+                        actualDir = EnvironmentController.Direction.LEFT;
+                        movingDist = 1;
                     }
-                    actualDir = EnvironmentController.Direction.LEFT;
-                    movingDist = 1;
                 }
-            }
-            if(nextX == prevX + 1 && nextY == prevY){
-                if(actualDir == EnvironmentController.Direction.RIGHT){
-                    movingDist ++;
-                }else{
-                    if(movingDist > 0) {
-                        directions.pushNext(actualDir);
-                        distances.pushNext(movingDist);
+                if (nextX == prevX + 1 && nextY == prevY) {
+                    if (actualDir == EnvironmentController.Direction.RIGHT) {
+                        movingDist++;
+                    } else {
+                        if (movingDist > 0) {
+                            directions.pushNext(actualDir);
+                            distances.pushNext(movingDist);
+                        }
+                        actualDir = EnvironmentController.Direction.RIGHT;
+                        movingDist = 1;
                     }
-                    actualDir = EnvironmentController.Direction.RIGHT;
-                    movingDist = 1;
                 }
             }
 

@@ -13,9 +13,10 @@ import java.util.ArrayList;
  */
 public class GraphStruct {
 
-    public static final byte PRICE_MOVE = 2;
-    public static final byte PRICE_TURN_AROUND = 1;
+    public static final byte PRICE_MOVE = 1;
+    public static final byte PRICE_TURN_AROUND = 2;
     public static final byte PRICE_TURN = 1;
+
 
     public final ArrayList<Byte[]> edges = new ArrayList<Byte[]>();
     public Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
@@ -292,6 +293,7 @@ public class GraphStruct {
         boolean cont = true;
 
         byte accessibility;
+        boolean loop = false;
 
         while(cont) {
             accessibility = getAccessibility(workX, workY);
@@ -318,7 +320,7 @@ public class GraphStruct {
                 }
             }
 
-            if (workX == lastNode.x && workY == lastNode.y) {
+            if (workX == lastNode.x && workY == lastNode.y && !loop) {
 
                 lastEdge.clear();
                 lastEdge.push((byte) ((workX << 4) | workY));
@@ -356,7 +358,7 @@ public class GraphStruct {
                 byte edgePrice = getEdgePrice(lastEdgeArr);
 
                 if (prevX == workX && prevY == workY - 1 && n.verUpEdgeId == -1) { //Prev UP
-                    edges.add((Byte[])lastEdgeArr);
+                    edges.add(lastEdgeArr);
                     n.verUpEdgeId = edgeId;
                     n.verUpLinkedX = lastNode.x;
                     n.verUpLinkedY = lastNode.y;
@@ -411,6 +413,7 @@ public class GraphStruct {
 
                 workX = lastNode.x;
                 workY = lastNode.y;
+                loop = false;
 
             } else if (accessibility != 0) { //One and only one possible way to move
                 if (accessibility == 8) { //Up
@@ -423,6 +426,7 @@ public class GraphStruct {
                     workX -= 1;
                 }
                 lastEdge.push((byte) ((workX << 4) | workY));
+                loop = true;
             } else if(accessibility == 0) { //Dead end
 
                 Node n = nodes[workX][workY];
@@ -572,7 +576,7 @@ public class GraphStruct {
 
         byte result = 0;
 
-        if((getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED || getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.START)&& getField(x, y) != EnvironmentController.FieldStatus.START){
+        if((getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED || getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.START) && getField(x, y) != EnvironmentController.FieldStatus.START){
             result = (byte) (result | 8);
         }
         if(getField((byte) (x + 1), y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
