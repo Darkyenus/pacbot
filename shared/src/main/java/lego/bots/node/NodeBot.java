@@ -6,7 +6,6 @@ import lego.api.controllers.EnvironmentController;
 import lego.util.ByteStack;
 import lego.util.PositionStack;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -26,7 +25,7 @@ public class NodeBot extends Bot<EnvironmentController> {
     private static final EnvironmentController.FieldStatus START = EnvironmentController.FieldStatus.START;
 
 
-    /*
+
     private final EnvironmentController.FieldStatus[][] preparedMap = {
             { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
             { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
@@ -35,10 +34,9 @@ public class NodeBot extends Bot<EnvironmentController> {
             { FREE, BLOCK,  FREE, BLOCK, BLOCK, BLOCK,  FREE, BLOCK,  FREE},
             { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE}
     };
-    */
 
 
-
+    /*
     private final EnvironmentController.FieldStatus[][] preparedMap = {
             { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
             {BLOCK, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
@@ -47,8 +45,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             { FREE,  FREE,  FREE, BLOCK, BLOCK, BLOCK,  FREE, BLOCK,  FREE},
             { FREE,  FREE,  FREE, BLOCK,  FREE,  FREE,  FREE, BLOCK,  FREE}
     };
-
-
+    */
 
     /*
     private final EnvironmentController.FieldStatus[][] preparedMap = {
@@ -61,6 +58,27 @@ public class NodeBot extends Bot<EnvironmentController> {
     };
     */
 
+    /*
+    private final EnvironmentController.FieldStatus[][] preparedMap = {
+            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
+            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
+            { FREE, BLOCK,  FREE, BLOCK, START, BLOCK,  FREE, BLOCK,  FREE},
+            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
+            { FREE,  FREE, BLOCK,  FREE,  FREE,  FREE, BLOCK, BLOCK,  FREE},
+            { FREE,  FREE, BLOCK, BLOCK,  FREE, BLOCK, BLOCK,  FREE,  FREE}
+    };
+    */
+
+    /*
+    private final EnvironmentController.FieldStatus[][] preparedMap = {
+            { FREE,  FREE,  FREE, BLOCK,  FREE, BLOCK,  FREE,  FREE,  FREE},
+            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
+            { FREE,  FREE,  FREE, BLOCK, START, BLOCK,  FREE,  FREE,  FREE},
+            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
+            { FREE, BLOCK, BLOCK,  FREE, BLOCK,  FREE, BLOCK, BLOCK,  FREE},
+            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE}
+    };
+    */
 
 
     private final PositionStack route = new PositionStack(STACK_SIZE);
@@ -68,29 +86,12 @@ public class NodeBot extends Bot<EnvironmentController> {
     private final GraphStruct graph = new GraphStruct();
 
     private void prepare(){
-        System.out.println("Computation started");
-
         graph.prepareNodes(preparedMap);
-
-        Debug.printNodes(graph.nodes, graph.edges);
-
-        System.out.println("Graph prepared");
-
-        long now = System.currentTimeMillis();
-
         findBestWay();
 
-        System.out.println();
-        System.out.println("Found solution in "+(((System.currentTimeMillis() - now) / 100) / 10f)+"s");
 
-        System.out.println();
 
-        System.out.println("==== BEST ====");
-
-        System.out.println("Price: "+bestPrice);
-
-        System.out.println(Arrays.toString(bestPath));
-
+        /*
         for(Byte edgeId: bestPath){
             Debug.printEdge(graph.edges.get(edgeId));
             try{
@@ -99,6 +100,8 @@ public class NodeBot extends Bot<EnvironmentController> {
 
             }
         }
+
+        */
 
         System.out.println();
 
@@ -209,7 +212,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             price -= edgesPrice[edgeId];
 
             byte lastDir =  directionStack.pop();
-            price -= nodeTurnPrice(lastDir);
+            price -= nodeTurnPrice((byte)(lastDir & 15), (byte)0);
             directionStack.pop();
 
             Byte[] edge = graph.edges.get(edgeId);
@@ -240,7 +243,7 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
     }
 
-    private void logMovement(Byte edgeId, byte fromX, byte fromY, byte directionMoved){
+    private void logMovement(Byte edgeId, byte fromX, byte fromY,byte endX, byte endY, byte directionMoved){
         path.push(edgeId);
         edgesUsed[edgeId] = (byte) (edgesUsed[edgeId] + 1);
 
@@ -264,13 +267,25 @@ public class NodeBot extends Bot<EnvironmentController> {
         visitedVal = (byte)((visitedVal & 240) | 4 | directionCompressed);
         visited[fromX][fromY] = visitedVal;
 
+        byte arrivedFrom = 0;
+        Node n = graph.nodes[endX][endY];
+        if(n.verUpEdgeId != -1 && n.verUpLinkedX == fromX && n.verUpLinkedY == fromY){
+            arrivedFrom = 8;
+        }else if(n.horRightEdgeId != -1 && n.horRightLinkedX == fromX && n.horRightLinkedY == fromY){
+            arrivedFrom = 8;
+        }else if(n.verDownEdgeId != -1 && n.verDownLinkedX == fromX && n.verDownLinkedY == fromY){
+            arrivedFrom = 8;
+        }else if(n.horLeftEdgeId != -1 && n.verDownLinkedX == fromX && n.verDownLinkedY == fromY){
+            arrivedFrom = 8;
+        }
+
         price += edgesPrice[edgeId];
-        price += nodeTurnPrice(directionMoved);
+        price += nodeTurnPrice(directionMoved, arrivedFrom);
     }
 
-    private byte nodeTurnPrice(byte dir){
+    private byte nodeTurnPrice(byte dir, byte arrivedFrom){
+        byte lastDir = (byte)(directionStack.isEmpty() ? 0 : (directionStack.peek() & 15));
 
-        byte lastDir = directionStack.isEmpty() ? 0 : directionStack.peek();
         if(lastDir == 0){
             directionStack.push(dir);
             return 0;
@@ -302,7 +317,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             }
         }
 
-        directionStack.push(dir);
+        directionStack.push((byte)(dir | (arrivedFrom << 4)));
         return result;
     }
 
@@ -318,7 +333,7 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
 
         byte hintUp = 0, hintRight = 0, hintDown = 0, hintLeft = 0;
-        byte lastDir = directionStack.isEmpty() ? 0 : directionStack.peek();
+        byte returnedFrom = (byte)(directionStack.isEmpty() ? 0 : (((directionStack.peek() >> 4) & 15)));
 
         //System.out.println("a");
 
@@ -330,7 +345,7 @@ public class NodeBot extends Bot<EnvironmentController> {
                 if(val >= 0){
                     hintUp = Byte.MAX_VALUE; //We don't want to go there, cuz there is nothing or we have been there already
                 }else{ //collected partially or even not touched yet
-                    if(lastDir == 2){
+                    if(returnedFrom == 8){
                         if((visited[n.x][n.y] & 7) == 3+4){
                             revertLast();
                             return;
@@ -348,7 +363,7 @@ public class NodeBot extends Bot<EnvironmentController> {
                 if(val >= 0){
                     hintRight = Byte.MAX_VALUE; //We don't want to go there, cuz there is nothing or we have been there already
                 }else{ //collected partially or even not touched yet
-                    if(lastDir == 1){
+                    if(returnedFrom == 4){
                         if((visited[n.x][n.y] & 7) == 2+4) {
                             revertLast();
                             return;
@@ -366,7 +381,7 @@ public class NodeBot extends Bot<EnvironmentController> {
                 if(val >= 0){
                     hintDown = Byte.MAX_VALUE; //We don't want to go there, cuz there is nothing or we have been there already
                 }else{ //collected partially or even not touched yet
-                    if(lastDir == 8){
+                    if(returnedFrom == 2){
                         if((visited[n.x][n.y] & 7) == 1+4){
                             revertLast();
                             return;
@@ -384,7 +399,7 @@ public class NodeBot extends Bot<EnvironmentController> {
                 if(val >= 0){
                     hintLeft = Byte.MAX_VALUE; //We don't want to go there, cuz there is nothing or we have been there already
                 }else{ //collected partially or even not touched yet
-                    if(lastDir == 4){
+                    if(returnedFrom == 1){
                         if((visited[n.x][n.y] & 7) == 0+4){
                             revertLast();
                             return;
@@ -399,23 +414,23 @@ public class NodeBot extends Bot<EnvironmentController> {
 
         byte hint = 0;
         byte hintValue = Byte.MAX_VALUE;
-        if(hintUp != Byte.MAX_VALUE && hintUp != 0 && (!directionStack.isEmpty() && directionStack.peek() != 2)){
+        if(hintUp != Byte.MAX_VALUE && hintUp != 0 && returnedFrom != 8){
             hintValue = hintUp;
             hint = 8;
         }
-        if(hintRight != Byte.MAX_VALUE && hintRight != 0 && (!directionStack.isEmpty() && directionStack.peek() != 1)){
+        if(hintRight != Byte.MAX_VALUE && hintRight != 0 && returnedFrom != 4){
             if(hintRight < hintValue) {
                 hintValue = hintRight;
                 hint = 4;
             }
         }
-        if(hintDown != Byte.MAX_VALUE && hintDown != 0 && (!directionStack.isEmpty() && directionStack.peek() != 8)){
+        if(hintDown != Byte.MAX_VALUE && hintDown != 0 && returnedFrom != 2){
             if(hintDown < hintValue) {
                 hintValue = hintDown;
                 hint = 2;
             }
         }
-        if(hintLeft != Byte.MAX_VALUE && hintLeft != 0 && (!directionStack.isEmpty() && directionStack.peek() != 4)){
+        if(hintLeft != Byte.MAX_VALUE && hintLeft != 0 && returnedFrom != 1){
             if(hintLeft < hintValue) {
                 hint = 1;
             }
@@ -460,11 +475,10 @@ public class NodeBot extends Bot<EnvironmentController> {
 
             if(n.verUpEdgeId != -1){
                 if(lookingFor == -1 && hint == 8){
-                    logMovement(n.verUpEdgeId, n.x, n.y, (byte)8);
+                    logMovement(n.verUpEdgeId, n.x, n.y, n.verUpLinkedX, n.verUpLinkedY, (byte)8);
                     decideOnNode(graph.nodes[n.verUpLinkedX][n.verUpLinkedY]);
-
                 }else if(edgesUsed[n.verUpEdgeId] == lookingFor && hintUp != Byte.MAX_VALUE) {
-                    logMovement(n.verUpEdgeId, n.x, n.y, (byte)8);
+                    logMovement(n.verUpEdgeId, n.x, n.y, n.verUpLinkedX, n.verUpLinkedY, (byte)8);
                     decideOnNode(graph.nodes[n.verUpLinkedX][n.verUpLinkedY]);
                 }
             }
@@ -476,10 +490,10 @@ public class NodeBot extends Bot<EnvironmentController> {
 
             if(n.horRightEdgeId != -1){
                 if(lookingFor == -1 && hint == 4) {
-                    logMovement(n.horRightEdgeId, n.x, n.y, (byte) 4);
+                    logMovement(n.horRightEdgeId, n.x, n.y, n.horRightLinkedX, n.horRightLinkedY, (byte) 4);
                     decideOnNode(graph.nodes[n.horRightLinkedX][n.horRightLinkedY]);
                 }else if(edgesUsed[n.horRightEdgeId] == lookingFor && hintRight != Byte.MAX_VALUE) {
-                    logMovement(n.horRightEdgeId, n.x, n.y, (byte) 4);
+                    logMovement(n.horRightEdgeId, n.x, n.y, n.horRightLinkedX, n.horRightLinkedY, (byte) 4);
                     decideOnNode(graph.nodes[n.horRightLinkedX][n.horRightLinkedY]);
                 }
             }
@@ -491,11 +505,10 @@ public class NodeBot extends Bot<EnvironmentController> {
 
             if(n.verDownEdgeId != -1){
                 if(lookingFor == -1 && hint == 2) {
-                    logMovement(n.verDownEdgeId, n.x, n.y, (byte) 2);
+                    logMovement(n.verDownEdgeId, n.x, n.y, n.verDownLinkedX, n.verDownLinkedY, (byte) 2);
                     decideOnNode(graph.nodes[n.verDownLinkedX][n.verDownLinkedY]);
-
                 }else if(edgesUsed[n.verDownEdgeId] == lookingFor && hintDown != Byte.MAX_VALUE) {
-                    logMovement(n.verDownEdgeId, n.x, n.y, (byte) 2);
+                    logMovement(n.verDownEdgeId, n.x, n.y, n.verDownLinkedX, n.verDownLinkedY, (byte) 2);
                     decideOnNode(graph.nodes[n.verDownLinkedX][n.verDownLinkedY]);
                 }
             }
@@ -507,10 +520,10 @@ public class NodeBot extends Bot<EnvironmentController> {
 
             if(n.horLeftEdgeId != -1){
                 if(lookingFor == -1 && hint == 1) {
-                    logMovement(n.horLeftEdgeId, n.x, n.y, (byte) 1);
+                    logMovement(n.horLeftEdgeId, n.x, n.y, n.horLeftLinkedX, n.horLeftLinkedY, (byte) 1);
                     decideOnNode(graph.nodes[n.horLeftLinkedX][n.horLeftLinkedY]);
                 }else if(edgesUsed[n.horLeftEdgeId] == lookingFor && hintLeft != Byte.MAX_VALUE) {
-                    logMovement(n.horLeftEdgeId, n.x, n.y, (byte) 1);
+                    logMovement(n.horLeftEdgeId, n.x, n.y, n.horLeftLinkedX, n.horLeftLinkedY, (byte) 1);
                     decideOnNode(graph.nodes[n.horLeftLinkedX][n.horLeftLinkedY]);
                 }
             }
@@ -666,22 +679,32 @@ public class NodeBot extends Bot<EnvironmentController> {
                 controller.setField(x, y, preparedMap[y][x]);
             }
         }
+
         prepare();
 
-        if(true)
-            return;
+        while(!continueRunning){
+            try {
+                Thread.sleep(60);
+            }catch (InterruptedException ignored){}
+        }
 
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {}
+        Byte[] edgePath = graph.edges.get(bestPath[0]);
+        byte i;
+        for(i = 1; i < bestPath.length; i++){
+            edgePath = mergeEdges(edgePath, graph.edges.get(bestPath[i]));
+        }
 
-        System.out.println("Start signal received, moving.");
-
-        if(true)
-            return;
+        if(edgePath[0] == ((EnvironmentController.startX << 4) | (EnvironmentController.startY))) {
+            for (i = (byte)(edgePath.length - 1); i >= 0; i--) {
+                route.push((byte) ((edgePath[i] >> 4) & 15), (byte) (edgePath[i] & 15));
+            }
+        }else{
+            for (i = 0; i < edgePath.length; i++) {
+                route.push((byte) ((edgePath[i] >> 4) & 15), (byte) (edgePath[i] & 15));
+            }
+        }
 
         Movement.move(route, controller);
-
     }
 
 
