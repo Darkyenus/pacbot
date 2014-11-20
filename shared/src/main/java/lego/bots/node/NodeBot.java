@@ -91,14 +91,13 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
     };
 
-    private boolean stopPreparing = false;
+    private static boolean stopPreparing = false;
 
     private final PositionStack route = new PositionStack(STACK_SIZE);
 
     private final GraphStruct graph = new GraphStruct();
 
     private void prepare(){
-        controller.onError((byte)20);
         graph.prepareNodes(preparedMap);
         findBestWay();
 
@@ -114,8 +113,6 @@ public class NodeBot extends Bot<EnvironmentController> {
         */
 
         //System.out.println();
-
-        controller.onError((byte)21);
 
         System.out.println("Price: "+bestPrice);
 
@@ -184,7 +181,9 @@ public class NodeBot extends Bot<EnvironmentController> {
         try {
             decideOnNode(startNode);
             checkCompletedMap((byte)-1, (byte)-1);
-        }catch (InternalError ignored){}
+        }catch (InternalError ignored){
+            controller.onError((byte)30);
+        }
 
     }
 
@@ -213,7 +212,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             }
 
             if(stopPreparing){
-                throw new VerifyError("Stopped preparing");
+                throw new InternalError("Stopped preparing");
             }
 
             revertLast();
@@ -705,8 +704,6 @@ public class NodeBot extends Bot<EnvironmentController> {
             } catch (InterruptedException ignored) {}
         }
 
-        controller.onError((byte)22);
-
         byte[] edgePath = graph.edges.get(bestPath[0]);
         byte i;
         for(i = 1; i < bestPath.length; i++){
@@ -724,7 +721,6 @@ public class NodeBot extends Bot<EnvironmentController> {
         }
 
         Movement.move(route, controller);
-        controller.onError((byte)23);
     }
 
 
@@ -738,6 +734,7 @@ public class NodeBot extends Bot<EnvironmentController> {
                 }
                 break;
             case RUN_STARTED:
+                stopPreparing = true;
                 continueRunning = true;
                 synchronized (this){
                     notifyAll(); //Should wake up the main thread.

@@ -1,7 +1,7 @@
 package lego.nxt.bootstrap;
 
 import lego.bots.node.NodeBot;
-import lego.nxt.controllers.CartesianEnvironmentRobotController;
+import lego.nxt.controllers.DifferentialEnvironmentRobotController;
 
 /**
  * Private property.
@@ -17,8 +17,8 @@ public class MainBootstrap extends NXTBootstrap {
                 //new RandomBot()
                 //new WeightNavBot()
                 ,
-                new CartesianEnvironmentRobotController()
-                //new DifferentialEnvironmentRobotController()
+                //new CartesianEnvironmentRobotController()
+                new DifferentialEnvironmentRobotController()
         );
     }
 }

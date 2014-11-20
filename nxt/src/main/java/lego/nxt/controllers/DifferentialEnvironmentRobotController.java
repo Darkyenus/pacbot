@@ -57,18 +57,34 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     protected void initialize() {
         TaskProcessor.initialize();
 
+        final Thread initThread = new Thread("IT"){
+            @Override
+            public void run() {
+                LCD.setAutoRefresh(false);
+                Bot.active.onEvent(BotEvent.RUN_PREPARE);
+                while(!frontTouch.isPressed()){
+                    Delay.msDelay(50);
+                }
+                while(frontTouch.isPressed()){
+                    Delay.msDelay(50);
+                }
+                Sound.beepSequenceUp();
+                Delay.msDelay(500);
+                Bot.active.onEvent(BotEvent.RUN_STARTED);
+                MotorController.startWheelControl();
+
+            }
+        };
+        initThread.setPriority(Thread.MAX_PRIORITY);
+
         Thread debugViewThread = new Thread("DV"){
             @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
             @Override
             public void run(){
-                LCD.setAutoRefresh(false);
-                while(!frontTouch.isPressed()){}
-                while(frontTouch.isPressed()){}
-                Delay.msDelay(500);
-                Bot.active.onEvent(BotEvent.RUN_PREPARE);
-                Bot.active.onEvent(BotEvent.RUN_STARTED);
-                MotorController.startWheelControl();
-
+                initThread.start();
+                try {
+                    initThread.join();
+                } catch (InterruptedException ignored) {}
                 //noinspection InfiniteLoopStatement
                 while(true){
                     if(Button.ESCAPE.isDown()){
@@ -180,14 +196,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             case ERROR_CAL_BLOCK_EXPECTED:
                 lastError = "cX";
                 break;
-            case 20:
-                Sound.twoBeeps();
-                break;
-            case 21:
-                Sound.beepSequenceUp();
-                break;
-            case 22:
-                Sound.beepSequenceUp();
             case 25:
                 Sound.beep();
                 break;
