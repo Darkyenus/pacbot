@@ -93,11 +93,11 @@ public class NodeBot extends Bot<EnvironmentController> {
 
         for(Byte edgeId: bestPath){
             Debug.printEdge(graph.edges.get(edgeId));
-            try{
+            /*try{
                 System.in.read();
             }catch (IOException ignored){
 
-            }
+            }*/
         }
 
         System.out.println();
