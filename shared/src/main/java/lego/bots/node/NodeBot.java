@@ -102,7 +102,6 @@ public class NodeBot extends Bot<EnvironmentController> {
         graph.prepareNodes(preparedMap);
         findBestWay();
 
-
         /*
         for(Byte edgeId: bestPath){
             Debug.printEdge(graph.edges.get(edgeId));
@@ -182,9 +181,10 @@ public class NodeBot extends Bot<EnvironmentController> {
 
         Node startNode = graph.nodes[EnvironmentController.startX][EnvironmentController.startY];
 
-        decideOnNode(startNode);
-
-        checkCompletedMap((byte)-1, (byte)-1);
+        try {
+            decideOnNode(startNode);
+            checkCompletedMap((byte)-1, (byte)-1);
+        }catch (InternalError ignored){}
 
     }
 
@@ -213,7 +213,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             }
 
             if(stopPreparing){
-                //TODO
+                throw new VerifyError("Stopped preparing");
             }
 
             revertLast();
