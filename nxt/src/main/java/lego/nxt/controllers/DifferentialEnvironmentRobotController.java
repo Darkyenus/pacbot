@@ -106,6 +106,9 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     initThread.join();
                 } catch (InterruptedException ignored) {}
 
+                MotorController.startWheelControl();
+                doDrawing();
+
                 while(!frontTouch.isPressed()){
                     Delay.msDelay(50);
                 }
@@ -114,7 +117,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 }
                 Delay.msDelay(500);
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
-                MotorController.startWheelControl();
 
                 //noinspection InfiniteLoopStatement
                 while(true){
