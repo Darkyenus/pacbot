@@ -107,6 +107,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 } catch (InterruptedException ignored) {}
 
                 MotorController.startWheelControl();
+                doDrawing();
 
                 while(!frontTouch.isPressed()){
                     Delay.msDelay(50);
