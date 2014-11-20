@@ -3,8 +3,6 @@ package lego.nxt.bootstrap;
 import lego.bots.node.NodeBot;
 import lego.nxt.controllers.CartesianEnvironmentRobotController;
 
-//import lego.nxt.controllers.CartesianEnvironmentRobotController;
-
 /**
  * Private property.
  * User: Darkyen

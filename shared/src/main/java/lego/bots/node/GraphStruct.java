@@ -20,7 +20,7 @@ public class GraphStruct {
 
 
     public final ByteArrayArrayList edges = new ByteArrayArrayList(NodeBot.STACK_SIZE);
-    public Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
+    public final Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
     private EnvironmentController.FieldStatus[][] map;
 
     private final ArrayList<Rectangle> activeRectangles = new ArrayList<Rectangle>();
@@ -111,6 +111,7 @@ public class GraphStruct {
                     if(first == null && keepGlobal[x][y]){
                         first = n;
                     }else if(n != null && keepGlobal[x][y]){
+                        //noinspection ConstantConditions
                         if(first.horRightLinkedX != n.x || n.horLeftLinkedX != first.x) {
                             byte[] edge = getStraightEdge(first.x, y, x, y);
                             edges.add(edge);
@@ -270,15 +271,6 @@ public class GraphStruct {
         }
     }
 
-    public Rectangle onRectangle(byte x, byte y){
-        for(Rectangle r: activeRectangles.toArray(new Rectangle[activeRectangles.size()])){
-            if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
-                return r;
-            }
-        }
-        return null;
-    }
-
     private void getNextNodeStructure(Node lastNode){
         byte workX = lastNode.x;
         byte workY = lastNode.y;
@@ -355,7 +347,7 @@ public class GraphStruct {
 
                 byte[] lastEdgeArr = lastEdge.getCopyAsArray();
 
-                byte edgeId = (byte) edges.size();
+                byte edgeId = edges.size();
                 byte edgePrice = getEdgePrice(lastEdgeArr);
 
                 if (prevX == workX && prevY == workY - 1 && n.verUpEdgeId == -1) { //Prev UP
@@ -439,7 +431,7 @@ public class GraphStruct {
 
                 byte[] lastEdgeArr = lastEdge.getCopyAsArray();
 
-                byte edgeId = (byte) edges.size();
+                byte edgeId = edges.size();
                 byte edgePrice = getEdgePrice(lastEdgeArr);
 
                 if (prevX == workX && prevY == workY - 1 && n.verUpEdgeId == -1) { //Prev UP
