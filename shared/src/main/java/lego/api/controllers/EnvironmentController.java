@@ -1,6 +1,10 @@
 package lego.api.controllers;
 
 import lego.api.BotController;
+
+import java.io.File;
+import java.io.FileInputStream;
+
 import static lego.api.controllers.EnvironmentController.FieldStatus.*;
 
 /**
@@ -50,6 +54,14 @@ public abstract class EnvironmentController extends BotController {
 
     public final FieldStatus[][] getMindMaze(){
         return maze;
+    }
+
+    private boolean loadSavedMap(char mapName){
+        /*try{
+            File mapsFile = new File("maps");
+            FileInputStream input = new FileInputStream(mapsFile);
+        }*/
+        return false;//TODO
     }
 
     /*{
@@ -154,9 +166,12 @@ public abstract class EnvironmentController extends BotController {
         }
     }
 
-    protected static final byte ERROR_SET_OUT_OF_BOUNDS = 0;
-    protected static final byte ERROR_SET_DEFINITIVE = 1;
-    protected static final byte ERROR_CAL_BLOCK_EXPECTED = 2;
+    public static final byte ERROR_SET_OUT_OF_BOUNDS = 0;
+    public static final byte ERROR_SET_DEFINITIVE = 1;
+    public static final byte ERROR_CAL_BLOCK_EXPECTED = 2;
+    public static final byte ERROR_STUCK_IN_LOOP = 3;
+    public static final byte WARNING_TOOK_TOO_LONG_TO_COMPUTE = -1;
+    public static final byte WARNING_ALERT = -2;
 
     /**
      * Called when controller encounters an error.

@@ -582,7 +582,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
             psY = targetY;
 
             if( count ++ > 100 ) {
-                controller.onError((byte)50);  // Cannot compute route, algo has stacked.
+                controller.onError(EnvironmentController.ERROR_STUCK_IN_LOOP);  // Cannot compute route, algo has stacked.
                 break;
             }
         }
