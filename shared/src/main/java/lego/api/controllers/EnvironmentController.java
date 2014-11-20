@@ -23,39 +23,55 @@ public abstract class EnvironmentController extends BotController {
 
     protected byte x = startX;
     protected byte y = startY;
-    protected final FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
-    /* Some map (Unfinished)
+    protected final FieldStatus[][] maze = //new FieldStatus[mazeWidth][mazeHeight];
+    /*{ //Some map (Unfinished)
      {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
-     {FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,OBSTACLE,FREE_UNVISITED},
-     {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-     {OBSTACLE,FREE_UNVISITED,}
+     {FREE_UNVISITED,OBSTACLE,OBSTACLE,OBSTACLE,OBSTACLE,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,START,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+     {FREE_UNVISITED,OBSTACLE,OBSTACLE,OBSTACLE,OBSTACLE,FREE_UNVISITED},
+     {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED}
+    };*/
+            {
+                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+                    {FREE_UNVISITED,OBSTACLE,OBSTACLE,OBSTACLE,OBSTACLE,FREE_UNVISITED},
+                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+                    {FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE},
+                    {FREE_UNVISITED,FREE_UNVISITED,START,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+                    {FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE},
+                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+                    {FREE_UNVISITED,OBSTACLE,OBSTACLE,OBSTACLE,FREE_UNVISITED,FREE_UNVISITED},
+                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED}
+            };
 
-    */
 
     public final FieldStatus[][] getMindMaze(){
         return maze;
     }
 
-    {
+    /*{
         for (int x = 0; x < mazeWidth; x++) {
             for (int y = 0; y < mazeHeight; y++) {
                 maze[x][y] = FieldStatus.UNKNOWN;
             }
         }
         //Maze setup
-        /*
+        *//*
             OSO
              F
 
              Everything else unknown
-        */
+        *//*
         maze[x][y] = FieldStatus.START;
         maze[x-1][y] = FieldStatus.OBSTACLE;
         maze[x+1][y] = FieldStatus.OBSTACLE;
         maze[x][y+1] = FieldStatus.FREE_UNVISITED;
         obstaclesDiscovered = 2;
         freeDiscovered = 1;
-    }
+    }*/
 
     /**
      * @return Coordinate at which the robot currently is.

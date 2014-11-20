@@ -29,7 +29,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     private int displayLightReadings = 0;
     private int displaySonicReadings = 0;
     private byte warnings = 0;
-    private boolean glows = false;
 
     private byte lastMoved = 0;
 
@@ -55,29 +54,50 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
     @Override
     protected void initialize() {
+        LCD.setAutoRefresh(false);
         TaskProcessor.initialize();
 
-        final Thread initThread = new Thread("IT"){
+        final Thread initThread = new Thread("IT"){//Initialization max priority thread
             @Override
             public void run() {
-                LCD.setAutoRefresh(false);
                 Bot.active.onEvent(BotEvent.RUN_PREPARE);
-                while(!frontTouch.isPressed()){
-                    Delay.msDelay(50);
-                }
-                while(frontTouch.isPressed()){
-                    Delay.msDelay(50);
-                }
-                Sound.beepSequenceUp();
-                Delay.msDelay(500);
-                Bot.active.onEvent(BotEvent.RUN_STARTED);
-                MotorController.startWheelControl();
-
             }
         };
         initThread.setPriority(Thread.MAX_PRIORITY);
 
         Thread debugViewThread = new Thread("DV"){
+
+            private boolean glows = false;
+
+            private void doDrawing(){
+                for (byte x = 0; x < mazeWidth; x++) {
+                    for (byte y = 0; y < mazeHeight; y++) {
+                        LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
+                    }
+                }
+                LCD.drawString(lastError,mazeWidth+1,0);
+                LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
+                readSensors();
+                LCD.drawString("L:",0,mazeHeight+1);
+                LCD.drawInt(displayLightReadings,3,mazeHeight+1);
+                LCD.drawString("S:",0,mazeHeight+2);
+                LCD.drawInt(displaySonicReadings,3,mazeHeight+2);
+
+                if(glows){
+                    LCD.drawChar('U',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
+                }else{
+                    LCD.drawChar(' ',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
+                }
+
+                LCD.asyncRefresh();
+                glows = !glows;
+                if(warnings > 0){
+                    warningLight.controlMotor(glows ? 100 : 0, BasicMotorPort.FORWARD);
+                }else{
+                    warningLight.controlMotor(0,BasicMotorPort.FORWARD);
+                }
+            }
+
             @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
             @Override
             public void run(){
@@ -85,38 +105,24 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 try {
                     initThread.join();
                 } catch (InterruptedException ignored) {}
+
+                while(!frontTouch.isPressed()){
+                    Delay.msDelay(50);
+                }
+                while(frontTouch.isPressed()){
+                    Delay.msDelay(50);
+                }
+                Delay.msDelay(500);
+                Bot.active.onEvent(BotEvent.RUN_STARTED);
+                MotorController.startWheelControl();
+
                 //noinspection InfiniteLoopStatement
                 while(true){
                     if(Button.ESCAPE.isDown()){
                         Bot.active.onEvent(BotEvent.ESCAPE_PRESSED);
                         Bot.active.onEvent(BotEvent.RUN_ENDED);
                     }
-                    for (byte x = 0; x < mazeWidth; x++) {
-                        for (byte y = 0; y < mazeHeight; y++) {
-                            LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
-                        }
-                    }
-                    LCD.drawString(lastError,mazeWidth+1,0);
-                    LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
-                    readSensors();
-                    LCD.drawString("L:",0,mazeHeight+1);
-                    LCD.drawInt(displayLightReadings,3,mazeHeight+1);
-                    LCD.drawString("S:",0,mazeHeight+2);
-                    LCD.drawInt(displaySonicReadings,3,mazeHeight+2);
-
-                    if(glows){
-                        LCD.drawChar('U',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
-                    }else{
-                        LCD.drawChar(' ',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
-                    }
-
-                    LCD.asyncRefresh();
-                    glows = !glows;
-                    if(warnings > 0){
-                        warningLight.controlMotor(glows ? 100 : 0, BasicMotorPort.FORWARD);
-                    }else{
-                        warningLight.controlMotor(0,BasicMotorPort.FORWARD);
-                    }
+                    doDrawing();
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException ignored) {}
