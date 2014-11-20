@@ -204,9 +204,15 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             case ERROR_CAL_BLOCK_EXPECTED:
                 lastError = "cX";
                 break;
-            case 25:
+            case WARNING_ALERT:
                 Sound.beep();
                 break;
+            case WARNING_TOOK_TOO_LONG_TO_COMPUTE:
+                lastError = "wttltc";
+                for (byte i = 0; i < 50; i++) {
+                    Sound.playTone(400 + i*15,10);
+                    Sound.playTone(1135 - i*15,10);
+                }
             default:
                 Sound.buzz();
                 lastError = "!"+error;
