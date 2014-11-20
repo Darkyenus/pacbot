@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public class Debug {
 
-    public static void printEdge(Byte[] edge){
+    public static void printEdge(byte[] edge){
         System.out.print("<-> ");
         for(Byte b:edge){
             byte wayX = (byte)((b >> 4) & 15);
@@ -116,7 +116,7 @@ public class Debug {
 
         int eid = 0;
 
-        for(Byte[] way: edges.toArray(new Byte[0][0])){
+        for(byte[] way: edges.toArray(new byte[0][0])){
 
             String s = Integer.toString(eid);
             if(s.length() == 1){
