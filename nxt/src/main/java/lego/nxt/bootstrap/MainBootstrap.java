@@ -19,8 +19,8 @@ public class MainBootstrap extends NXTBootstrap {
                 //new RandomBot()
                 //new WeightNavBot()
                 ,
-                //new CartesianEnvironmentRobotController()
-                new DifferentialEnvironmentRobotController()
+                new CartesianEnvironmentRobotController()
+                //new DifferentialEnvironmentRobotController()
         );
     }
 }

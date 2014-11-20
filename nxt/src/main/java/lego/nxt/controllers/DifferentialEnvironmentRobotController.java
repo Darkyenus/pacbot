@@ -5,6 +5,7 @@ import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.nxt.controllers.util.DifferentialMotorManager;
 import lego.nxt.util.AbstractMoveTask;
+import lego.nxt.util.MotorController;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;
 import lejos.util.Delay;
@@ -59,12 +60,14 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         Thread debugViewThread = new Thread("DV"){
             @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
             @Override
-            public void run() {
+            public void run(){
                 LCD.setAutoRefresh(false);
                 while(!frontTouch.isPressed()){}
                 while(frontTouch.isPressed()){}
                 Delay.msDelay(500);
+                Bot.active.onEvent(BotEvent.RUN_PREPARE);
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
+                MotorController.startWheelControl();
 
                 //noinspection InfiniteLoopStatement
                 while(true){
@@ -108,49 +111,51 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         debugViewThread.setPriority(Thread.MIN_PRIORITY);
         debugViewThread.start();
 
-        Thread sensorReadingThread = new Thread("SR"){
-            @Override
-            public void run() {
-                //noinspection InfiniteLoopStatement
-                while(true){
-                    int sonicDistance = rightSonic.getDistance();
-                    if(sonicDistance != 255){
-                        sonicSum -= sonicReadings[sonicPointer];
-                        sonicReadings[sonicPointer] = sonicDistance;
-                        sonicSum += sonicDistance;
-                        sonicPointer++;
-                        if(sonicPointer == READINGS){
-                            sonicPointer = 0;
+        if(ENABLE_SENSORS){
+            Thread sensorReadingThread = new Thread("SR"){
+                @Override
+                public void run() {
+                    //noinspection InfiniteLoopStatement
+                    while(true){
+                        int sonicDistance = rightSonic.getDistance();
+                        if(sonicDistance != 255){
+                            sonicSum -= sonicReadings[sonicPointer];
+                            sonicReadings[sonicPointer] = sonicDistance;
+                            sonicSum += sonicDistance;
+                            sonicPointer++;
+                            if(sonicPointer == READINGS){
+                                sonicPointer = 0;
+                            }
                         }
+                        int lightReading = leftLight.getNormalizedLightValue();
+                        if(highLight){
+                            highLightSum = highLightSum - highLightReadings[highLightPointer] + lightReading;
+                            highLightReadings[highLightPointer] = lightReading;
+                            highLight = false;
+                            highLightPointer++;
+                            if(highLightPointer == READINGS){
+                                highLightPointer = 0;
+                            }
+                        }else{
+                            lowLightSum = lowLightSum - lowLightReadings[lowLightPointer] + lightReading;
+                            lowLightReadings[lowLightPointer] = lightReading;
+                            highLight = true;
+                            lowLightPointer++;
+                            if(lowLightPointer == READINGS){
+                                lowLightPointer = 0;
+                            }
+                        }
+                        leftLight.setFloodlight(highLight);
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException ignored) {}
                     }
-                    int lightReading = leftLight.getNormalizedLightValue();
-                    if(highLight){
-                        highLightSum = highLightSum - highLightReadings[highLightPointer] + lightReading;
-                        highLightReadings[highLightPointer] = lightReading;
-                        highLight = false;
-                        highLightPointer++;
-                        if(highLightPointer == READINGS){
-                            highLightPointer = 0;
-                        }
-                    }else{
-                        lowLightSum = lowLightSum - lowLightReadings[lowLightPointer] + lightReading;
-                        lowLightReadings[lowLightPointer] = lightReading;
-                        highLight = true;
-                        lowLightPointer++;
-                        if(lowLightPointer == READINGS){
-                            lowLightPointer = 0;
-                        }
-                    }
-                    leftLight.setFloodlight(highLight);
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {}
                 }
-            }
-        };
-        sensorReadingThread.setDaemon(true);
-        sensorReadingThread.setPriority(Thread.NORM_PRIORITY);
-        sensorReadingThread.start();
+            };
+            sensorReadingThread.setDaemon(true);
+            sensorReadingThread.setPriority(Thread.NORM_PRIORITY);
+            sensorReadingThread.start();
+        }
     }
 
     @Override
@@ -294,7 +299,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         motors.moveAsync(BLOCK_DISTANCE,BLOCK_DISTANCE,DifferentialMotorManager.MAX_SPEED(),
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
-        while(motors.asyncProgress() < 0.95){
+        while(motors.asyncProgress() < 0.95f){
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
                 //warnings++;
 
