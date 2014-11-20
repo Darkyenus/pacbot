@@ -188,12 +188,26 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
 
-                if( (x != controller.getX() || y != controller.getY()) &&
-                        ( controller.getField(x,y) == EnvironmentController.FieldStatus.UNKNOWN || controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED ) &&
-                        (( distances[x][y] < minDist) || (distances[x][y] == minDist && cmpDistFromBorder( x, y, targetX,targetY )))) {
-                    minDist = distances[ x ][ y ];
-                    targetX = x;
-                    targetY = y;
+
+                if( (x != controller.getX() || y != controller.getY()) && ( controller.getField(x,y) == EnvironmentController.FieldStatus.UNKNOWN || controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED )){
+                    byte dist = distances[x][y];
+                    if(controller.getField((byte)(x + 1), y) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField((byte)(x + 1), y) == EnvironmentController.FieldStatus.FREE_VISITED){
+                        dist -= 1;
+                    }else if(controller.getField((byte)(x - 1), y) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField((byte)(x - 1), y) == EnvironmentController.FieldStatus.FREE_VISITED){
+                        dist -= 1;
+                    }else if(controller.getField(x, (byte)(y + 1)) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField(x, (byte)(y + 1)) == EnvironmentController.FieldStatus.FREE_VISITED){
+                        dist -= 1;
+                    }else if(controller.getField( x, (byte)(y - 1)) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField(x , (byte)(y - 1)) == EnvironmentController.FieldStatus.FREE_VISITED){
+                        dist -= 1;
+                    }
+
+                    if(dist < minDist || (dist == minDist && cmpDistFromBorder( x, y, targetX,targetY ))){
+
+                        minDist = distances[ x ][ y ];
+                        targetX = x;
+                        targetY = y;
+
+                    }
                 }
             }
         }
