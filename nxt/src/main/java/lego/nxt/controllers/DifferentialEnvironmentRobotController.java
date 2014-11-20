@@ -77,11 +77,13 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 }
                 LCD.drawString(lastError,mazeWidth+1,0);
                 LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
-                readSensors();
-                LCD.drawString("L:",0,mazeHeight+1);
-                LCD.drawInt(displayLightReadings,3,mazeHeight+1);
-                LCD.drawString("S:",0,mazeHeight+2);
-                LCD.drawInt(displaySonicReadings,3,mazeHeight+2);
+                if(ENABLE_SENSORS){
+                    readSensors();
+                    LCD.drawString("L:",0,mazeHeight+1);
+                    LCD.drawInt(displayLightReadings,3,mazeHeight+1);
+                    LCD.drawString("S:",0,mazeHeight+2);
+                    LCD.drawInt(displaySonicReadings,3,mazeHeight+2);
+                }
 
                 if(glows){
                     LCD.drawChar('U',LCD.DISPLAY_CHAR_WIDTH-1,LCD.DISPLAY_CHAR_DEPTH-1);
