@@ -4,6 +4,8 @@ import lego.api.BotController;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import static lego.api.controllers.EnvironmentController.FieldStatus.*;
 
@@ -56,34 +58,139 @@ public abstract class EnvironmentController extends BotController {
         return maze;
     }
 
-    private boolean loadSavedMap(char mapName){
-        /*try{
-            File mapsFile = new File("maps");
-            FileInputStream input = new FileInputStream(mapsFile);
-        }*/
-        return false;//TODO
-    }
+    /**
+     * Format:
+     *
+     * #<Name_Char>
+     * _ _ _ _ _ _ _
+     * O _ O _ O _ O
+     * _ _ O S O _ _
+     * _ _ _ _ _ _ _
+     * O O O _ O O O
+     * _ _ _ _ _ _ _
+     *
+     * Details:
+     * Everything except specified chars are ignored.
+     * Name can be only one character.
+     * Use only ASCII chars (simple UTF8).
+     *
+     */
+    private boolean loadSavedMap(int mapName){
+        FileInputStream input = null;
+        boolean readingName = false;
+        boolean readingMap = false;
+        byte fieldToRead = 0;
 
-    /*{
-        for (int x = 0; x < mazeWidth; x++) {
-            for (int y = 0; y < mazeHeight; y++) {
-                maze[x][y] = FieldStatus.UNKNOWN;
+        try{
+            File mapsFile = new File("maps");
+            input = new FileInputStream(mapsFile);
+            int i = input.read();
+
+            final int PRENAME_CHAR = '#';
+            final int OBSTACLE_CHAR = 'O';
+            final int FREE_SPACE_CHAR = '_';
+            final int START_CHAR = 'S';
+            final byte FIELDS_TO_READ = mazeWidth * mazeHeight;
+            while(i != -1){
+                if(readingMap){
+                    switch (i){
+                        case OBSTACLE_CHAR:
+                            maze[fieldToRead % mazeWidth][fieldToRead / mazeWidth] = OBSTACLE;
+                            fieldToRead++;
+                            break;
+                        case FREE_SPACE_CHAR:
+                            maze[fieldToRead % mazeWidth][fieldToRead / mazeWidth] = FREE_UNVISITED;
+                            fieldToRead++;
+                            break;
+                        case START_CHAR:
+                            maze[fieldToRead % mazeWidth][fieldToRead / mazeWidth] = START;
+                            fieldToRead++;
+                            break;
+                    }
+                    if(fieldToRead == FIELDS_TO_READ){
+                        //Finalize
+                        if(maze[startX][startY] != START){
+                            onError(ERROR_LOADING_INVALID_START);
+                        }
+                        return true;
+                    }
+                }else if(readingName){
+                    if(i == mapName){
+                        readingMap = true;
+                    }
+                }else{
+                    if(i == PRENAME_CHAR){
+                        readingName = true;
+                    }
+                }
+                i = input.read();
+            }
+        } catch (FileNotFoundException notFound){
+            onError(ERROR_LOADING_FILE_NOT_FOUND);
+        } catch (IOException e) {
+            onError(ERROR_LOADING_IOEXCEPTION);
+        } finally {
+            if(input != null){
+                try{
+                    input.close();
+                } catch (Throwable ignored){}
             }
         }
-        //Maze setup
-        *//*
-            OSO
-             F
+        if(readingMap || readingName){
+            onError(ERROR_LOADING_MAP_CORRUPTED);
+        }else {
+            onError(ERROR_LOADING_MAP_NOT_FOUND);
+        }
+        return false;
+    }
 
-             Everything else unknown
-        *//*
-        maze[x][y] = FieldStatus.START;
-        maze[x-1][y] = FieldStatus.OBSTACLE;
-        maze[x+1][y] = FieldStatus.OBSTACLE;
-        maze[x][y+1] = FieldStatus.FREE_UNVISITED;
-        obstaclesDiscovered = 2;
-        freeDiscovered = 1;
-    }*/
+    private boolean loadMap(){
+        FileInputStream input = null;
+        File mapsFile = new File("maps");
+        try {
+            input = new FileInputStream(mapsFile);
+            int mapName = input.read();
+            if(mapName == -1){
+                onError(ERROR_LOADING_MAP_CORRUPTED);
+            }else{
+                return loadSavedMap(mapName);
+            }
+        } catch (FileNotFoundException e) {
+            onError(ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            onError(ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if(input != null){
+                try{
+                    input.close();
+                } catch (Throwable ignored){}
+            }
+        }
+        return false;
+    }
+
+    {
+        if(!loadMap()) {
+            for (int x = 0; x < mazeWidth; x++) {
+                for (int y = 0; y < mazeHeight; y++) {
+                    maze[x][y] = FieldStatus.UNKNOWN;
+                }
+            }
+            //Maze setup
+            /*
+                OSO
+                 F
+
+                 Everything else unknown
+            */
+            maze[x][y] = FieldStatus.START;
+            maze[x - 1][y] = FieldStatus.OBSTACLE;
+            maze[x + 1][y] = FieldStatus.OBSTACLE;
+            maze[x][y + 1] = FieldStatus.FREE_UNVISITED;
+            obstaclesDiscovered = 2;
+            freeDiscovered = 1;
+        }
+    }
 
     /**
      * @return Coordinate at which the robot currently is.
@@ -170,6 +277,15 @@ public abstract class EnvironmentController extends BotController {
     public static final byte ERROR_SET_DEFINITIVE = 1;
     public static final byte ERROR_CAL_BLOCK_EXPECTED = 2;
     public static final byte ERROR_STUCK_IN_LOOP = 3;
+
+    public static final byte ERROR_LOADING_INVALID_START = 4;
+    public static final byte ERROR_LOADING_FILE_NOT_FOUND = 5;
+    public static final byte ERROR_LOADING_MAP_NOT_FOUND = 6;
+    public static final byte ERROR_LOADING_MAP_CORRUPTED = 7;
+    public static final byte ERROR_LOADING_IOEXCEPTION = 8;
+    public static final byte ERROR_LOADING_POINTER_FILE_MISSING = 9;
+    public static final byte ERROR_LOADING_POINTER_FILE_CORRUPTED = 10;
+
     public static final byte WARNING_TOOK_TOO_LONG_TO_COMPUTE = -1;
     public static final byte WARNING_ALERT = -2;
 
