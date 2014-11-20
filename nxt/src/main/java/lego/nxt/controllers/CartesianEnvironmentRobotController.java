@@ -67,7 +67,9 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                 while(!xTouch.isPressed()){}
                 while(xTouch.isPressed()){}
                 Delay.msDelay(500);
+                Bot.active.onEvent(BotEvent.RUN_PREPARE);
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
+                MotorController.startWheelControl();
 
                 //noinspection InfiniteLoopStatement
                 while(true){
@@ -229,25 +231,28 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
 
             final float tachoTarget = motor.permanentSavedLocation + (onX ? X_FIELD_DISTANCE : Y_FIELD_DISTANCE)*directionSign;
             motor.permanentSavedLocation = tachoTarget;
-            motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,!decelerate,false);
+            motor.newMove(DEFAULT_SPEED,decidedAcceleration,decidedDeceleration,tachoTarget,true,false);
 
+            //byte pressedNoChangeCount = 0;
             while(motor.getProgress() < 0.95f && !returningFromWall){
-                Sound.playTone((int)(400+motor.getProgress()*1100),10);
-                if(touch.isPressed() && motor.getProgress() < 0.5f && motor.getProgress() > 0.09f){//Drive a bit first, we may be back to wall
+                //Sound.playTone((int)(400+motor.getProgress()*1100),10);
+                boolean pressed = touch.isPressed();
+                if(pressed && ((motor.getProgress() < 0.5f && motor.getProgress() > 0.09f) /*|| pressedNoChangeCount > 3*/)){//Drive a bit first, we may be back to wall
                     //This means that there is immediately an obstacle, so return false
                     //crashes++;
                     //if(crashes == 0)throw new Error(moved+" "+ motor.getProgress());
                     //collision
-                    motor.setSpeed(BACKING_SPEED);
+                    /*motor.setSpeed(BACKING_SPEED);
                     motor.setAcceleration(axisAcceleration);
                     if(directionSign > 0){
                         motor.forward();
                     }else{
                         motor.backward();
-                    }
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ignored) {}
+                    }*/
+
+                    /*try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException ignored) {}*/
 
                     motor.resetTachoCount(true);
 
@@ -258,8 +263,14 @@ public class CartesianEnvironmentRobotController extends EnvironmentController {
                     motor.stop(false);
                     returningFromWall = true;
                 }else{
+                    /*if(pressed){
+                        pressedNoChangeCount++;
+                        Sound.beep();
+                    }else{
+                        pressedNoChangeCount = 0;
+                    }*/
                     try {
-                        Thread.sleep(50); //Give motor thread a bit of breathing space
+                        Thread.sleep(40); //Give motor thread a bit of breathing space
                     } catch (InterruptedException ignored) {}
                 }
             }

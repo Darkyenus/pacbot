@@ -27,7 +27,10 @@ public class MotorController {
     protected int stallTime = 1000;
     protected static final Controller cont = new Controller();
 
-    static {
+    /**
+     * This HAS TO BE CALLED BEFORE ISSUING ANY COMMANDS, WILL CRASH OTHERWISE
+     */
+    public static void startWheelControl() {
         // Start the single controller thread
         cont.setPriority(Thread.MAX_PRIORITY);
         cont.setDaemon(true);
@@ -432,8 +435,9 @@ public class MotorController {
      *
      * @param speed        speed
      * @param acceleration with which accelerate
+     * @param deceleration speed of slowing down. May be infinite, then never slow down and never stop.
      * @param limit        of how far to go
-     * @param hold         at the end ?
+     * @param hold         at the end ? This has no limit when deceleration is NO_DECELERATION (infinite)
      * @param waitComplete should block?
      */
     @SuppressWarnings("SpellCheckingInspection")
