@@ -33,12 +33,19 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         final PositionStack route = new PositionStack(STACK_SIZE);
 
         while(continueRunning){
-            calcDistances();
 
             route.clear();
-            calcRoute(route);
             directions.clear();
             distances.clear();
+
+            //This may take a while
+            long start = System.currentTimeMillis();
+            calcDistances();
+            calcRoute(route);
+            long time = System.currentTimeMillis() - start;
+            if(time > 250){
+                controller.onError(EnvironmentController.WARNING_TOOK_TOO_LONG_TO_COMPUTE);
+            }
 
             EnvironmentController.Direction actualDir = null;
             byte movingDist = 0;
@@ -52,6 +59,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
                 route.pop();
             }
 
+            //Preprocess path
             while(!route.isEmpty()){
                 byte nextX = route.peekX();
                 byte nextY = route.peekY();
@@ -235,7 +243,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
             psY = targetY;
 
             if( count ++ > 100 ) {
-                controller.onError((byte)50);  // Cannot compute route, algo has stacked.
+                controller.onError(EnvironmentController.ERROR_STUCK_IN_LOOP);  // Cannot compute route, algo has stacked.
                 break;
             }
         }

@@ -181,8 +181,8 @@ public class NodeBot extends Bot<EnvironmentController> {
         try {
             decideOnNode(startNode);
             checkCompletedMap((byte)-1, (byte)-1);
-        }catch (InternalError ignored){
-            controller.onError((byte)30);
+        } catch (InternalError ignored){
+            //controller.onError((byte)30); //Something stopped
         }
 
     }
@@ -205,7 +205,7 @@ public class NodeBot extends Bot<EnvironmentController> {
             if(price < bestPrice){
                 bestPath = path.getCopyAsArray();
                 bestPrice = price;
-                controller.onError((byte)25);
+                controller.onError(EnvironmentController.WARNING_ALERT);
                 /*System.out.println("Have something (" + bestPrice + ")");
                 System.out.println("Path: "+Arrays.toString(bestPath));
                 System.out.println();*/
