@@ -1,6 +1,10 @@
 package lego.api.controllers;
 
 import lego.api.BotController;
+
+import java.io.File;
+import java.io.FileInputStream;
+
 import static lego.api.controllers.EnvironmentController.FieldStatus.*;
 
 /**
@@ -50,6 +54,14 @@ public abstract class EnvironmentController extends BotController {
 
     public final FieldStatus[][] getMindMaze(){
         return maze;
+    }
+
+    private boolean loadSavedMap(char mapName){
+        /*try{
+            File mapsFile = new File("maps");
+            FileInputStream input = new FileInputStream(mapsFile);
+        }*/
+        return false;//TODO
     }
 
     /*{
