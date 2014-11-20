@@ -29,7 +29,7 @@ public abstract class EnvironmentController extends BotController {
 
     protected byte x = startX;
     protected byte y = startY;
-    protected final FieldStatus[][] maze = //new FieldStatus[mazeWidth][mazeHeight];
+    protected final FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
     /*{ //Some map (Unfinished)
      {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
      {FREE_UNVISITED,OBSTACLE,OBSTACLE,OBSTACLE,OBSTACLE,FREE_UNVISITED},
@@ -41,17 +41,17 @@ public abstract class EnvironmentController extends BotController {
      {FREE_UNVISITED,OBSTACLE,OBSTACLE,OBSTACLE,OBSTACLE,FREE_UNVISITED},
      {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED}
     };*/
-            {
-                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
-                    {FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,OBSTACLE,FREE_UNVISITED},
-                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-                    {OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
-                    {FREE_UNVISITED,FREE_UNVISITED,START,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-                    {OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-                    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
-            };
+    /*{
+    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+    {FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,OBSTACLE,FREE_UNVISITED},
+    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+    {OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED},
+    {FREE_UNVISITED,FREE_UNVISITED,START,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+    {OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+    {FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,FREE_UNVISITED,OBSTACLE,FREE_UNVISITED},
+    };*/
 
 
     public final FieldStatus[][] getMindMaze(){
@@ -63,10 +63,10 @@ public abstract class EnvironmentController extends BotController {
      *
      * #<Name_Char>
      * _ _ _ _ _ _ _
-     * O _ O _ O _ O
-     * _ _ O S O _ _
+     * X _ X _ X _ X
+     * _ _ X S X _ _
      * _ _ _ _ _ _ _
-     * O O O _ O O O
+     * X X X _ X X X
      * _ _ _ _ _ _ _
      *
      * Details:
@@ -87,7 +87,7 @@ public abstract class EnvironmentController extends BotController {
             int i = input.read();
 
             final int PRENAME_CHAR = '#';
-            final int OBSTACLE_CHAR = 'O';
+            final int OBSTACLE_CHAR = 'X';
             final int FREE_SPACE_CHAR = '_';
             final int START_CHAR = 'S';
             final byte FIELDS_TO_READ = mazeWidth * mazeHeight;
@@ -146,7 +146,7 @@ public abstract class EnvironmentController extends BotController {
 
     private boolean loadMap(){
         FileInputStream input = null;
-        File mapsFile = new File("maps");
+        File mapsFile = new File("mappointer");
         try {
             input = new FileInputStream(mapsFile);
             int mapName = input.read();
