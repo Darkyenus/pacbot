@@ -2,9 +2,6 @@ package lego.api.controllers;
 
 import lego.api.BotController;
 
-import java.io.File;
-import java.io.FileInputStream;
-
 import static lego.api.controllers.EnvironmentController.FieldStatus.*;
 
 /**

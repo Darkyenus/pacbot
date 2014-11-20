@@ -21,6 +21,9 @@ public class WeightNavBot extends Bot<EnvironmentController> {
     private boolean continueRunning = true;
     private final byte[][] distances = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
+    private byte botX = -1;
+    private byte botY = -1;
+
     @Override
     public synchronized void run() {
         try {
@@ -32,134 +35,138 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
         final PositionStack route = new PositionStack(STACK_SIZE);
 
-        while(continueRunning){
+        route.clear();
+        directions.clear();
+        distances.clear();
 
-            route.clear();
-            directions.clear();
-            distances.clear();
+        //This may take a while
+        long start = System.currentTimeMillis();
+        boolean done = false;
+        botX = EnvironmentController.startX;
+        botY = EnvironmentController.startY;
 
-            //This may take a while
-            long start = System.currentTimeMillis();
+        while(!done) {
             calcDistances();
-            calcRoute(route);
-            long time = System.currentTimeMillis() - start;
-            if(time > 250){
-                controller.onError(EnvironmentController.WARNING_TOOK_TOO_LONG_TO_COMPUTE);
-            }
+            done = calcRoute(route);
+        }
+        long time = System.currentTimeMillis() - start;
+        if(time > 250){
+            controller.onError(EnvironmentController.WARNING_TOOK_TOO_LONG_TO_COMPUTE);
+        }
 
-            EnvironmentController.Direction actualDir = null;
-            byte movingDist = 0;
+        EnvironmentController.Direction actualDir = null;
+        byte movingDist = 0;
 
 
-            byte prevX = 0;
-            byte prevY = 0;
-            if(!route.isEmpty()) {
-                prevX = route.peekX();
-                prevY = route.peekY();
-                route.pop();
-            }
+        byte prevX = 0;
+        byte prevY = 0;
+        if(!route.isEmpty()) {
+            prevX = route.peekX();
+            prevY = route.peekY();
+            route.pop();
+        }
 
-            //Preprocess path
-            while(!route.isEmpty()){
-                byte nextX = route.peekX();
-                byte nextY = route.peekY();
-                route.pop();
+        //Preprocess path
+        while(!route.isEmpty()){
+            byte nextX = route.peekX();
+            byte nextY = route.peekY();
+            route.pop();
 
-                if(nextX == prevX && nextY == prevY + 1){
-                    if(actualDir == EnvironmentController.Direction.DOWN){
-                        movingDist ++;
-                    }else{
-                        if(movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
-                        }
-                        actualDir = EnvironmentController.Direction.DOWN;
-                        movingDist = 1;
-                    }
-                }
-                if(nextX == prevX && nextY == prevY - 1){
-                    if(actualDir == EnvironmentController.Direction.UP){
-                        movingDist ++;
-                    }else{
-                        if(movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
-                        }
-                        actualDir = EnvironmentController.Direction.UP;
-                        movingDist = 1;
-                    }
-                }
-                if(nextX == prevX - 1 && nextY == prevY){
-                    if(actualDir == EnvironmentController.Direction.LEFT){
-                        movingDist ++;
-                    }else{
-                        if(movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
-                        }
-                        actualDir = EnvironmentController.Direction.LEFT;
-                        movingDist = 1;
-                    }
-                }
-                if(nextX == prevX + 1 && nextY == prevY){
-                    if(actualDir == EnvironmentController.Direction.RIGHT){
-                        movingDist ++;
-                    }else{
-                        if(movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
-                        }
-                        actualDir = EnvironmentController.Direction.RIGHT;
-                        movingDist = 1;
-                    }
-                }
-
-                prevX = nextX;
-                prevY = nextY;
-            }
-            if(movingDist > 0) {
-                directions.pushNext(actualDir);
-                distances.pushNext(movingDist);
-            }
-
-            while(!directions.isEmpty()){
-                actualDir = directions.retreiveFirst();
-                movingDist = distances.retreiveFirst();
-                if(directions.isEmpty()){
-                    byte itMovedBy = movingDist;
-                    EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * itMovedBy), (byte)(controller.getY() + actualDir.y * itMovedBy));
-                    while(nextTile != EnvironmentController.FieldStatus.FREE_VISITED && nextTile != EnvironmentController.FieldStatus.START && nextTile != EnvironmentController.FieldStatus.OBSTACLE){
-                        itMovedBy ++;
-                        nextTile = controller.getField((byte)(controller.getX() + actualDir.x * itMovedBy), (byte)(controller.getY() + actualDir.y * itMovedBy));
-                    }
-                    if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
-                        controller.move(actualDir);
-                    }else{
-                        itMovedBy -= 1; //For some reason
-                        if(actualDir == EnvironmentController.Direction.DOWN){
-                            controller.moveByY(itMovedBy);
-                        }else if(actualDir == EnvironmentController.Direction.UP){
-                            controller.moveByY((byte)-itMovedBy);
-                        }else if(actualDir == EnvironmentController.Direction.LEFT){
-                            controller.moveByX((byte)-itMovedBy);
-                        }else if(actualDir == EnvironmentController.Direction.RIGHT){
-                            controller.moveByX(itMovedBy);
-                        }
-                    }
+            if(nextX == prevX && nextY == prevY + 1){
+                if(actualDir == EnvironmentController.Direction.DOWN){
+                    movingDist ++;
                 }else{
-                    EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * (movingDist + 1)), (byte)(controller.getY() + actualDir.y * (movingDist + 1)));
-                    if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
-                        controller.move(actualDir);
-                    }else {
-                        if (actualDir == EnvironmentController.Direction.DOWN) {
-                            controller.moveByY(movingDist);
-                        } else if (actualDir == EnvironmentController.Direction.UP) {
-                            controller.moveByY((byte) -movingDist);
-                        } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                            controller.moveByX((byte) -movingDist);
-                        } else if (actualDir == EnvironmentController.Direction.RIGHT) {
-                            controller.moveByX(movingDist);
-                        }
+                    if(movingDist > 0) {
+                        directions.pushNext(actualDir);
+                        distances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.DOWN;
+                    movingDist = 1;
+                }
+            }
+            if(nextX == prevX && nextY == prevY - 1){
+                if(actualDir == EnvironmentController.Direction.UP){
+                    movingDist ++;
+                }else{
+                    if(movingDist > 0) {
+                        directions.pushNext(actualDir);
+                        distances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.UP;
+                    movingDist = 1;
+                }
+            }
+            if(nextX == prevX - 1 && nextY == prevY){
+                if(actualDir == EnvironmentController.Direction.LEFT){
+                    movingDist ++;
+                }else{
+                    if(movingDist > 0) {
+                        directions.pushNext(actualDir);
+                        distances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.LEFT;
+                    movingDist = 1;
+                }
+            }
+            if(nextX == prevX + 1 && nextY == prevY){
+                if(actualDir == EnvironmentController.Direction.RIGHT){
+                    movingDist ++;
+                }else{
+                    if(movingDist > 0) {
+                        directions.pushNext(actualDir);
+                        distances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.RIGHT;
+                    movingDist = 1;
+                }
+            }
+
+            prevX = nextX;
+            prevY = nextY;
+        }
+        if(movingDist > 0) {
+            directions.pushNext(actualDir);
+            distances.pushNext(movingDist);
+        }
+
+        while(!directions.isEmpty()){
+            actualDir = directions.retreiveFirst();
+            movingDist = distances.retreiveFirst();
+            if(directions.isEmpty()){
+                byte itMovedBy = movingDist;
+                EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * itMovedBy), (byte)(controller.getY() + actualDir.y * itMovedBy));
+
+                while(nextTile != EnvironmentController.FieldStatus.FREE_VISITED && nextTile != EnvironmentController.FieldStatus.START && nextTile != EnvironmentController.FieldStatus.OBSTACLE){
+                    itMovedBy ++;
+                    nextTile = controller.getField((byte)(controller.getX() + actualDir.x * itMovedBy), (byte)(controller.getY() + actualDir.y * itMovedBy));
+                }
+                if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
+                    controller.move(actualDir);
+                }else{
+                    itMovedBy -= 1; //For some reason
+                    if(actualDir == EnvironmentController.Direction.DOWN){
+                        controller.moveByY(itMovedBy);
+                    }else if(actualDir == EnvironmentController.Direction.UP){
+                        controller.moveByY((byte)-itMovedBy);
+                    }else if(actualDir == EnvironmentController.Direction.LEFT){
+                        controller.moveByX((byte)-itMovedBy);
+                    }else if(actualDir == EnvironmentController.Direction.RIGHT){
+                        controller.moveByX(itMovedBy);
+                    }
+                }
+            }else{
+                EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * (movingDist + 1)), (byte)(controller.getY() + actualDir.y * (movingDist + 1)));
+                if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
+                    controller.move(actualDir);
+                }else {
+                    if (actualDir == EnvironmentController.Direction.DOWN) {
+                        controller.moveByY(movingDist);
+                    } else if (actualDir == EnvironmentController.Direction.UP) {
+                        controller.moveByY((byte) -movingDist);
+                    } else if (actualDir == EnvironmentController.Direction.LEFT) {
+                        controller.moveByX((byte) -movingDist);
+                    } else if (actualDir == EnvironmentController.Direction.RIGHT) {
+                        controller.moveByX(movingDist);
                     }
                 }
             }
@@ -180,7 +187,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
     }
 
-    private void calcRoute(PositionStack outputRoute) {
+    private boolean calcRoute(PositionStack outputRoute) {
         byte targetX = Byte.MIN_VALUE;
         byte targetY = Byte.MIN_VALUE;
         byte minDist = Byte.MAX_VALUE;
@@ -189,7 +196,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
 
 
-                if( (x != controller.getX() || y != controller.getY()) && ( controller.getField(x,y) == EnvironmentController.FieldStatus.UNKNOWN || controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED )){
+                if( (x != botX || y != botY) && ( controller.getField(x,y) == EnvironmentController.FieldStatus.UNKNOWN || controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED )){
                     byte dist = distances[x][y];
                     if(controller.getField((byte)(x + 1), y) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField((byte)(x + 1), y) == EnvironmentController.FieldStatus.FREE_VISITED){
                         dist -= 1;
@@ -213,16 +220,17 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         }
 
         if(targetX == Byte.MIN_VALUE && targetY == Byte.MIN_VALUE){
-            continueRunning = false;
-            return;
+            return true;
         }
 
         outputRoute.push(targetX, targetY);
 
+        controller.setField(targetX, targetY, EnvironmentController.FieldStatus.FREE_VISITED);
+
         byte psX = targetX;
         byte psY = targetY;
-        byte robotPosX = controller.getX();
-        byte robotPosY = controller.getY();
+        byte robotPosX = botX;
+        byte robotPosY = botY;
         byte count = 0;
         while( psX != robotPosX || psY != robotPosY ) {
             minDist = Byte.MAX_VALUE;
@@ -252,6 +260,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
                 targetY = (byte)(psY + 1);
             }
 
+            controller.setField(targetX, targetY, EnvironmentController.FieldStatus.FREE_VISITED);
             outputRoute.push(targetX, targetY);
             psX = targetX;
             psY = targetY;
@@ -261,6 +270,10 @@ public class WeightNavBot extends Bot<EnvironmentController> {
                 break;
             }
         }
+        botX = psX;
+        botY = psY;
+
+        return false;
     }
 
     private final PositionStack toCalc = new PositionStack(STACK_SIZE); //Used in calcDistances function
@@ -271,10 +284,10 @@ public class WeightNavBot extends Bot<EnvironmentController> {
            }
         }
 
-        distances[controller.getX()][controller.getY()] = 0;
+        distances[botX][botY] = 0;
         toCalc.clear();
 
-        toCalc.push(controller.getX(), controller.getY());
+        toCalc.push(botX, botY);
 
         while( ! toCalc.isEmpty() ) {
             byte psX = toCalc.peekX();
