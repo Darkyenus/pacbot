@@ -463,6 +463,12 @@ public class WeightNavBot extends Bot<EnvironmentController> {
                     }else if(botX == x - 1 && botY == y && lastDir == 4){ //Moved right
                         dist -= 2;
                     }
+                    if(botX == 7 && botY == 5 && x == 8 && y == 5){
+                        dist -= 3;
+                    }
+                    if(botX == 8 && botY == 4 && x == 7 && y == 4){
+                        dist -= 2;
+                    }
 
                     if(dist < minDist){// || (dist == minDist && cmpDistFromBorder( x, y, targetX,targetY ))){
 
