@@ -360,7 +360,7 @@ public abstract class EnvironmentController extends BotController {
         UNKNOWN("?", false),
         OBSTACLE("O", true),
         FREE_UNVISITED(".", false),
-        FREE_VISITED(" ", true),
+        FREE_VISITED("_", true),
         START("S", true);
 
         /**

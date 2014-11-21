@@ -268,6 +268,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         return calibrated;
     }
 
+    private static final int CALIBRATION_WAITING = 200;
     private static final float TURNING_BIAS = 0.010f;
 
     private float calculateBias(){
@@ -334,7 +335,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO OOOOO?
                 //warnings++;
 
-                Delay.msDelay(350);
+                Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
                         DifferentialMotorManager.SMOOTH_ACCELERATION,
@@ -360,7 +361,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             if(backTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
 
 
-                Delay.msDelay(400);
+                Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 motors.move(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
                         DifferentialMotorManager.SMOOTH_ACCELERATION,
@@ -386,7 +387,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
         while(motors.asyncMoving()){
             if(backTouch.isPressed()){
-                Delay.msDelay(350);
+                Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 if(stopAfterCalibrating){
                     motors.move(BACKING_DISTANCE,BACKING_DISTANCE,speed,

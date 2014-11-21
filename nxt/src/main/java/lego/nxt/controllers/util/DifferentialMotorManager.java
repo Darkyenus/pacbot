@@ -26,7 +26,7 @@ public class DifferentialMotorManager {
     }
 
     public static float MAX_SPEED() {
-        return MotorController.getMaxSpeed()*0.87f;
+        return MotorController.getMaxSpeed()*0.95f;
     }
 
     public static final float MAX_ACCELERATION = 9000;

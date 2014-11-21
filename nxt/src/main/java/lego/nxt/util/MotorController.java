@@ -385,7 +385,7 @@ public class MotorController {
      * Reset the tachometer readings
      */
     public synchronized void resetRelativeTachoCount() {
-        currentTCount = tachoTCount = 0;//tachoPort.getTachoCount();
+        currentTCount = tachoTCount = tachoPort.getTachoCount();
         now = System.currentTimeMillis();
         permanentSavedLocation = 0f;
     }
