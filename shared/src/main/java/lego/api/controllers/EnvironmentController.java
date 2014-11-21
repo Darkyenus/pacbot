@@ -265,6 +265,8 @@ public abstract class EnvironmentController extends BotController {
     public static final byte WARNING_TOOK_TOO_LONG_TIME_TO_COMPUTE = -1;
     public static final byte WARNING_ALERT = -2;
 
+    public static final byte SUCCESS_PATH_COMPUTED = -100;
+
     /**
      * Called when controller encounters an error.
      * @param error one of this class static byte ERROR_* variable constants
