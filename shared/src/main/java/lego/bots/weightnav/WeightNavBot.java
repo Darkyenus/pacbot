@@ -53,34 +53,9 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
         while(!done) {
             calcDistances();
-            System.out.println();
-            System.out.println("---------------------------");
-            for(int y = 0; y < distances[0].length; y ++){
-                for(int x = 0; x < distances.length; x++){
-                    String sout = Byte.toString(distances[x][y]);
-                    if(sout.length() == 1){
-                        sout = " "+sout+" ";
-                    }else if(sout.length() == 2){
-                        sout = " "+sout;
-                    }
-                    System.out.print(" "+sout+" ");
-                }
-                System.out.println();
-            }
-            System.out.println("---------------------------");
-            System.out.println();
             done = calcRoute(route);
-            //System.out.println("bot: x: "+botX+", y: "+botY);
         }
 
-        //TODO remove
-        for(byte x = 0; x < 9; x++){
-            for(byte y = 0; y < 6; y++){
-                if(controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_VISITED){
-                    controller.setField(x, y, EnvironmentController.FieldStatus.FREE_UNVISITED);
-                }
-            }
-        }
 
         PositionStack routeFixed = new PositionStack(STACK_SIZE);
         while(!route.isEmpty()){
@@ -171,8 +146,6 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         while(!pDirections.isEmpty()){
             actualDir = pDirections.retreiveFirst();
             movingDist = pDistances.retreiveFirst();
-
-            System.out.println("Moving "+actualDir+" by "+movingDist);
 
             if (actualDir == EnvironmentController.Direction.DOWN) {
                 controller.moveByY(movingDist);
@@ -466,21 +439,6 @@ public class WeightNavBot extends Bot<EnvironmentController> {
             }
         }
 
-
-        System.out.println("---------------------------------------------");
-        for(int y = 0; y < specialPriority[0].length; y ++){
-            for(int x = 0; x < specialPriority.length; x++){
-                String sout = Byte.toString(specialPriority[x][y]);
-                if(sout.length() == 1){
-                    sout = " "+sout+" ";
-                }else if(sout.length() == 2){
-                    sout = " "+sout;
-                }
-                System.out.print(" "+sout+" ");
-            }
-            System.out.println();
-        }
-        System.out.println("---------------------------------------------");
     }
 
 
