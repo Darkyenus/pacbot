@@ -3,10 +3,7 @@ package lego.bots.weightnav;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
-import lego.util.ByteArrayArrayList;
-import lego.util.ByteStack;
-import lego.util.PositionStack;
-import lego.util.Queue;
+import lego.util.*;
 
 /**
  * Weight navigated bot. This computes weight of every field on map and navigates the shortest way to target (unvisited field with best weight)
@@ -37,9 +34,6 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(STACK_SIZE);
         final Queue<Byte> pDistances = new Queue<Byte>(STACK_SIZE);
 
-        final PositionStack route = new PositionStack(STACK_SIZE);
-
-        route.clear();
         pDirections.clear();
         pDistances.clear();
 
@@ -51,40 +45,29 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
         generateSpecialPriority();
 
+        PositionQueue route = new PositionQueue(STACK_SIZE);
+
         while(!done) {
             calcDistances();
             done = calcRoute(route);
         }
 
-
-        PositionStack routeFixed = new PositionStack(STACK_SIZE);
-        while(!route.isEmpty()){
-            routeFixed.push(route.peekX(), route.peekY());
-            route.pop();
-        }
-
-        long time = System.currentTimeMillis() - start;
-        if(time > 250){
-            controller.onError(EnvironmentController.WARNING_TOOK_TOO_LONG_TIME_TO_COMPUTE);
-        }
-
         EnvironmentController.Direction actualDir = null;
         byte movingDist = 0;
 
-
         byte prevX = 0;
         byte prevY = 0;
-        if(!routeFixed.isEmpty()) {
-            prevX = routeFixed.peekX();
-            prevY = routeFixed.peekY();
-            routeFixed.pop();
+        if(!route.isEmpty()) {
+            prevX = route.retreiveFirstX();
+            prevY = route.retreiveFirstY();
+            route.moveReadHead();
         }
 
         //Preprocess path
-        while(!routeFixed.isEmpty()){
-            byte nextX = routeFixed.peekX();
-            byte nextY = routeFixed.peekY();
-            routeFixed.pop();
+        while(!route.isEmpty()){
+            byte nextX = route.retreiveFirstX();
+            byte nextY = route.retreiveFirstY();
+            route.moveReadHead();
 
             if (nextX == prevX && nextY == prevY + 1) {
                 if (actualDir == EnvironmentController.Direction.DOWN) {
@@ -443,7 +426,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
 
     byte lastDir = 0;
-    private boolean calcRoute(PositionStack outputRoute) {
+    private boolean calcRoute(PositionQueue outputRoute) {
         byte targetX = Byte.MIN_VALUE;
         byte targetY = Byte.MIN_VALUE;
         byte minDist = Byte.MAX_VALUE;
@@ -548,7 +531,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         }
 
         while(!tmp.isEmpty()){
-            outputRoute.push(tmp.peekX(), tmp.peekY());
+            outputRoute.pushNext(tmp.peekX(), tmp.peekY());
             tmp.pop();
         }
 
