@@ -26,7 +26,3 @@ for I in {1..8}; do
     ../../../lejos/bin/nxjc $LOADER_FILE
     ../../../lejos/bin/nxj -o Map${I}.nxj -u MapLoader
 done
-
-echo "Uploading maps and loader with params: -u ..."
-../../../lejos/bin/nxjupload -u ../../../bot/maps
-echo "Uploaded"
