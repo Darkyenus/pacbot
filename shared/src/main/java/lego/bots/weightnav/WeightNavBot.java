@@ -24,15 +24,10 @@ public class WeightNavBot extends Bot<EnvironmentController> {
     private byte botX = -1;
     private byte botY = -1;
 
-    @Override
-    public synchronized void run() {
-        try {
-            //TODO no timeout
-            this.wait(2000);
-        } catch (InterruptedException ignored) {}
+    private final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(STACK_SIZE);
+    private final Queue<Byte> pDistances = new Queue<Byte>(STACK_SIZE);
 
-        final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(STACK_SIZE);
-        final Queue<Byte> pDistances = new Queue<Byte>(STACK_SIZE);
+    public void prepare(){
 
         pDirections.clear();
         pDistances.clear();
@@ -126,6 +121,19 @@ public class WeightNavBot extends Bot<EnvironmentController> {
             pDistances.pushNext(movingDist);
         }
 
+        controller.onError(EnvironmentController.SUCCESS_PATH_COMPUTED);
+
+    }
+
+    @Override
+    public synchronized void run() {
+        try {
+            //TODO no timeout
+            this.wait(2000);
+        } catch (InterruptedException ignored) {}
+
+        EnvironmentController.Direction actualDir;
+        byte movingDist;
         while(!pDirections.isEmpty()){
             actualDir = pDirections.retreiveFirst();
             movingDist = pDistances.retreiveFirst();
@@ -660,6 +668,9 @@ public class WeightNavBot extends Bot<EnvironmentController> {
     @Override
     public void onEvent(BotEvent event) {
         switch (event){
+            case RUN_PREPARE:
+                prepare();
+                break;
             case RUN_ENDED:
                 continueRunning = false;
                 synchronized (this){
