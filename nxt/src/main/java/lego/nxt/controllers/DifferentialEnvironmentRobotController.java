@@ -76,7 +76,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     }
                 }
                 LCD.drawString(lastError,mazeWidth+1,0);
-                LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
+                //LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
                 if(ENABLE_SENSORS){
                     readSensors();
                     LCD.drawString("L:",0,mazeHeight+1);
@@ -219,8 +219,8 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 }
             case SUCCESS_PATH_COMPUTED:
                 for (byte i = 0; i < 50; i++) {
-                    Sound.playTone(400 + i*15,10);
-                    Sound.playTone(1135 - i*15,10);
+                    Sound.playTone(400 + i*15,20);
+                    //Sound.playTone(1135 - i*15,10);
                 }
             default:
                 Sound.buzz();
@@ -377,8 +377,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     }
 
     private void calibrateBackward(boolean stopAfterCalibrating){
-        Sound.beep();
-        //warnings++;
+        warnings++;
         float speed = DifferentialMotorManager.MAX_SPEED()*0.8f;
         motors.moveAsync(-BLOCK_DISTANCE,-BLOCK_DISTANCE,speed,
                 DifferentialMotorManager.SMOOTH_ACCELERATION,
@@ -399,7 +398,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                             DifferentialMotorManager.NO_DECELERATION, true);
                     motors.waitForAsyncProgress(0.95f);
                 }
-                //warnings--;
+                warnings--;
                 return;
             }
         }
@@ -418,7 +417,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     true);
         }
         motors.waitForAsyncProgress(0.95f);
-        //warnings--;
+        warnings--;
     }
 
     @Override

@@ -26,11 +26,11 @@ public class DifferentialMotorManager {
     }
 
     public static float MAX_SPEED() {
-        return MotorController.getMaxSpeed()*0.820f;
+        return MotorController.getMaxSpeed()*0.87f;
     }
 
     public static final float MAX_ACCELERATION = 9000;
-    public static final float SMOOTH_ACCELERATION = 1100;
+    public static final float SMOOTH_ACCELERATION = 1300;
     public static final float NO_DECELERATION = MotorController.DONT_STOP;
 
     public static final float wheelDiameterCM = 8.3f;
@@ -138,9 +138,10 @@ public class DifferentialMotorManager {
     }
 
     public void reset(){
-        leftMotor.stop(false);
-        rightMotor.stop(true);
         leftMotor.stop(true);
+        rightMotor.stop(false);
+        leftMotor.stop(false);
+
         leftMotor.resetTachoCount(true);
         rightMotor.resetTachoCount(true);
     }
