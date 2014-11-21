@@ -7,7 +7,6 @@ import lejos.nxt.MotorPort;
  * Hi
  * Created by Darkyen on 13.11.2014.
  */
-@SuppressWarnings("UnusedDeclaration")
 public class DifferentialMotorManager {
 
     private static final boolean FLIP_DIRECTION = false;
@@ -23,7 +22,7 @@ public class DifferentialMotorManager {
     public DifferentialMotorManager(MotorPort leftMotorPort, MotorPort rightMotorPort) {
         leftMotor = new MotorController(leftMotorPort);
         rightMotor = new MotorController(rightMotorPort);
-        stop(MAX_ACCELERATION,true);
+        reset();
     }
 
     public static float MAX_SPEED() {
@@ -139,8 +138,9 @@ public class DifferentialMotorManager {
     }
 
     public void reset(){
-        leftMotor.stop(true);
+        leftMotor.stop(false);
         rightMotor.stop(true);
+        leftMotor.stop(true);
         leftMotor.resetTachoCount(true);
         rightMotor.resetTachoCount(true);
     }

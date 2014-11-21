@@ -263,7 +263,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         return calibrated;
     }
 
-    private static final float TURNING_BIAS = 0.055f;//-0.065f;//0.055f;
+    private static final float TURNING_BIAS = 0.030f;//.055f;//-0.065f;//0.055f;
 
     private float calculateBias(){
         return TURNING_BIAS * lastDirection;
@@ -315,8 +315,8 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         }
     }
 
-    private static final float BLOCK_DISTANCE = 28.5f;//28.5 cm
-    private static final float BACKING_DISTANCE = 5.5f;
+    private static final float BLOCK_DISTANCE = 28.75f;//28.5 cm
+    private static final float BACKING_DISTANCE = 6.0f;//5.5
 
     private byte lastDirection = 1;
 
@@ -451,11 +451,12 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
         @Override
         protected void process() {
-            //if(isInOppositeDirection(direction)){
-            //    processBackward();
-            //}else{
-                processForward();
-            //}
+            byte finalX = (byte)(x + (direction.x) * (amount+1));
+            byte finalY = (byte)(y + (direction.y) * (amount+1));
+            if(getField(finalX,finalY) == FieldStatus.OBSTACLE){
+                amount++; //Calibrate forward if going into wall
+            }
+            processForward();
             lastMoved = moved;
             doComplete();
         }

@@ -30,8 +30,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
     @Override
     public synchronized void run() {
         try {
-            //TODO no timeout
-            this.wait(2000);
+            this.wait();
         } catch (InterruptedException ignored) {}
 
         final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(STACK_SIZE);
