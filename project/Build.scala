@@ -130,7 +130,7 @@ object Build extends Build {
       process.waitFor()
     }
   )
-    ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadRunNXJ")
+    ++ addCommandAlias("nxj",";compileNXJ;linkNXJ;uploadNXJ")
   ) dependsOn shared
 
   /**
