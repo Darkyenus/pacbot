@@ -30,7 +30,7 @@ public class DifferentialMotorManager {
     }
 
     public static final float MAX_ACCELERATION = 9000;
-    public static final float SMOOTH_ACCELERATION = 1000;
+    public static final float SMOOTH_ACCELERATION = 1100;
     public static final float NO_DECELERATION = MotorController.DONT_STOP;
 
     public static final float wheelDiameterCM = 8.3f;

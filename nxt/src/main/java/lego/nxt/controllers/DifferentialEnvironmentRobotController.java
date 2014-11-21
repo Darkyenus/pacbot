@@ -217,6 +217,11 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                     Sound.playTone(400 + i*15,10);
                     Sound.playTone(1135 - i*15,10);
                 }
+            case SUCCESS_PATH_COMPUTED:
+                for (byte i = 0; i < 50; i++) {
+                    Sound.playTone(400 + i*15,10);
+                    Sound.playTone(1135 - i*15,10);
+                }
             default:
                 Sound.buzz();
                 lastError = "!"+error;
@@ -263,7 +268,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         return calibrated;
     }
 
-    private static final float TURNING_BIAS = 0.030f;//.055f;//-0.065f;//0.055f;
+    private static final float TURNING_BIAS = 0.010f;
 
     private float calculateBias(){
         return TURNING_BIAS * lastDirection;
@@ -326,10 +331,10 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         while(motors.asyncProgress() < 0.95f){
-            if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO
+            if(frontTouch.isPressed()){//&& motors.asyncProgress() > 0.7f //TODO OOOOO?
                 //warnings++;
 
-                Delay.msDelay(400);
+                Delay.msDelay(350);
                 motors.reset();
                 motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
                         DifferentialMotorManager.SMOOTH_ACCELERATION,
@@ -382,7 +387,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
         while(motors.asyncMoving()){
             if(backTouch.isPressed()){
-                Delay.msDelay(400);
+                Delay.msDelay(350);
                 motors.reset();
                 if(stopAfterCalibrating){
                     motors.move(BACKING_DISTANCE,BACKING_DISTANCE,speed,
