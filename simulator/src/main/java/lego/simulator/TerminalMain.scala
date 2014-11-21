@@ -101,5 +101,6 @@ object TerminalMain extends App {
   println("Simulation is starting.")
   robotThread.start()
 
+  bot.onEvent(BotEvent.RUN_PREPARE)
   bot.onEvent(BotEvent.RUN_STARTED)
 }
