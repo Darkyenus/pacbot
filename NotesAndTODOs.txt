@@ -1,0 +1,45 @@
+This file has been created with intent of remembering and sharing all important things, ideas and notes.
+Please feel free to read, write and edit all of its contents, but try to maintain some consistent formatting.
+
+
+
+==== Motivace na univerzitní kolo ====
+
+ -  2hý a 3tí místo jsou mobily -> Musíme být první (tablet) nebo 4tý (1TB disk)
+ -  Tohle je náš poslední společný rok. Měli bysme aspoň jednou v historii vyhrát univerzitní kolo
+ 
+ 
+==== Controller TODO ====
+ 
+ -  Couvání
+ -  Větší akcelerace / rychlost
+ -  Pokud bude dostatečná přesnost pohybu tak zatáčení (dopředu i dozadu) o poloměru 1 block. Mohlo by to být v určitývh momentech jízdy rychlejší.
+ -  Blikání / svícení kontrolního světla při zapnutém (a připraveném) programu,
+    ať se při startování na soutěži nestane že program nepoběží a nikdo si toho nevšimne
+ -  On lost event a On found event (třeba se on found nikdy nezavolá)
+ -  Pokud je robot ztracen -> wall follower nebo random mouse. U toho se snažit porovnávat čtení sensorů s mapou a pokusit se najít
+ -  Timer. Dostupný pro api. Bude vracet čas (0-1) progressu. Užitečné po ztracení a nalezení, aby robot mohl znovu naplánovat trasu.
+    Robot by se neměl vypnout / přestat hýbat po konci limitu, pro případ že by neběžel úplně přesně
+
+
+==== Hardware TODO ====
+
+ -  Zkusit rozebrat cartezskýho robota a místo něj postavit Diff s nějakýma převodama do rychla.
+    To by se mělo udělat co nejdřív ať víme jestli to je hodně nepřesný nebo jestli má cenu se s tím zabývat.
+    Potom udělat controller na tohohle FastDiff robota
+ -  Umístit gun tak, aby mohl vystřelit
+ 
+ 
+==== High-level Bot TODO ====
+ 
+ -  Brand new plannig algo. No idea how (yet)
+ -  Mělo by to brát ohled i na to že tu mapu prostě celou nestihneme projet a vybrat jen nějakou část.
+ 
+ 
+==== Some TODO ====
+ 
+ -  Po zkončení pohybu High-level Bota by se robot měl nějak pohybovat (Random mouse, wall follower)
+ 
+ 
+ 
+ 
