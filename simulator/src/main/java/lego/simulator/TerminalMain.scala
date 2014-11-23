@@ -1,11 +1,13 @@
 package lego.simulator
 
-import java.io.File
+import java.io.{IOException, FileNotFoundException, FileInputStream, File}
 
 import lego.api.controllers.EnvironmentController
 import lego.api.controllers.EnvironmentController.FieldStatus
 import lego.api.{BotEvent, AbstractBootstrap, Bot}
 import lego.simulator.controllers.EnvironmentSimulatorController
+import lego.api.controllers.EnvironmentController.FieldStatus._
+import java.io
 
 /**
  * Private property.
@@ -26,14 +28,15 @@ object TerminalMain extends App {
 
 
 
-  val defaultMap = "map2.txt"
-  println("Enter Map Path ["+defaultMap+"]:")
-  val map = MazeMap(new File({
+  val defaultMap = new FileInputStream(new io.File("mappointer")).read().toChar.toString
+  println("Enter Map Pointer ["+defaultMap+"]:")
+
+  val map = MazeMap({
     val in = readLine()
     if(in.isEmpty){
       defaultMap
     }else in
-  }))
+  })
 
   val onChanged = () => {
     val maze = map.maze
@@ -102,5 +105,6 @@ object TerminalMain extends App {
   robotThread.start()
 
   bot.onEvent(BotEvent.RUN_PREPARE)
+  Thread.sleep(100)
   bot.onEvent(BotEvent.RUN_STARTED)
 }
