@@ -2,3 +2,7 @@
 .idea_modules
 .DS_Store
 target
+nxt/src/main/nxt.iml
+shared/src/main/shared.iml
+simulator/src/main/simulator.iml
+out/*
