@@ -1,16 +1,18 @@
-package lego.bots.random;
+package lego.bots.testificate;
 
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 
 /**
+ * Bot class created only for testing some subsystems of controllers. Use and edit as you wish
+ *
  * Private property.
  * User: Darkyen
  * Date: 23/10/14
  * Time: 10:23
  */
-public class RandomBot extends Bot<EnvironmentController> {
+public class TestificateBot extends Bot<EnvironmentController> {
 
     private boolean continueRunning = true;
 
