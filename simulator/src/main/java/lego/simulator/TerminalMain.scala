@@ -82,7 +82,7 @@ object TerminalMain extends App {
 
   println(map.toPrintableString)
   println()
-  val defaultRobotMain = "lego.bots.weightnav.WeightNavBot"
+  val defaultRobotMain = "lego.bots.clever.CleverBot"
   println("Enter robot main ["+defaultRobotMain+"]:")
   val (bot,controller:EnvironmentSimulatorController) = create({
     val in = readLine()
@@ -101,10 +101,12 @@ object TerminalMain extends App {
   }
   robotThread.setDaemon(false)
   robotThread.setName("RobotThread")
-  println("Simulation is starting.")
   robotThread.start()
 
+  println("Preparing run.\n")
+  val now = System.currentTimeMillis();
   bot.onEvent(BotEvent.RUN_PREPARE)
+  println("\nRun prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s.\n")
   Thread.sleep(100)
   bot.onEvent(BotEvent.RUN_STARTED)
 }
