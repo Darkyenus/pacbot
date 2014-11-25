@@ -103,8 +103,13 @@ object TerminalMain extends App {
   robotThread.setName("RobotThread")
   robotThread.start()
 
+  while(!controller.isInitialized()){
+    Thread.sleep(50) //Wait until bot is not initialized
+  }
+  Thread.sleep(10) //Race condition, but nevermind
+
   println("Preparing run.\n")
-  val now = System.currentTimeMillis();
+  val now = System.currentTimeMillis()
   bot.onEvent(BotEvent.RUN_PREPARE)
   println("\nRun prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s.\n")
   Thread.sleep(100)

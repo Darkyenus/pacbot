@@ -7,6 +7,23 @@ package lego.api;
  * Time: 13:45
  */
 public abstract class BotController {
+
+    protected boolean isInitialized = false;
+
+    public boolean isInitialized(){
+        return isInitialized;
+    }
+
+    protected void initializeController(){
+        initialize();
+        isInitialized = true;
+    }
+
+    protected void deinitializeController(){
+        deinitialize();
+        isInitialized = false;
+    }
+
     protected void initialize(){}
     protected void deinitialize(){}
     public void onError(byte errorid){}
