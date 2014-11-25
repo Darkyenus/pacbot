@@ -28,6 +28,7 @@ Please feel free to read, write and edit all of its contents, but try to maintai
     To by se mělo udělat co nejdřív ať víme jestli to je hodně nepřesný nebo jestli má cenu se s tím zabývat.
     Potom udělat controller na tohohle FastDiff robota
  -  Umístit gun tak, aby mohl vystřelit
+ -  Předělat spodek robota/magnetovou lištu tak, aby brala každé světlo, pokaždé a spolehlivě.
  
  
 ==== High-level Bot TODO ====
