@@ -1,4 +1,4 @@
-package lego.bots.testificate;
+package lego.bots.test;
 
 import lego.api.Bot;
 import lego.api.BotEvent;
@@ -13,7 +13,8 @@ import lego.util.Latch;
  * Date: 23/10/14
  * Time: 10:23
  */
-public class TestificateBot extends Bot<EnvironmentController> {
+@SuppressWarnings("UnusedDeclaration")
+public class TestBot extends Bot<EnvironmentController> {
 
     private boolean continueRunning = true;
     private final Latch startLatch = new Latch();
