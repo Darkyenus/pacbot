@@ -3,6 +3,7 @@ package lego.bots.testificate;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.util.Latch;
 
 /**
  * Bot class created only for testing some subsystems of controllers. Use and edit as you wish
@@ -15,12 +16,11 @@ import lego.api.controllers.EnvironmentController;
 public class TestificateBot extends Bot<EnvironmentController> {
 
     private boolean continueRunning = true;
+    private final Latch startLatch = new Latch();
 
     @Override
     public synchronized void run() {
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {}
+        startLatch.pass();
         while(continueRunning){
             //tightLoop((byte)2);
             thereAndBackAgain((byte)2);
@@ -57,15 +57,11 @@ public class TestificateBot extends Bot<EnvironmentController> {
         switch (event){
             case RUN_ENDED:
                 continueRunning = false;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
             case RUN_STARTED:
                 continueRunning = true;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
         }
     }

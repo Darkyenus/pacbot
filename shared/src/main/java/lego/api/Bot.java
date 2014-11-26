@@ -19,7 +19,7 @@ public abstract class Bot <C extends BotController> {
      *
      * Tl;dr: READ ONLY
      */
-    protected C controller;
+    public C controller;
 
     public abstract void run();
 

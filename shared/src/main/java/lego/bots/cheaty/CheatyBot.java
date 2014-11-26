@@ -3,6 +3,7 @@ package lego.bots.cheaty;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.util.Latch;
 import lego.util.PositionStack;
 import lego.util.Queue;
 
@@ -22,6 +23,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
     private static final int STACK_SIZE = 16;
 
     private boolean continueRunning = true;
+    private final Latch startLatch = new Latch();
 
     private static final EnvironmentController.FieldStatus FREE = EnvironmentController.FieldStatus.FREE_UNVISITED;
     private static final EnvironmentController.FieldStatus BLOCK = EnvironmentController.FieldStatus.OBSTACLE;
@@ -48,9 +50,7 @@ public class CheatyBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {}
+        startLatch.pass();
 
         directions.clear();
         distances.clear();
@@ -634,15 +634,11 @@ public class CheatyBot extends Bot<EnvironmentController> {
         switch (event){
             case RUN_ENDED:
                 continueRunning = false;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
             case RUN_STARTED:
                 continueRunning = true;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
         }
     }

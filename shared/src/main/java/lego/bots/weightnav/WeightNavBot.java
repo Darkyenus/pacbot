@@ -17,7 +17,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
     private static final int STACK_SIZE = 16;
 
-    private boolean continueRunning = true;
+    private final Latch startLatch = new Latch();
     private final byte[][] distances = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
     private final byte[][] specialPriority = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
@@ -33,7 +33,6 @@ public class WeightNavBot extends Bot<EnvironmentController> {
         pDistances.clear();
 
         //This may take a while
-        long start = System.currentTimeMillis();
         boolean done = false;
         botX = EnvironmentController.startX;
         botY = EnvironmentController.startY;
@@ -127,9 +126,7 @@ public class WeightNavBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {}
+        startLatch.pass();
 
         EnvironmentController.Direction actualDir;
         byte movingDist;
@@ -677,16 +674,10 @@ public class WeightNavBot extends Bot<EnvironmentController> {
                 prepare();
                 break;
             case RUN_ENDED:
-                continueRunning = false;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
             case RUN_STARTED:
-                continueRunning = true;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
         }
     }

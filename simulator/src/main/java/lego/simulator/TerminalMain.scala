@@ -1,6 +1,7 @@
 package lego.simulator
 
 import java.io.{IOException, FileNotFoundException, FileInputStream, File}
+import java.util.concurrent.{CountDownLatch, Semaphore}
 
 import lego.api.controllers.EnvironmentController
 import lego.api.controllers.EnvironmentController.FieldStatus
@@ -8,6 +9,8 @@ import lego.api.{BotEvent, AbstractBootstrap, Bot}
 import lego.simulator.controllers.EnvironmentSimulatorController
 import lego.api.controllers.EnvironmentController.FieldStatus._
 import java.io
+
+import lego.util.Latch
 
 /**
  * Private property.
@@ -93,25 +96,26 @@ object TerminalMain extends App {
     }
   },map,onChanged,onError)
 
+  val initLatch = new Latch()
 
   val robotThread = new Thread(){
     override def run(): Unit = {
-      AbstractBootstrap.main(bot,controller)
+      controller.initialize()
+      bot.controller = controller
+      initLatch.open()
+      bot.run()
+      controller.deinitialize()
     }
   }
   robotThread.setDaemon(false)
   robotThread.setName("RobotThread")
   robotThread.start()
 
-  while(!controller.isInitialized()){
-    Thread.sleep(50) //Wait until bot is not initialized
-  }
-  Thread.sleep(10) //Race condition, but nevermind
+  initLatch.pass() //Wait for bot to initialize. Should be instant.
 
   println("Preparing run.\n")
   val now = System.currentTimeMillis()
   bot.onEvent(BotEvent.RUN_PREPARE)
   println("\nRun prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s.\n")
-  Thread.sleep(100)
   bot.onEvent(BotEvent.RUN_STARTED)
 }

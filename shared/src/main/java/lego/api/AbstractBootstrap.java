@@ -11,9 +11,9 @@ public abstract class AbstractBootstrap {
      * Call this method from non-abstract bootstrap with selected bot and controller.
      */
     public static <C extends BotController> void main(Bot<C> bot,C controller){
-        controller.initializeController();
+        controller.initialize();
         bot.controller = controller;
         bot.run();
-        controller.deinitializeController();
+        controller.deinitialize();
     }
 }

@@ -53,7 +53,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
     //
 
     @Override
-    protected void initialize() {
+    public void initialize() {
         LCD.setAutoRefresh(false);
         TaskProcessor.initialize();
 
