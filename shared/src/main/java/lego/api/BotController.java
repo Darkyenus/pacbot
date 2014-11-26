@@ -14,12 +14,12 @@ public abstract class BotController {
         return isInitialized;
     }
 
-    protected void initializeController(){
+    public void initializeController(){
         initialize();
         isInitialized = true;
     }
 
-    protected void deinitializeController(){
+    public void deinitializeController(){
         deinitialize();
         isInitialized = false;
     }

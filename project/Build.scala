@@ -31,6 +31,21 @@ object Build extends Build {
     )
   )
 
+  lazy val LEJOS_NXT_JAVA_HOME:String = {
+    val possibleHomes = Array(
+      "C:\\Program Files (x86)\\Java\\jdk1.8.0_25\\",
+      "C:\\Program Files (x86)\\Java\\jdk1.7.0_51\\"
+    )
+    possibleHomes.find(home => {
+      val f = file(home)
+      if(f.isDirectory){
+        true
+      }else{
+        false
+      }
+    }).getOrElse(sys.error("LEJOS_JAVA_HOME Not found. Please add your path to Build.scala#getLejosJAVA_HOME list."))
+  }
+
   /**
    * Universal project
    * Contains api that Bot-s and Controller-s implement.
@@ -102,8 +117,7 @@ object Build extends Build {
       processBuilder.command(nxwBat.getCanonicalPath)
       processBuilder.redirectError(Redirect.INHERIT)
       processBuilder.redirectOutput(Redirect.INHERIT)
-      //processBuilder.environment().put("LEJOS_NXT_JAVA_HOME","C:\\Program Files (x86)\\Java\\jdk1.8.0_25\\")
-      processBuilder.environment().put("LEJOS_NXT_JAVA_HOME","C:\\Program Files (x86)\\Java\\jdk1.7.0_51\\")
+      processBuilder.environment().put("LEJOS_NXT_JAVA_HOME",LEJOS_NXT_JAVA_HOME)
       val process = processBuilder.start()
       process.waitFor()
     },
@@ -124,8 +138,7 @@ object Build extends Build {
       processBuilder.command(nxwBat.getCanonicalPath)
       processBuilder.redirectError(Redirect.INHERIT)
       processBuilder.redirectOutput(Redirect.INHERIT)
-      //processBuilder.environment().put("LEJOS_NXT_JAVA_HOME","C:\\Program Files (x86)\\Java\\jdk1.8.0_25\\")
-      processBuilder.environment().put("LEJOS_NXT_JAVA_HOME","C:\\Program Files (x86)\\Java\\jdk1.7.0_51\\")
+      processBuilder.environment().put("LEJOS_NXT_JAVA_HOME",LEJOS_NXT_JAVA_HOME)
       val process = processBuilder.start()
       process.waitFor()
     }

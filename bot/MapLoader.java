@@ -3,6 +3,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
+ * This is a template java file.
+ * It will be duplicated many times, with MAP_NAME changed every time and uploaded as multiple programs to NXT brick.
+ *
  * Private property.
  * User: Darkyen
  * Date: 20/11/14

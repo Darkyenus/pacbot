@@ -1,12 +1,6 @@
 This file has been created with intent of remembering and sharing all important things, ideas and notes.
 Please feel free to read, write and edit all of its contents, but try to maintain some consistent formatting.
 
-
-
-==== Motivace na univerzitní kolo ====
-
- -  2hý a 3tí místo jsou mobily -> Musíme být první (tablet) nebo 4tý (1TB disk)
- -  Tohle je náš poslední společný rok. Měli bysme aspoň jednou v historii vyhrát univerzitní kolo
  
  
 ==== Controller TODO ====
@@ -27,7 +21,6 @@ Please feel free to read, write and edit all of its contents, but try to maintai
  -  Zkusit rozebrat cartezskýho robota a místo něj postavit Diff s nějakýma převodama do rychla.
     To by se mělo udělat co nejdřív ať víme jestli to je hodně nepřesný nebo jestli má cenu se s tím zabývat.
     Potom udělat controller na tohohle FastDiff robota
- -  Umístit gun tak, aby mohl vystřelit
  -  Předělat spodek robota/magnetovou lištu tak, aby brala každé světlo, pokaždé a spolehlivě.
  
  
@@ -35,12 +28,4 @@ Please feel free to read, write and edit all of its contents, but try to maintai
  
  -  Brand new plannig algo. No idea how (yet)
  -  Mělo by to brát ohled i na to že tu mapu prostě celou nestihneme projet a vybrat jen nějakou část.
- 
- 
-==== Some TODO ====
- 
  -  Po zkončení pohybu High-level Bota by se robot měl nějak pohybovat (Random mouse, wall follower)
- 
- 
- 
- 
