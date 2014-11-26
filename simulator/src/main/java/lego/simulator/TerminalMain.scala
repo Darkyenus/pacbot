@@ -1,15 +1,12 @@
 package lego.simulator
 
-import java.io.{IOException, FileNotFoundException, FileInputStream, File}
-import java.util.concurrent.{CountDownLatch, Semaphore}
+import java.io
+import java.io.FileInputStream
 
 import lego.api.controllers.EnvironmentController
 import lego.api.controllers.EnvironmentController.FieldStatus
-import lego.api.{BotEvent, AbstractBootstrap, Bot}
+import lego.api.{Bot, BotEvent}
 import lego.simulator.controllers.EnvironmentSimulatorController
-import lego.api.controllers.EnvironmentController.FieldStatus._
-import java.io
-
 import lego.util.Latch
 
 /**

@@ -15,7 +15,7 @@ import lejos.nxt.ButtonListener;
  * Date: 23/10/14
  * Time: 11:01
  */
-public class MainBootstrap extends AbstractBootstrap {
+public class MainBootstrap {
     public static void main(String[] args){
         main(
                 //new CheatyBot()
@@ -54,7 +54,11 @@ public class MainBootstrap extends AbstractBootstrap {
         Button.LEFT.addButtonListener(buttonListener);
         Button.RIGHT.addButtonListener(buttonListener);
 
-        AbstractBootstrap.main(bot, controller);
+        controller.initialize();
+        bot.controller = controller;
+        bot.run();
+        controller.deinitialize();
+
         System.exit(0);
     }
 }
