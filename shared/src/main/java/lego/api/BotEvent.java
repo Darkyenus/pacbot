@@ -9,9 +9,5 @@ package lego.api;
 public enum BotEvent {
     RUN_PREPARE,
     RUN_STARTED,
-    RUN_ENDED,
-    ENTER_PRESSED,
-    ESCAPE_PRESSED,
-    LEFT_PRESSED,
-    RIGHT_PRESSED
+    RUN_ENDED
 }

@@ -125,7 +125,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
                 //noinspection InfiniteLoopStatement
                 while(true){
                     if(Button.ESCAPE.isDown()){
-                        Bot.active.onEvent(BotEvent.ESCAPE_PRESSED);
                         Bot.active.onEvent(BotEvent.RUN_ENDED);
                     }
                     doDrawing();
