@@ -108,28 +108,7 @@ public final class DifferentialMotorManager {
 		rightMotor.waitComplete();
 	}
 
-	public void stop (float deceleration, boolean reset) {
-		leftMotor.setAcceleration(deceleration);
-		rightMotor.setAcceleration(deceleration);
-		leftMotor.stop(true);
-		rightMotor.stop(false);
-		leftMotor.waitComplete();
-		if (reset) {
-			leftMotor.resetTachoCount(true);
-			rightMotor.resetTachoCount(true);
-		}
-	}
-
-	public void relax (boolean immediateReturn, boolean reset) {
-		leftMotor.flt(true);
-		rightMotor.flt(immediateReturn);
-		leftMotor.waitComplete();
-		if (reset) {
-			leftMotor.resetTachoCount(true);
-			rightMotor.resetTachoCount(true);
-		}
-	}
-
+	/** Will stop and reset both motors. */
 	public void reset () {
 		leftMotor.stop(true);
 		rightMotor.stop(false);
