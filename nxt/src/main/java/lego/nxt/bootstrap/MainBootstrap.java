@@ -1,6 +1,5 @@
 package lego.nxt.bootstrap;
 
-import lego.api.AbstractBootstrap;
 import lego.api.Bot;
 import lego.api.BotController;
 import lego.api.BotEvent;
