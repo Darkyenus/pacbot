@@ -57,14 +57,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         LCD.setAutoRefresh(false);
         TaskProcessor.initialize();
 
-        final Thread initThread = new Thread("IT"){//Initialization max priority thread
-            @Override
-            public void run() {
-                Bot.active.onEvent(BotEvent.RUN_PREPARE);
-            }
-        };
-        initThread.setPriority(Thread.MAX_PRIORITY);
-
         Thread debugViewThread = new Thread("DV"){
 
             private boolean glows = false;
@@ -103,10 +95,12 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
             @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
             @Override
             public void run(){
-                initThread.start();
-                try {
-                    initThread.join();
-                } catch (InterruptedException ignored) {}
+                setPriority(Thread.MAX_PRIORITY);
+                long startPrepare = System.currentTimeMillis();
+                Bot.active.onEvent(BotEvent.RUN_PREPARE);
+                int msToInit = (int) (System.currentTimeMillis() - startPrepare);
+                LCD.drawString(msToInit+"ms",0,LCD.DISPLAY_CHAR_DEPTH-1);
+                setPriority(Thread.MIN_PRIORITY);
 
                 MotorController.startWheelControl();
                 doDrawing();
