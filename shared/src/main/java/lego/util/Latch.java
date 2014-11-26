@@ -11,7 +11,7 @@ package lego.util;
  * Date: 26/11/14
  * Time: 16:43
  */
-public class Latch {
+public final class Latch {
     private boolean open;
     private final Object LOCK = new Object();
 

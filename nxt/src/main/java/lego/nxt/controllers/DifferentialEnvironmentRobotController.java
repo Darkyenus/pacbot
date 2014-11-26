@@ -444,7 +444,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
         return result;
     }
 
-    private class MoveTask extends AbstractMoveTask {
+    private final class MoveTask extends AbstractMoveTask {
         private Direction direction;
         private byte amount;
 

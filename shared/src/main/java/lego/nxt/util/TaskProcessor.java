@@ -7,7 +7,7 @@ package lego.nxt.util;
  * When active Task finishes, successor takes over. When there is no successor,
  * TaskProcessor waits for more actions from outside and resumes processing as soon as any task arrives.
  */
-public class TaskProcessor {
+public final class TaskProcessor {
     public TaskProcessor(){}
 
     /**

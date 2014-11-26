@@ -14,7 +14,7 @@ import lego.util.Latch;
  * Time: 10:23
  */
 @SuppressWarnings("UnusedDeclaration")
-public class TestBot extends Bot<EnvironmentController> {
+public final class TestBot extends Bot<EnvironmentController> {
 
     private boolean continueRunning = true;
     private final Latch startLatch = new Latch();

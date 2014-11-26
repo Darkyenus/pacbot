@@ -14,7 +14,7 @@ import lejos.util.Delay;
  * Time: 07:20
  */
 @SuppressWarnings("UnusedDeclaration")
-public class MotorController {
+public final class MotorController {
 
     public static final float DONT_STOP = Float.POSITIVE_INFINITY;
     protected static final int NO_LIMIT = Integer.MAX_VALUE;
@@ -578,20 +578,12 @@ public class MotorController {
             // If we have a move limit, check for time to start the deceleration stage
             if (checkLimit) {
                 float proximity = (currentLimit - currentTCount);
-                if (Float.isInfinite(currentDeceleration)) {
-                    //Sound.playTone((int)(800+getProgress()*1100),50);
-                    //if ((currentDeceleration == Float.POSITIVE_INFINITY && proximity <= 0) || (currentDeceleration == Float.NEGATIVE_INFINITY && proximity >= 0)) {
-                        //This means don't stop. Ever.
-                        //moving = false;
-                        //cont.activeMotors[tachoPort.getId()] = false;
-                        //notifyAll();
-                    //}
-                } else {
+                if (!Float.isInfinite(currentDeceleration)) {
                     float dec = (currentVelocity * currentVelocity) / (2 * (currentLimit - currentTCount));
                     if (currentDeceleration / dec < 1.0) {
                         startSubMove(0, dec, dec, NO_LIMIT, currentHold);
                     }
-                }
+                }//else We never stop. Deceleration is infinite.
             }
         } else if (currentHold) {
             // not moving, hold position

@@ -14,7 +14,7 @@ import lego.util.Queue;
  * Date: 23.11.2014
  * Time: 15:07
  */
-public class CleverBot  extends Bot<EnvironmentController> {
+public final class CleverBot  extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 

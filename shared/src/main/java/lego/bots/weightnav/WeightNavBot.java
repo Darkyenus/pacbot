@@ -13,7 +13,7 @@ import lego.util.*;
  * Date: 23/10/14
  * Time: 10:23
  */
-public class WeightNavBot extends Bot<EnvironmentController> {
+public final class WeightNavBot extends Bot<EnvironmentController> {
 
     private static final int STACK_SIZE = 16;
 

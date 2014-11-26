@@ -10,7 +10,7 @@ import lego.util.Queue;
  * Date: 18.11.2014
  * Time: 10:19
  */
-public class Movement {
+public final class Movement {
 
     public static final byte STACK_SIZE = 16;
 

@@ -4,16 +4,16 @@ import lego.nxt.util.MotorController;
 import lejos.nxt.MotorPort;
 
 /**
- * Hi
+ * Manages movement of two motors in a tank-like fashion.
+ *
  * Created by Darkyen on 13.11.2014.
  */
-public class DifferentialMotorManager {
+public final class DifferentialMotorManager {
 
     private static final boolean FLIP_DIRECTION = false;
 
     public static final float HALF_PI = (float) (Math.PI / 2.0);
     public static final float PI = (float) Math.PI;
-    public static final float TWO_PI = (float) (Math.PI * 2.0);
 
     private final MotorController leftMotor;
     private final MotorController rightMotor;

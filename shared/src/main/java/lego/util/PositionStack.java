@@ -7,7 +7,7 @@ package lego.util;
  * Time: 11:54
  */
 @SuppressWarnings("UnusedDeclaration")
-public class PositionStack {
+public final class PositionStack {
     private byte[] internalX;
     private byte[] internalY;
     private int lastPosition = -1;

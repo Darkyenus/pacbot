@@ -13,7 +13,7 @@ import lego.util.PositionStack;
  * Date: 17.11.2014
  * Time: 18:31
  */
-public class NodeBot extends Bot<EnvironmentController> {
+public final class NodeBot extends Bot<EnvironmentController> {
 
     static final int STACK_SIZE = 16;
 
