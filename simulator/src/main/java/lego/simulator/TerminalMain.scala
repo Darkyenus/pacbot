@@ -16,29 +16,22 @@ import lego.util.Latch
  * Time: 12:59
  */
 object TerminalMain extends App {
-  def create(bot:String,mazeMap:MazeMap,onStatusChanged:()=>Unit,onError:(Byte)=>Unit):(Bot[EnvironmentSimulatorController],EnvironmentSimulatorController) = {
-    val botClass = Class.forName(bot)
 
-    val botInstance = botClass.newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
-
-    val controllerInstance = new EnvironmentSimulatorController(mazeMap,onStatusChanged,onError)
-
-    (botInstance,controllerInstance)
+  def readOrDefault(default:String):String = {
+    val in = readLine()
+    if(in.trim.isEmpty){
+      default
+    }else {
+      in
+    }
   }
-
-
 
   val defaultMap = new FileInputStream(new io.File("mappointer")).read().toChar.toString
   println("Enter Map Pointer ["+defaultMap+"]:")
 
-  val map = MazeMap({
-    val in = readLine()
-    if(in.isEmpty){
-      defaultMap
-    }else in
-  })
+  val map = MazeMap(readOrDefault(defaultMap))
 
-  val onChanged = () => {
+  val onChanged:(EnvironmentSimulatorController) => Unit = (controller:EnvironmentSimulatorController) => {
     val maze = map.maze
     val mindMaze:Array[Array[FieldStatus]] = controller.getMindMaze
 
@@ -73,7 +66,7 @@ object TerminalMain extends App {
     result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+")
 
     println(result.toString())
-    val input = readLine()
+    readLine()
   }
 
   val onError = (error:Byte) => {
@@ -84,14 +77,10 @@ object TerminalMain extends App {
   println()
   val defaultRobotMain = "lego.bots.clever.CleverBot"
   println("Enter robot main ["+defaultRobotMain+"]:")
-  val (bot,controller:EnvironmentSimulatorController) = create({
-    val in = readLine()
-    if(in.isEmpty){
-      defaultRobotMain
-    }else{
-      in
-    }
-  },map,onChanged,onError)
+
+  val bot = Class.forName(readOrDefault(defaultRobotMain)).newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
+
+  val controller = new EnvironmentSimulatorController(map,onChanged,onError)
 
   val initLatch = new Latch()
 
