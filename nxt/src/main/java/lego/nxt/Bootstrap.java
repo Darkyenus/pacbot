@@ -1,4 +1,4 @@
-package lego.nxt.bootstrap;
+package lego.nxt;
 
 import lego.api.Bot;
 import lego.api.BotController;
@@ -11,7 +11,7 @@ import lego.nxt.controllers.DifferentialEnvironmentRobotController;
  * Date: 23/10/14
  * Time: 11:01
  */
-public class MainBootstrap {
+public class Bootstrap {
     public static void main(String[] args){
         main(
                 //new CheatyBot()
