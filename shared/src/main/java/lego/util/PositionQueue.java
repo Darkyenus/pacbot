@@ -6,6 +6,7 @@ package lego.util;
  * Created by jIRKA on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
 public final class PositionQueue {
+
 	private byte[] internalX;
 	private byte[] internalY;
 	private int writePosition = 0;
@@ -44,26 +45,23 @@ public final class PositionQueue {
 		return internalY[index];
 	}
 
-	public void insertAfter (int index, byte[] xs, byte[] ys) {
-		if (xs.length != ys.length) throw new IllegalArgumentException("Size of x array has to be same as size of y array");
-		if (xs.length != 0) {
-			int currentSize = internalX.length;
-			byte[] newInternalX = new byte[currentSize + xs.length];
-			byte[] newInternalY = new byte[currentSize + xs.length];
+    public void insertAfter(int index, byte x, byte y){
+        int currentSize = internalX.length;
+        byte[] newInternalX = new byte[currentSize + 1];
+        byte[] newInternalY = new byte[currentSize + 1];
 
-			System.arraycopy(internalX, index + readPosition, newInternalX, index + xs.length + readPosition, currentSize - index);
-			System.arraycopy(internalX, 0, newInternalX, 0, index + readPosition);
-			System.arraycopy(xs, 0, newInternalX, index, xs.length);
+        System.arraycopy(internalX,index + readPosition + 1,newInternalX,index + readPosition + 2,currentSize - index - 1);
+        System.arraycopy(internalX,0,newInternalX,0,index + readPosition + 1);
+        newInternalX[index + 1] = x;
 
-			System.arraycopy(internalY, index + readPosition, newInternalY, index + xs.length + readPosition, currentSize - index);
-			System.arraycopy(internalY, 0, newInternalY, 0, index + readPosition);
-			System.arraycopy(ys, 0, newInternalY, index, xs.length);
+        System.arraycopy(internalY,index + readPosition + 1,newInternalY,index + readPosition + 2,currentSize - index - 1);
+        System.arraycopy(internalY,0,newInternalY,0,index + readPosition + 1);
+        newInternalY[index + 1] = y;
 
-			internalX = newInternalX;
-			internalY = newInternalY;
-			writePosition += xs.length;
-		}
-	}
+        internalX = newInternalX;
+        internalY = newInternalY;
+        writePosition += 1;
+    }
 
 	public void moveReadHead () {
 		readPosition++;
