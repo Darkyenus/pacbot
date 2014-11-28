@@ -57,11 +57,13 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         }
         for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
-                if(a.controller.isFreeVisited(x, y))
-                    a.controller.setField(x, y, EnvironmentController.FREE_UNVISITED);
+                if(controller.isFreeVisited(x, y))
+                    controller.setField(x, y, EnvironmentController.FREE_UNVISITED);
+                controller.unsetMetaBit(x, y);
+                controller.setMetaNum(x, y, (byte) 0);
             }
         }
-        a.controller.setField(EnvironmentController.startX, EnvironmentController.startY, EnvironmentController.START);
+        controller.setField(EnvironmentController.startX, EnvironmentController.startY, EnvironmentController.START);
 
         Runtime.getRuntime().gc();
     }
