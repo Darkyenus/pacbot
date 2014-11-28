@@ -20,7 +20,7 @@ public class TriplePass extends Algo{
     //Kind of pooled vars; do not make final
     private byte calcRouteTargetX;
     private byte calcRouteTargetY;
-    private byte calcRouteDist;
+    private short calcRouteDist;
     private byte calcRoutePsX;
     private byte calcRoutePsY;
     private byte calcRouteRobotPosX;
@@ -319,7 +319,7 @@ public class TriplePass extends Algo{
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
                 if((x != botX || y != botY) && controller.getMetaNum(x, y) == 0){
-                    calcRouteDist = (byte)(distances[x][y] * 2);
+                    calcRouteDist = (short)(distances[x][y] * 2);
 
                     if(botX == x && botY == y + 1 && botDir == EnvironmentController.Direction.UP){
                         calcRouteDist -= 1;
