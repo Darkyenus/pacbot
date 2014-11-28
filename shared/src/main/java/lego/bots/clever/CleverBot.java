@@ -368,7 +368,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                 lastDir = EnvironmentController.Direction.RIGHT;
             }
 
-            if( calcRoutePsX < EnvironmentController.mazeHeight - 1 && (distances[ calcRoutePsX ][ calcRoutePsY + 1 ] < calcRouteMinDist || (distances[ calcRoutePsX ][ calcRoutePsY + 1 ] <= calcRouteMinDist && lastDir == EnvironmentController.Direction.UP))) {
+            if( calcRoutePsY < EnvironmentController.mazeHeight - 1 && (distances[ calcRoutePsX ][ calcRoutePsY + 1 ] < calcRouteMinDist || (distances[ calcRoutePsX ][ calcRoutePsY + 1 ] <= calcRouteMinDist && lastDir == EnvironmentController.Direction.UP))) {
                 targetX = calcRoutePsX;
                 targetY = (byte)(calcRoutePsY + 1);
                 lastDir = EnvironmentController.Direction.UP;
