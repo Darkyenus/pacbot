@@ -318,61 +318,67 @@ public final class CleverBot  extends Bot<EnvironmentController> {
             }
         }
     }
+
+    byte calcRoutePsX;
+    byte calcRoutePsY;
+    byte calcRouteRobotPosX;
+    byte calcRouteRobotPosY;
+    short calcRouteMinDist;
+
     private byte calcRoute(int index, byte targetX, byte targetY){
         PositionStack tmp = new PositionStack(STACK_SIZE);
         tmp.push(targetX, targetY);
 
-        byte psX = targetX;
-        byte psY = targetY;
-        byte robotPosX = botX;
-        byte robotPosY = botY;
-        botX = psX;
-        botY = psY; //We will end up here
-        short minDist;
+        calcRoutePsX = targetX;
+        calcRoutePsY = targetY;
+        calcRouteRobotPosX = botX;
+        calcRouteRobotPosY = botY;
+        botX = targetX; //We will end up here
+        botY = targetY;
 
         EnvironmentController.Direction lastDir = botDir;
 
         byte count = 0;
-        while( psX != robotPosX || psY != robotPosY ) {
-            minDist = Byte.MAX_VALUE;
-            targetX = psX;
-            targetY = psY;
+        while( calcRoutePsX != calcRouteRobotPosX || calcRoutePsY != calcRouteRobotPosY ) {
+            calcRouteMinDist = Byte.MAX_VALUE;
+            targetX = calcRoutePsX;
+            targetY = calcRoutePsY;
 
-            if( psX > 0 && (distances[ psX - 1 ][ psY ] < minDist || (distances[ psX - 1 ][ psY ] <= minDist && lastDir == EnvironmentController.Direction.LEFT))) {
-                minDist = distances[ psX - 1 ][ psY ];
-                targetX = (byte) (psX - 1);
-                targetY = psY;
+            if( calcRoutePsX > 0 && (distances[ calcRoutePsX - 1 ][ calcRoutePsY ] < calcRouteMinDist || (distances[ calcRoutePsX - 1 ][ calcRoutePsY ] <= calcRouteMinDist && lastDir == EnvironmentController.Direction.LEFT))) {
+                calcRouteMinDist = distances[ calcRoutePsX - 1 ][ calcRoutePsY ];
+                targetX = (byte) (calcRoutePsX - 1);
+                targetY = calcRoutePsY;
                 lastDir = EnvironmentController.Direction.LEFT;
             }
 
-            if( psY > 0 && (distances[ psX ][ psY - 1 ] < minDist || (distances[ psX ][ psY - 1 ] <= minDist && lastDir == EnvironmentController.Direction.DOWN))) {
-                minDist = distances[ psX ][ psY - 1 ];
-                targetX = psX;
-                targetY = (byte)(psY - 1);
+            if( calcRoutePsY > 0 && (distances[ calcRoutePsX ][ calcRoutePsY - 1 ] < calcRouteMinDist || (distances[ calcRoutePsX ][ calcRoutePsY - 1 ] <= calcRouteMinDist && lastDir == EnvironmentController.Direction.DOWN))) {
+                calcRouteMinDist = distances[ calcRoutePsX ][ calcRoutePsY - 1 ];
+                targetX = calcRoutePsX;
+                targetY = (byte)(calcRoutePsY - 1);
                 lastDir = EnvironmentController.Direction.DOWN;
             }
 
-            if( psX < EnvironmentController.mazeWidth - 1 && (distances[ psX + 1 ][ psY ] < minDist || (distances[ psX + 1 ][ psY ] <= minDist && lastDir == EnvironmentController.Direction.RIGHT))) {
-                minDist = distances[psX + 1][psY];
-                targetX = (byte) (psX + 1);
-                targetY = psY;
+            if( calcRoutePsX < EnvironmentController.mazeWidth - 1 && (distances[ calcRoutePsX + 1 ][ calcRoutePsY ] < calcRouteMinDist || (distances[ calcRoutePsX + 1 ][ calcRoutePsY ] <= calcRouteMinDist && lastDir == EnvironmentController.Direction.RIGHT))) {
+                calcRouteMinDist = distances[calcRoutePsX + 1][calcRoutePsY];
+                targetX = (byte) (calcRoutePsX + 1);
+                targetY = calcRoutePsY;
                 lastDir = EnvironmentController.Direction.RIGHT;
             }
 
-            if( psY < EnvironmentController.mazeHeight - 1 && (distances[ psX ][ psY + 1 ] < minDist || (distances[ psX ][ psY + 1 ] <= minDist && lastDir == EnvironmentController.Direction.UP))) {
-                targetX = psX;
-                targetY = (byte)(psY + 1);
+            if( calcRoutePsX < EnvironmentController.mazeHeight - 1 && (distances[ calcRoutePsX ][ calcRoutePsY + 1 ] < calcRouteMinDist || (distances[ calcRoutePsX ][ calcRoutePsY + 1 ] <= calcRouteMinDist && lastDir == EnvironmentController.Direction.UP))) {
+                targetX = calcRoutePsX;
+                targetY = (byte)(calcRoutePsY + 1);
                 lastDir = EnvironmentController.Direction.UP;
             }
 
             tmp.push(targetX, targetY);
 
-            if(psX == botX && psY == botY){
+            if(calcRoutePsX == botX && calcRoutePsY == botY){
                 botDir = lastDir;
             }
 
-            psX = targetX;
-            psY = targetY;
+            calcRoutePsX = targetX;
+            calcRoutePsY = targetY;
 
             if( count ++ > 100 ) {
                 controller.onError(EnvironmentController.ERROR_STUCK_IN_LOOP);  // Cannot compute route, algo is stuck.
