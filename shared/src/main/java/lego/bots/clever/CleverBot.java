@@ -27,8 +27,13 @@ public final class CleverBot  extends Bot<EnvironmentController> {
     private String bestName; //TODO remove name stuff because NXT performance
 
     public void prepare(){
+        Runtime.getRuntime().gc();
+
+        //Here goes every single algo that has been created. Ever.
 
         useAlgo(new ThreePass(), "ThreePass");
+
+        //
 
         if(bestRoute != null){
             System.out.println("\nFound best route using \""+bestName+"\" algo.\nIt collects "+bestScoredPoints+"/40 points @ price of "+bestUnitPrice+"/100 points\n");
@@ -48,6 +53,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
             bestScoredPoints = a.getBestScoredPoints();
             bestName = name;
         }
+        Runtime.getRuntime().gc();
     }
 
 
@@ -57,6 +63,8 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
         byte prevX = 0;
         byte prevY = 0;
+        byte nextX, nextY;
+
         if(!bestRoute.isEmpty()) {
             prevX = bestRoute.retreiveFirstX();
             prevY = bestRoute.retreiveFirstY();
@@ -65,8 +73,8 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
         //Preprocess path
         while(!bestRoute.isEmpty()){
-            byte nextX = bestRoute.retreiveFirstX();
-            byte nextY = bestRoute.retreiveFirstY();
+            nextX = bestRoute.retreiveFirstX();
+            nextY = bestRoute.retreiveFirstY();
             bestRoute.moveReadHead();
 
             if (nextX == prevX && nextY == prevY + 1) {

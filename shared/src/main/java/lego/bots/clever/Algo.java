@@ -42,14 +42,16 @@ public abstract class Algo implements Runnable {
 
         byte prevX = 0;
         byte prevY = 0;
+        byte nextX, nextY = 0;
+
         if(!route.isEmpty()) {
             prevX = route.retreiveFirstX();
             prevY = route.retreiveFirstY();
         }
 
         for(byte i = 1; i < route.size(); i++){
-            byte nextX = route.getXAt(i);
-            byte nextY = route.getYAt(i);
+            nextX = route.getXAt(i);
+            nextY = route.getYAt(i);
 
             if (nextX == prevX && nextY == prevY + 1) {
                 if (actualDir == EnvironmentController.Direction.DOWN) {
