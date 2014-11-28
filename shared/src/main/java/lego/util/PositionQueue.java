@@ -1,90 +1,94 @@
+
 package lego.util;
 
-/**
- * High performance lightweight stack.
+/** High performance lightweight stack.
  *
- * Created by jIRKA on 11.11.2014.
- */
+ * Created by jIRKA on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
 public final class PositionQueue {
-    private byte[] internalX;
-    private byte[] internalY;
-    private int writePosition = 0;
-    private int readPosition = 0;
 
-    public PositionQueue(int initialSize) {
-        internalX = new byte[initialSize];
-        internalY = new byte[initialSize];
-    }
+	private byte[] internalX;
+	private byte[] internalY;
+	private int writePosition = 0;
+	private int readPosition = 0;
 
-    public boolean isEmpty(){
-        return readPosition >= writePosition;
-    }
+	public PositionQueue (int initialSize) {
+		internalX = new byte[initialSize];
+		internalY = new byte[initialSize];
+	}
 
-    public int size(){return writePosition;}
+	public boolean isEmpty () {
+		return readPosition >= writePosition;
+	}
 
-    public byte retreiveFirstX(){
-        if(readPosition >= writePosition)
-            return -1;
+	public int size () {
+		return writePosition;
+	}
 
-        return internalX[readPosition];
-    }
+	public byte retreiveFirstX () {
+		if (readPosition >= writePosition) return -1;
 
-    public byte retreiveFirstY(){
-        if(readPosition >= writePosition)
-            return -1;
+		return internalX[readPosition];
+	}
 
-        return internalY[readPosition];
-    }
+	public byte retreiveFirstY () {
+		if (readPosition >= writePosition) return -1;
 
-    public byte getXAt(int index){
-        return internalX[index];
-    }
-    public byte getYAt(int index){
-        return internalY[index];
-    }
+		return internalY[readPosition];
+	}
 
-    public void insertAfter(int index, byte x, byte y){
-        int currentSize = internalX.length;
-        byte[] newInternalX = new byte[currentSize + 1];
-        byte[] newInternalY = new byte[currentSize + 1];
+	public byte getXAt (int index) {
+		return internalX[index];
+	}
 
-        System.arraycopy(internalX,index + readPosition + 1,newInternalX,index + readPosition + 2,currentSize - index - 1);
-        System.arraycopy(internalX,0,newInternalX,0,index + readPosition + 1);
-        newInternalX[index + 1] = x;
+	public byte getYAt (int index) {
+		return internalY[index];
+	}
 
-        System.arraycopy(internalY,index + readPosition + 1,newInternalY,index + readPosition + 2,currentSize - index - 1);
-        System.arraycopy(internalY,0,newInternalY,0,index + readPosition + 1);
-        newInternalY[index + 1] = y;
+	public void insertAfter (int index, byte[] xs, byte[] ys) {
+		if (xs.length != ys.length) throw new IllegalArgumentException("Size of x array has to be same as size of y array");
+		if (xs.length != 0) {
+			int currentSize = internalX.length;
+			byte[] newInternalX = new byte[currentSize + xs.length];
+			byte[] newInternalY = new byte[currentSize + xs.length];
 
-        internalX = newInternalX;
-        internalY = newInternalY;
-        writePosition += 1;
-    }
+			System.arraycopy(internalX, index + readPosition, newInternalX, index + xs.length + readPosition, currentSize - index);
+			System.arraycopy(internalX, 0, newInternalX, 0, index + readPosition);
+			System.arraycopy(xs, 0, newInternalX, index, xs.length);
 
-    public void moveReadHead(){
-        readPosition ++;
-    }
+			System.arraycopy(internalY, index + readPosition, newInternalY, index + xs.length + readPosition, currentSize - index);
+			System.arraycopy(internalY, 0, newInternalY, 0, index + readPosition);
+			System.arraycopy(ys, 0, newInternalY, index, xs.length);
 
-    public void pushNext(byte valueX, byte valueY){
-        int currentSize = internalX.length;
-        if(writePosition == currentSize){
-            byte[] newInternalX = new byte[currentSize<<2];
-            byte[] newInternalY = new byte[currentSize<<2];
-            System.arraycopy(internalX,readPosition,newInternalX,0,currentSize);
-            System.arraycopy(internalY,readPosition,newInternalY,0,currentSize);
-            internalX = newInternalX;
-            internalY = newInternalY;
-            writePosition -= readPosition;
-            readPosition = 0;
-        }
-        internalX[writePosition] = valueX;
-        internalY[writePosition] = valueY;
-        writePosition++;
-    }
+			internalX = newInternalX;
+			internalY = newInternalY;
+			writePosition += xs.length;
+		}
+	}
 
-    public void clear(){
-        writePosition = 0;
-        readPosition = 0;
-    }
+	public void moveReadHead () {
+		readPosition++;
+	}
+
+	public void pushNext (byte valueX, byte valueY) {
+		int currentSize = internalX.length;
+		if (writePosition == currentSize) {
+			byte[] newInternalX = new byte[currentSize << 2];
+			byte[] newInternalY = new byte[currentSize << 2];
+			System.arraycopy(internalX, readPosition, newInternalX, 0, currentSize);
+			System.arraycopy(internalY, readPosition, newInternalY, 0, currentSize);
+			internalX = newInternalX;
+			internalY = newInternalY;
+			writePosition -= readPosition;
+			readPosition = 0;
+		}
+		internalX[writePosition] = valueX;
+		internalY[writePosition] = valueY;
+		writePosition++;
+	}
+
+	public void clear () {
+		writePosition = 0;
+		readPosition = 0;
+	}
 }

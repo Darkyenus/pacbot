@@ -10,7 +10,7 @@ import lego.simulator.{MapTile, MazeMap}
  * Date: 24/10/14
  * Time: 15:24
  */
-class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val onError:(Byte)=>Unit) extends EnvironmentController {
+class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSimulatorController)=>Unit,val onError:(Byte)=>Unit) extends EnvironmentController {
 
   override def moveByXAsync(xMove: Byte): MoveFieldsTask = {
     val direction:Byte = xMove.signum.toByte
@@ -71,7 +71,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:()=>Unit,val on
 
   private class MockMoveFieldTask(movedFields:Byte) extends MoveFieldsTask {
 
-    onStatusChanged()
+    onStatusChanged(EnvironmentSimulatorController.this)
 
     override def isDone: Boolean = true
 

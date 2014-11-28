@@ -6,7 +6,7 @@ package lego.bots.weightnav;
  * Date: 17.11.2014
  * Time: 21:43
  */
-public class Node {
+public final class Node {
 
     byte x, y;
 

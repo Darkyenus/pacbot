@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Date: 17.11.2014
  * Time: 21:42
  */
-public class Debug {
+public final class Debug {
 
     public static void printEdge(byte[] edge){
         System.out.print("<-> ");

@@ -64,24 +64,24 @@ object Build extends Build {
    */
   lazy val nxtController = Project("nxt",file("nxt"),settings = sharedSettings ++ Seq(
     unmanagedBase := file("lejos") / "lib" / "nxt", //Only nxt controller can depend on nxt libs! They are not on pc!
-    mainClass := Some("lego.nxt.bootstrap.MainBootstrap"),
+    mainClass := Some("lego.nxt.Bootstrap"),
     compileNXJ := {
-      "./compileNXJ.sh".!
+      "./project/compileNXJ.sh".!
     },
     linkNXJ := {
-      s"./linkNXJ.sh ${mainClass.value.getOrElse(sys.error("Specify mainClass for nxtController first."))}".!
+      s"./project/linkNXJ.sh ${mainClass.value.getOrElse(sys.error("Specify mainClass for nxtController first."))}".!
     },
     uploadNXJ := {
-      "./uploadNXJ.sh -u".!
+      "./project/uploadNXJ.sh -u".!
     },
     uploadRunNXJ := {
-      "./uploadNXJ.sh -r -u".!
+      "./project/uploadNXJ.sh -r -u".!
     },
     debugNXJ := {
       import sbt.complete.DefaultParsers._
       val args = spaceDelimited("<arg>").parsed
 
-      s"./debugNXJ.sh ${args.addString(new StringBuilder," ")}".!
+      s"./project/debugNXJ.sh ${args.addString(new StringBuilder," ")}".!
     },
     nxw := {
       def listJavaFiles(root:File):List[String] = {

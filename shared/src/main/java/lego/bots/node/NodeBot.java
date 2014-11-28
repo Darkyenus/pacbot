@@ -4,6 +4,7 @@ import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.util.ByteStack;
+import lego.util.Latch;
 import lego.util.PositionStack;
 
 /**
@@ -12,11 +13,11 @@ import lego.util.PositionStack;
  * Date: 17.11.2014
  * Time: 18:31
  */
-public class NodeBot extends Bot<EnvironmentController> {
+public final class NodeBot extends Bot<EnvironmentController> {
 
     static final int STACK_SIZE = 16;
 
-    private boolean continueRunning = true;
+    private final Latch startLatch = new Latch();
 
     private static final EnvironmentController.FieldStatus FREE = EnvironmentController.FieldStatus.FREE_UNVISITED;
     private static final EnvironmentController.FieldStatus BLOCK = EnvironmentController.FieldStatus.OBSTACLE;
@@ -691,11 +692,7 @@ public class NodeBot extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-
-        try {
-            wait();
-        } catch (InterruptedException e) {
-        }
+        startLatch.pass();
 
         if(prepareThread.isAlive()){
             try {
@@ -728,17 +725,11 @@ public class NodeBot extends Bot<EnvironmentController> {
     public void onEvent(BotEvent event) {
         switch (event){
             case RUN_ENDED:
-                continueRunning = false;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
             case RUN_STARTED:
                 stopPreparing = true;
-                continueRunning = true;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
             case RUN_PREPARE:
                 prepareThread.setPriority(Thread.MAX_PRIORITY);

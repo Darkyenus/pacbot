@@ -1,13 +1,13 @@
 package lego.simulator
 
-import java.io.{IOException, FileNotFoundException, FileInputStream, File}
+import java.io
+import java.io.FileInputStream
 
 import lego.api.controllers.EnvironmentController
 import lego.api.controllers.EnvironmentController.FieldStatus
-import lego.api.{BotEvent, AbstractBootstrap, Bot}
+import lego.api.{Bot, BotEvent}
 import lego.simulator.controllers.EnvironmentSimulatorController
-import lego.api.controllers.EnvironmentController.FieldStatus._
-import java.io
+import lego.util.Latch
 
 /**
  * Private property.
@@ -16,29 +16,22 @@ import java.io
  * Time: 12:59
  */
 object TerminalMain extends App {
-  def create(bot:String,mazeMap:MazeMap,onStatusChanged:()=>Unit,onError:(Byte)=>Unit):(Bot[EnvironmentSimulatorController],EnvironmentSimulatorController) = {
-    val botClass = Class.forName(bot)
 
-    val botInstance = botClass.newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
-
-    val controllerInstance = new EnvironmentSimulatorController(mazeMap,onStatusChanged,onError)
-
-    (botInstance,controllerInstance)
+  def readOrDefault(default:String):String = {
+    val in = readLine()
+    if(in.trim.isEmpty){
+      default
+    }else {
+      in
+    }
   }
-
-
 
   val defaultMap = new FileInputStream(new io.File("mappointer")).read().toChar.toString
   println("Enter Map Pointer ["+defaultMap+"]:")
 
-  val map = MazeMap({
-    val in = readLine()
-    if(in.isEmpty){
-      defaultMap
-    }else in
-  })
+  val map = MazeMap(readOrDefault(defaultMap))
 
-  val onChanged = () => {
+  val onChanged:(EnvironmentSimulatorController) => Unit = (controller:EnvironmentSimulatorController) => {
     val maze = map.maze
     val mindMaze:Array[Array[FieldStatus]] = controller.getMindMaze
 
@@ -73,7 +66,7 @@ object TerminalMain extends App {
     result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+")
 
     println(result.toString())
-    val input = readLine()
+    readLine()
   }
 
   val onError = (error:Byte) => {
@@ -84,34 +77,31 @@ object TerminalMain extends App {
   println()
   val defaultRobotMain = "lego.bots.clever.CleverBot"
   println("Enter robot main ["+defaultRobotMain+"]:")
-  val (bot,controller:EnvironmentSimulatorController) = create({
-    val in = readLine()
-    if(in.isEmpty){
-      defaultRobotMain
-    }else{
-      in
-    }
-  },map,onChanged,onError)
 
+  val bot = Class.forName(readOrDefault(defaultRobotMain)).newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
+
+  val controller = new EnvironmentSimulatorController(map,onChanged,onError)
+
+  val initLatch = new Latch()
 
   val robotThread = new Thread(){
     override def run(): Unit = {
-      AbstractBootstrap.main(bot,controller)
+      controller.initialize()
+      bot.controller = controller
+      initLatch.open()
+      bot.run()
+      controller.deinitialize()
     }
   }
   robotThread.setDaemon(false)
   robotThread.setName("RobotThread")
   robotThread.start()
 
-  while(!controller.isInitialized()){
-    Thread.sleep(50) //Wait until bot is not initialized
-  }
-  Thread.sleep(10) //Race condition, but nevermind
+  initLatch.pass() //Wait for bot to initialize. Should be instant.
 
   println("Preparing run.\n")
   val now = System.currentTimeMillis()
   bot.onEvent(BotEvent.RUN_PREPARE)
   println("\nRun prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s.\n")
-  Thread.sleep(100)
   bot.onEvent(BotEvent.RUN_STARTED)
 }

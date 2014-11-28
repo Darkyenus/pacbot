@@ -3,6 +3,7 @@ package lego.bots.clever;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.util.Latch;
 import lego.util.PositionQueue;
 import lego.util.PositionStack;
 import lego.util.Queue;
@@ -13,9 +14,9 @@ import lego.util.Queue;
  * Date: 23.11.2014
  * Time: 15:07
  */
-public class CleverBot  extends Bot<EnvironmentController> {
+public final class CleverBot  extends Bot<EnvironmentController> {
 
-    private boolean continueRunning = true;
+    private final Latch startLatch = new Latch();
 
     private final byte MAX_LINE_LENGTH = 3;
     private static final int STACK_SIZE = 16;
@@ -543,9 +544,7 @@ public class CleverBot  extends Bot<EnvironmentController> {
 
     @Override
     public synchronized void run() {
-        try {
-            this.wait();
-        } catch (InterruptedException ignored) {}
+        startLatch.pass();
 
         //TODO remove
         for(byte x = 0; x < 9; x++){
@@ -582,16 +581,10 @@ public class CleverBot  extends Bot<EnvironmentController> {
             case RUN_PREPARE:
                 prepare();
             case RUN_ENDED:
-                continueRunning = false;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
             case RUN_STARTED:
-                continueRunning = true;
-                synchronized (this){
-                    notifyAll(); //Should wake up the main thread.
-                }
+                startLatch.open();
                 break;
         }
     }

@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * Date: 18.11.2014
  * Time: 9:46
  */
-public class GraphStruct {
+public final class GraphStruct {
 
     public static final byte PRICE_MOVE = 1;
     public static final byte PRICE_TURN_AROUND = 2;
