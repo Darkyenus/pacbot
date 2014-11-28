@@ -47,7 +47,7 @@ object TerminalMain extends App {
 
   val maps:Seq[Char] = {
     val input = readOrDefault(mapPointerContent).trim
-    if(input == "app"){
+    if(input == "all"){
       ('1' to '8').toSeq
     }else if(input.isEmpty){
       sys.error("No maps to simulate on specified.")
@@ -62,11 +62,12 @@ object TerminalMain extends App {
   if(availableBots.isEmpty){
     sys.error("No bots found on classpath. Bots must be placed in lego.bots package and must support EnvironmentController.")
   }
-  val lastBot = 1 //TODO load last bot
-  println("Choose a bot["+lastBot+"]:")
+  val lastBot = 0 //TODO load last bot
+  println("Choose a bot ["+lastBot+"]:")
   for((bot,index) <- availableBots.zipWithIndex){
     println(index +": "+bot.getSimpleName)
   }
+  println()
 
   val bot = availableBots(readIntOrDefault(lastBot))
 

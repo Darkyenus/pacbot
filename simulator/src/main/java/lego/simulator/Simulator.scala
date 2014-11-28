@@ -33,7 +33,7 @@ object Simulator {
         if(controller.getX == x && controller.getY == y){
           result.append("(-)")
         }else{
-          result.append(mindMaze(x)(y) match {
+          result.append((mindMaze(x)(y) & 0xC0).toByte match {
             case FREE_UNVISITED => " o "
             case FREE_VISITED => "   "
             case OBSTACLE => "[X]"
