@@ -28,6 +28,17 @@ public final class CleverBot  extends Bot<EnvironmentController> {
     private final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(STACK_SIZE);
     private final Queue<Byte> pDistances = new Queue<Byte>(STACK_SIZE);
 
+    //Kind of pooled vars; do not make final
+    private byte calcRouteTargetX;
+    private byte calcRouteTargetY;
+    private byte calcRouteDist;
+    private byte calcRoutePsX;
+    private byte calcRoutePsY;
+    private byte calcRouteRobotPosX;
+    private byte calcRouteRobotPosY;
+    private short calcRouteMinDist;
+
+
     private void preprocess(){
         //Move by one downwards
         outputRoute.pushNext(botX, (byte)(botY - 1));
@@ -145,8 +156,6 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         byte res;
         byte lastBotX = botX, lastBotY = botY;
         EnvironmentController.Direction lastBotDir = botDir;
-        int j = 0;
-
 
         for(int i = 1; i < outputRoute.size() - 1; i ++){
             x = outputRoute.getXAt(i);
@@ -319,12 +328,6 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         }
     }
 
-    byte calcRoutePsX;
-    byte calcRoutePsY;
-    byte calcRouteRobotPosX;
-    byte calcRouteRobotPosY;
-    short calcRouteMinDist;
-
     private byte calcRoute(int index, byte targetX, byte targetY){
         PositionStack tmp = new PositionStack(STACK_SIZE);
         tmp.push(targetX, targetY);
@@ -395,42 +398,43 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         }
         return (byte)(index + i);
     }
+
     private byte calcRoute(int index) {
-        byte targetX = Byte.MIN_VALUE;
-        byte targetY = Byte.MIN_VALUE;
-        byte minDist = Byte.MAX_VALUE;
-        byte dist;
+
+        calcRouteTargetX = Byte.MIN_VALUE;
+        calcRouteTargetY = Byte.MIN_VALUE;
+        calcRouteMinDist = Byte.MAX_VALUE;
 
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
                 if((x != botX || y != botY) && controller.getMetaNum(x, y) == 0){
-                    dist = (byte)(distances[x][y] * 2);
+                    calcRouteDist = (byte)(distances[x][y] * 2);
 
                     if(botX == x && botY == y + 1 && botDir == EnvironmentController.Direction.UP){
-                        dist -= 1;
+                        calcRouteDist -= 1;
                     }else if(botX == x && botY == y - 1 && botDir == EnvironmentController.Direction.DOWN){
-                        dist -= 1;
+                        calcRouteDist -= 1;
                     }else if(botX == x + 1&& botY == y && botDir == EnvironmentController.Direction.LEFT){
-                        dist -= 1;
+                        calcRouteDist -= 1;
                     }else if(botX == x - 1 && botY == y && botDir == EnvironmentController.Direction.RIGHT){
-                        dist -= 1;
+                        calcRouteDist -= 1;
                     }
 
-                    if(dist < minDist){// || (dist == minDist && cmpDistFromBorder( x, y, targetX,targetY ))){
+                    if(calcRouteDist < calcRouteMinDist){// || (calcRouteDist == minDist && cmpDistFromBorder( x, y, calcRouteTargetX,calcRouteTargetY ))){
 
-                        minDist = dist;
-                        targetX = x;
-                        targetY = y;
+                        calcRouteMinDist = calcRouteDist;
+                        calcRouteTargetX = x;
+                        calcRouteTargetY = y;
 
                     }
                 }
             }
         }
-        if(targetX == Byte.MIN_VALUE || targetX == Byte.MIN_VALUE){
+        if(calcRouteTargetX == Byte.MIN_VALUE || calcRouteTargetX == Byte.MIN_VALUE){
             throw new Error("Done");
         }
 
-        return calcRoute(index, targetX, targetY);
+        return calcRoute(index, calcRouteTargetX, calcRouteTargetY);
     }
 
     private void resetToIterate(){
