@@ -82,11 +82,17 @@ object Simulator {
 
     val robotThread = new Thread(){
       override def run(): Unit = {
-        controller.initialize()
-        bot.controller = controller
-        initLatch.open()
-        bot.run()
-        controller.deinitialize()
+        try {
+          controller.initialize()
+          bot.controller = controller
+          initLatch.open()
+          bot.run()
+          controller.deinitialize()
+        } catch {
+          case e:Exception =>
+            println(s"Bot ${botClass.getCanonicalName} threw an exception on map $mapName:")
+            e.printStackTrace()
+        }
       }
     }
     robotThread.setDaemon(false)

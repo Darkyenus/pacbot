@@ -53,7 +53,7 @@ object TerminalMain extends App {
     }else if(input.isEmpty){
       sys.error("No maps to simulate on specified.")
     }else{
-      input.split(" ").map(_.charAt(0))
+      input.replaceAll("\\s","") //Remove all whitespace (Unlikely to be name of map)
     }
   }
 
