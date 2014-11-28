@@ -18,10 +18,8 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 
-    private final byte MAX_LINE_LENGTH = 3;
     private static final int STACK_SIZE = 16;
 
-    private final byte[][] maze = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
     private final short[][] distances = new short[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight]; //After about 4 days of no idea I noticed that this might overflow
     byte botX = EnvironmentController.startX;
     byte botY = EnvironmentController.startY + 1; //I don't want to handle special cases for start field again.
@@ -35,46 +33,17 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         outputRoute.pushNext(botX, (byte)(botY - 1));
         outputRoute.pushNext(botX, botY);
 
-        byte start;
-        //Sorry about this not cache optimal iteration, but i had to do it
-        for(byte y = 0; y < EnvironmentController.mazeHeight; y++) {
-            //start = -1;
-            for (byte x = 0; x < EnvironmentController.mazeWidth; x++) {
-                /*maze[x][y] = -1; //We don't intent to go there
-                if (controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED) {
-                    if (x - start == MAX_LINE_LENGTH) {
-                        maze[start + 1][y] = 0; //Go there
-                        maze[start + 2][y] = 0;
-                        maze[x][y] = 0;
-                    } else if (x - start > MAX_LINE_LENGTH) {
-                        maze[x][y] = 0;
-                    }
-                } else {
-                    start = x;*/
-                    if(controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
-                        maze[x][y] = 0;
-                    }else{
-                        maze[x][y] = -2; //Cannot go there
-                    }
-                //}
-            }
-        }
-        maze[botX][botY] = 1;
-
-        /*for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-            start = -1;
-            for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
-                if(controller.getField(x,y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
-                    if(y - start == MAX_LINE_LENGTH){
-                        maze[x][start + 1] = 0;
-                        maze[x][start + 2] = 0;
-                        maze[x][y] = 0;
-                    }else if(y - start > MAX_LINE_LENGTH){
-                        maze[x][y] = 0;
-                    }
+        for (byte x = 0; x < EnvironmentController.mazeWidth; x++) {
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y++) {
+                if(controller.isFree(x,y)){
+                    controller.setMetaNum(x, y, (byte)0);
+                }else{
+                    controller.setMetaNum(x, y, (byte)31); //Cannot go there
                 }
             }
-        }*/
+        }
+
+        controller.setMetaNum(botX, botY, (byte)1);
     }
 
     public void prepare(){
@@ -91,8 +60,6 @@ public final class CleverBot  extends Bot<EnvironmentController> {
             }
         }
         //TODO: postprocess();
-
-        System.out.println("Out size: "+outputRoute.size());
 
         EnvironmentController.Direction actualDir = null;
         byte movingDist = 0;
@@ -174,15 +141,6 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
     private void checkForDeadEnds(){
 
-        //TODO remove
-
-        for(int y = 0; y < 6; y++){
-            for(int x = 0; x < 9; x++){
-                System.out.print(" "+(maze[x][y]+2)+" ");
-            }
-            System.out.println();
-        }
-
         byte x, y;
         byte res;
         byte lastBotX = botX, lastBotY = botY;
@@ -194,59 +152,52 @@ public final class CleverBot  extends Bot<EnvironmentController> {
             x = outputRoute.getXAt(i);
             y = outputRoute.getYAt(i);
 
-            if(y < EnvironmentController.mazeHeight - 1 && maze[x][y + 1] == 0){
-                System.out.println("Up");
+            if(y < EnvironmentController.mazeHeight - 1 && controller.getMetaNum(x,(byte)(y + 1)) == 0){
                 resetToIterate();
-                res = countDots(x, (byte) (y + 1), EnvironmentController.Direction.DOWN, x, y);
+                res = countDots(x, (byte) (y + 1), EnvironmentController.Direction.UP, x, y);
                 if (res > 0) {
-                    outputRoute.insertAfter(i, x, (byte)(y + 1));
                     botX = x;
-                    botY = (byte)(y + 1);
-                    botDir = EnvironmentController.Direction.UP;
-                    moveNext(i+1, x, y);
+                    botY = y;
+                    botDir = EnvironmentController.Direction.DOWN;
+                    moveNext(i, x, y);
+                    break;
                 }
             }
-            if(y > 0 && maze[x][y - 1] == 0){
-                System.out.println("Down");
+            if(y > 0 && controller.getMetaNum(x,(byte)(y - 1)) == 0){
                 resetToIterate();
-                res = countDots(x, (byte) (y - 1), EnvironmentController.Direction.UP, x, y);
-                System.out.println(res);
+                res = countDots(x, (byte) (y - 1), EnvironmentController.Direction.DOWN, x, y);
                 if (res > 0) {
-                    outputRoute.insertAfter(i, x, (byte)(y - 1));
                     botX = x;
-                    botY = (byte)(y - 1);
-                    botDir = EnvironmentController.Direction.DOWN;
-                    moveNext(i+1, x, y);
+                    botY = y;
+                    botDir = EnvironmentController.Direction.UP;
+                    moveNext(i, x, y);
+                    break;
                 }
 
             }
-            if(x < EnvironmentController.mazeWidth && maze[x + 1][y] == 0){
-                System.out.println("Right @ "+x+", "+y);
+            if(x < EnvironmentController.mazeWidth - 1 && controller.getMetaNum((byte)(x + 1), y) == 0){
                 resetToIterate();
                 res = countDots((byte)(x + 1), y, EnvironmentController.Direction.LEFT, x, y);
-                System.out.println(res);
                 if (res > 0) {
-                    outputRoute.insertAfter(i, (byte)(x + 1), y);
-                    botX = (byte)(x + 1);
+                    botX = x;
                     botY = y;
                     botDir = EnvironmentController.Direction.RIGHT;
-                    moveNext(i+1, x, y);
+                    moveNext(i, x, y);
+                    break;
                 }
             }
-            if(x > 0 && maze[x - 1][y] == 0){
-                System.out.println("Left");
+            if(x > 0 && controller.getMetaNum((byte)(x - 1), y) == 0){
                 resetToIterate();
                 res = countDots((byte)(x - 1), y, EnvironmentController.Direction.RIGHT, x, y);
                 if (res > 0) {
-                    outputRoute.insertAfter(i, (byte)(x - 1), y);
-                    botX = (byte)(x - 1);
+                    botX = x;
                     botY = y;
                     botDir = EnvironmentController.Direction.LEFT;
-                    moveNext(i+1, x, y);
+                    moveNext(i, x, y);
+                    break;
                 }
             }
         }
-        System.out.println(outputRoute.size());
         botX = lastBotX;
         botY = lastBotY;
         botDir = lastBotDir;
@@ -255,48 +206,51 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
     private byte moveNext(int index, byte returnX, byte returnY){
         byte res = 0;
-        if(botX > 0 && botY > 0 && botX < EnvironmentController.mazeWidth && botY < EnvironmentController.mazeHeight && botX + botDir.x > 0 && botY + botDir.y > 0 && botX + botDir.x < EnvironmentController.mazeWidth && botY + botDir.y < EnvironmentController.mazeHeight && maze[botX + botDir.x][botY + botDir.y] == 0){
+        if(botX >= 0 && botY >= 0 && botX < EnvironmentController.mazeWidth && botY < EnvironmentController.mazeHeight && botX + botDir.x >= 0 && botY + botDir.y >= 0 && botX + botDir.x < EnvironmentController.mazeWidth && botY + botDir.y < EnvironmentController.mazeHeight && controller.getMetaNum((byte)(botX + botDir.x), (byte)(botY + botDir.y)) == 0){
             for(byte i = 1; i < 10; i ++){
-                if(botX + botDir.x > 0 && botY + botDir.y > 0 && botX + botDir.x < EnvironmentController.mazeWidth && botY + botDir.y < EnvironmentController.mazeHeight && maze[botX + botDir.x][botY + botDir.y] == 0){
+                if(botX + botDir.x >= 0 && botY + botDir.y >= 0 && botX + botDir.x < EnvironmentController.mazeWidth && botY + botDir.y < EnvironmentController.mazeHeight && controller.getMetaNum((byte)(botX + botDir.x), (byte)(botY + botDir.y)) == 0){
                     botX += botDir.x;
                     botY += botDir.y;
-                    maze[botX][botY] ++;
-                    outputRoute.insertAfter(index + i, botX, botY);
+                    controller.setMetaNum(botX, botY, (byte)(controller.getMetaNum(botX, botY) + 1));
+                    outputRoute.insertAfter(index + i - 1, botX, botY);
                     res ++;
                 }else{
                     break;
                 }
             }
-            System.out.println("Moving forward "+res);
-            checkForDeadEnds();
+            if(returnX == -1) {
+                checkForDeadEnds();
+            }else{
+                calcDistances();
+                res = (byte)(calcRoute(index + res, returnX, returnY) - index);
+            }
         }else if(botX >= 0 && botY >= 0 && botX < EnvironmentController.mazeWidth && botY < EnvironmentController.mazeHeight){
             EnvironmentController.Direction leftDir = botDir.left;
             EnvironmentController.Direction rightDir = botDir.right;
             byte leftDist, rightDist;
 
             for(leftDist = 1; leftDist < 10; leftDist ++){
-                if((botX + leftDir.x * leftDist < 0 || botY + leftDir.y * leftDist < 0 || botX + leftDir.x * leftDist >= EnvironmentController.mazeWidth || botY + leftDir.y * leftDist >= EnvironmentController.mazeHeight) || (botX + leftDir.x * leftDist >= 0 && botY + leftDir.y * leftDist >= 0 && botX + leftDir.x * leftDist < EnvironmentController.mazeWidth && botY + leftDir.y * leftDist < EnvironmentController.mazeHeight && maze[botX + leftDir.x * leftDist][botY + leftDir.y * leftDist] != 0)) {
+                if((botX + leftDir.x * leftDist < 0 || botY + leftDir.y * leftDist < 0 || botX + leftDir.x * leftDist >= EnvironmentController.mazeWidth || botY + leftDir.y * leftDist >= EnvironmentController.mazeHeight) ||
+                        (botX + leftDir.x * leftDist >= 0 && botY + leftDir.y * leftDist >= 0 && botX + leftDir.x * leftDist < EnvironmentController.mazeWidth && botY + leftDir.y * leftDist < EnvironmentController.mazeHeight &&
+                                controller.getMetaNum((byte)(botX + leftDir.x * leftDist), (byte)(botY + leftDir.y * leftDist)) != 0)) {
                     leftDist --;
                     break;
                 }
             }
             for(rightDist = 1; rightDist < 10; rightDist ++) {
-                if ((botX + rightDir.x * rightDist < 0 || botY + rightDir.y * rightDist < 0 || botX + rightDir.x * rightDist >= EnvironmentController.mazeWidth || botY + rightDir.y * rightDist >= EnvironmentController.mazeHeight) || (botX + rightDir.x * rightDist >= 0 && botY + rightDir.y * rightDist >= 0 && botX + rightDir.x * rightDist < EnvironmentController.mazeWidth && botY + rightDir.y * rightDist < EnvironmentController.mazeHeight && maze[botX + rightDir.x * rightDist][botY + rightDir.y * rightDist] != 0)){
+                if ((botX + rightDir.x * rightDist < 0 || botY + rightDir.y * rightDist < 0 || botX + rightDir.x * rightDist >= EnvironmentController.mazeWidth || botY + rightDir.y * rightDist >= EnvironmentController.mazeHeight) ||
+                        (botX + rightDir.x * rightDist >= 0 && botY + rightDir.y * rightDist >= 0 && botX + rightDir.x * rightDist < EnvironmentController.mazeWidth && botY + rightDir.y * rightDist < EnvironmentController.mazeHeight &&
+                                controller.getMetaNum((byte)(botX + rightDir.x * rightDist), (byte)(botY + rightDir.y * rightDist)) != 0)){
                     rightDist --;
                     break;
                 }
             }
 
-            System.out.println("x: "+botX+", "+botY);
-            System.out.println("Dir: "+botDir);
-            System.out.println("Left: "+leftDir+", "+leftDist);
-            System.out.println("Right: "+rightDir+", "+rightDist);
-
             if(leftDist > 0 && ((rightDist > 0 && leftDist < rightDist) || rightDist <= 0)){
                 for(byte i = 0; i < leftDist; i++){
                     botX += leftDir.x;
                     botY += leftDir.y;
-                    maze[botX][botY] ++;
+                    controller.setMetaNum(botX, botY, (byte)(controller.getMetaNum(botX, botY) + 1));
                     outputRoute.insertAfter(index + i, botX, botY);
                 }
                 botDir = leftDir;
@@ -305,7 +259,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                 for(byte i = 0; i < rightDist; i++){
                     botX += rightDir.x;
                     botY += rightDir.y;
-                    maze[botX][botY] ++;
+                    controller.setMetaNum(botX, botY, (byte)(controller.getMetaNum(botX, botY) + 1));
                     outputRoute.insertAfter(index + i, botX, botY);
                 }
                 botDir = rightDir;
@@ -318,9 +272,9 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                     res = calcRoute(index, returnX, returnY);
                 }
             }
-            System.out.println("Checking...");
-            checkForDeadEnds();
-            System.out.println("Checked");
+            if(returnX == -1) {
+                checkForDeadEnds();
+            }
         }
         return (byte)(index + res);
     }
@@ -343,21 +297,21 @@ public final class CleverBot  extends Bot<EnvironmentController> {
             byte psY = toCalc.peekY();
             toCalc.pop();
 
-            if(controller.getField(psX, psY) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(psX, psY) != EnvironmentController.FieldStatus.START){
-                short psDistNew = (short) (distances[ psX ][ psY ] + (maze[psX][psY] == 0  ? 1 : (maze[psX][psY] == -1 ? 3 : 5) ));
-                if( psX > 0 && controller.getField((byte)(psX -1), psY) != EnvironmentController.FieldStatus.OBSTACLE && ( distances[ psX - 1 ][ psY ] > psDistNew ) ) {
+            if(controller.getMetaNum(psX, psY) != 31){
+                short psDistNew = (short) (distances[ psX ][ psY ] + (controller.getMetaNum(psX, psY) == 0 ? 1 : 5));
+                if( psX > 0 && controller.getMetaNum((byte)(psX - 1), psY) != 31 && ( distances[ psX - 1 ][ psY ] > psDistNew ) ) {
                     distances[psX - 1][psY] = psDistNew;
                     toCalc.push((byte) (psX - 1), psY);
                 }
-                if( psX < EnvironmentController.mazeWidth && controller.getField((byte)(psX + 1), psY) != EnvironmentController.FieldStatus.OBSTACLE && ( distances[ psX + 1 ][ psY ] > psDistNew ) ) {
+                if( psX < EnvironmentController.mazeWidth - 1 && controller.getMetaNum((byte)(psX + 1), psY) != 31 && ( distances[ psX + 1 ][ psY ] > psDistNew ) ) {
                     distances[psX + 1][psY] = psDistNew;
                     toCalc.push((byte) (psX + 1), psY);
                 }
-                if( psY > 0 && controller.getField(psX , (byte)(psY - 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(psX, psY) != EnvironmentController.FieldStatus.START  && ( distances[ psX ][ psY - 1 ] > psDistNew ) ) {
+                if( psY > 0 && controller.getMetaNum(psX, (byte)(psY - 1)) != 31  && ( distances[ psX ][ psY - 1 ] > psDistNew ) ) {
                     distances[psX][psY - 1] = psDistNew;
                     toCalc.push(psX, (byte) (psY - 1));
                 }
-                if( psY < EnvironmentController.mazeHeight && controller.getField(psX , (byte)(psY + 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(psX, (byte)(psY + 1)) != EnvironmentController.FieldStatus.START && ( distances[ psX ][ psY + 1 ] > psDistNew ) ) {
+                if( psY < EnvironmentController.mazeHeight - 1 && controller.getMetaNum(psX, (byte)(psY + 1)) != 31 && ( distances[ psX ][ psY + 1 ] > psDistNew ) ) {
                     distances[psX][psY + 1] = psDistNew;
                     toCalc.push(psX, (byte) (psY + 1));
                 }
@@ -422,28 +376,14 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
             if( count ++ > 100 ) {
                 controller.onError(EnvironmentController.ERROR_STUCK_IN_LOOP);  // Cannot compute route, algo is stuck.
-
-                System.out.println("\n\n\n");
-
-                for(int y = 0; y < 6; y++)
-                {
-                    for (int x = 0; x < 9; x++){
-                        System.out.print("  " + distances[x][y] + "  ");
-                    }
-                    System.out.println();
-                }
-
-                System.out.println("\n\n\n");
-
                 break;
             }
         }
         tmp.pop(); //Here is the pos where I am
         byte i = 0;
         while(!tmp.isEmpty()){
-            //outputRoute.pushNext(tmp.peekX(), tmp.peekY());
             outputRoute.insertAfter(index + i, tmp.peekX(), tmp.peekY());
-            maze[tmp.peekX()][tmp.peekY()] ++;
+            controller.setMetaNum(tmp.peekX(), tmp.peekY(), (byte)(controller.getMetaNum(tmp.peekX(), tmp.peekY()) + 1));
             tmp.pop();
             i++;
         }
@@ -457,7 +397,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
-                if((x != botX || y != botY) && maze[x][y] == 0){
+                if((x != botX || y != botY) && controller.getMetaNum(x, y) == 0){
                     dist = (byte)(distances[x][y] * 2);
 
                     if(botX == x && botY == y + 1 && botDir == EnvironmentController.Direction.UP){
@@ -487,12 +427,14 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         return calcRoute(index, targetX, targetY);
     }
 
-    private boolean[][] toIterate = new boolean[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
-
     private void resetToIterate(){
         for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
             for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-                toIterate[x][y] = maze[x][y] == 0;
+                if(controller.getMetaNum(x, y) == 0){
+                    controller.setMetaBit(x, y);
+                }else{
+                    controller.unsetMetaBit(x, y);
+                }
             }
         }
     }
@@ -508,10 +450,10 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
         byte result = 0;
 
-        if(x >= 0 && y >= 0 && x < EnvironmentController.mazeWidth && y < EnvironmentController.mazeHeight && toIterate[x][y]){
+        if(x >= 0 && y >= 0 && x < EnvironmentController.mazeWidth && y < EnvironmentController.mazeHeight && controller.getMetaBit(x,y)){
 
             result = 1;
-            toIterate[x][y] = false;
+            controller.unsetMetaBit(x, y);
 
             if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != EnvironmentController.Direction.UP){
                 byte val = countDots(x, (byte)(y - 1), EnvironmentController.Direction.DOWN, masterStartX, masterStartY);
@@ -545,14 +487,6 @@ public final class CleverBot  extends Bot<EnvironmentController> {
     @Override
     public synchronized void run() {
         startLatch.pass();
-
-        //TODO remove
-        for(byte x = 0; x < 9; x++){
-            for(byte y = 0; y < 6; y ++){
-                if(controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_VISITED)
-                    controller.setField(x, y, EnvironmentController.FieldStatus.FREE_UNVISITED);
-            }
-        }
 
         EnvironmentController.Direction actualDir;
         byte movingDist;
