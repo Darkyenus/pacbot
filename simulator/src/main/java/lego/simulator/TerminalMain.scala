@@ -8,6 +8,8 @@ import lego.api.controllers.EnvironmentController._
 import lego.api.{Bot, BotEvent}
 import lego.simulator.controllers.EnvironmentSimulatorController
 import lego.util.Latch
+import org.reflections.Reflections
+import scala.collection.convert.wrapAll._
 
 /**
  * Private property.
@@ -74,10 +76,28 @@ object TerminalMain extends App {
 
   println(map.toPrintableString)
   println()
+
+  val botPackage = new Reflections("lego.bots")
+  val availableBots = botPackage.getSubTypesOf(classOf[Bot[_ <: EnvironmentController]]).toSeq
+
+  if(availableBots.nonEmpty){
+    println("Available bots: ")
+  }
+  for((bot,index) <- availableBots.zipWithIndex){
+    println(index+": "+bot.getSimpleName)
+  }
+
   val defaultRobotMain = "lego.bots.clever.CleverBot"
   println("Enter robot main ["+defaultRobotMain+"]:")
 
-  val bot = Class.forName(readOrDefault(defaultRobotMain)).newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
+  val bot = Class.forName({
+    val result = readOrDefault(defaultRobotMain)
+    if(result.forall(_.isDigit)){
+      availableBots(result.toInt).getCanonicalName
+    }else{
+      result
+    }
+  }).newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
 
   val controller = new EnvironmentSimulatorController(map,onChanged,onError)
 
