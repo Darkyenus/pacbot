@@ -62,7 +62,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 			private void doDrawing () {
 				for (byte x = 0; x < mazeWidth; x++) {
 					for (byte y = 0; y < mazeHeight; y++) {
-						LCD.drawString(maze[x][y].displayChar, x, y, getX() == x && getY() == y);
+						LCD.drawString(getFieldDisplay(x,y), x, y, getX() == x && getY() == y);
 					}
 				}
 				LCD.drawString(lastError, mazeWidth + 1, 0);
@@ -234,21 +234,21 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 		switch ((direction.ordinal() - to.ordinal() + 4) % 4) {// It's a kind of magic
 		case 1:
 			turnLeft();
-			if (lastMoved > 3 && getField((byte)(x - to.x), (byte)(y - to.y)) == FieldStatus.OBSTACLE) {
+			if (lastMoved > 3 && isObstacle((byte)(x - to.x), (byte)(y - to.y))) {
 				calibrateBackward(stopAfterCalibrating);
 				calibrated = true;
 			}
 			break;
 		case 2:
 			turnAround();
-			if (getField((byte)(x - to.x), (byte)(y - to.y)) == FieldStatus.OBSTACLE) {
+			if (isObstacle((byte)(x - to.x), (byte)(y - to.y))) {
 				calibrateBackward(stopAfterCalibrating);
 				calibrated = true;
 			}
 			break;
 		case 3:
 			turnRight();
-			if (lastMoved > 3 && getField((byte)(x - to.x), (byte)(y - to.y)) == FieldStatus.OBSTACLE) {
+			if (lastMoved > 3 && isObstacle((byte)(x - to.x), (byte)(y - to.y))) {
 				calibrateBackward(stopAfterCalibrating);
 				calibrated = true;
 			}
@@ -445,7 +445,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 		protected void process () {
 			byte finalX = (byte)(x + (direction.x) * (amount + 1));
 			byte finalY = (byte)(y + (direction.y) * (amount + 1));
-			if (getField(finalX, finalY) == FieldStatus.OBSTACLE) {
+			if (isObstacle(finalX, finalY)) {
 				amount++; // Calibrate forward if going into wall
 			}
 			processForward();
@@ -457,7 +457,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 			// Dont stop if were moving after this. Should never be true, but just in case
 			boolean stopAfterCalibrating = amount == 0;
 			boolean calibrated = ensureDirection(direction, stopAfterCalibrating);
-			if (!calibrated && amount >= 3 && getField((byte)(x - direction.x), (byte)(y - direction.y)) == FieldStatus.OBSTACLE) {
+			if (!calibrated && amount >= 3 && isObstacle((byte)(x - direction.x), (byte)(y - direction.y))) {
 				calibrateBackward(stopAfterCalibrating);
 			}
 			while (moved < amount) {
@@ -465,26 +465,26 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 					moved += 1;
 					x += direction.x;
 					y += direction.y;
-					setField(x, y, FieldStatus.FREE_VISITED);
+					setField(x, y, FREE);
 					readSensors();
 				} else {
-					setField((byte)(x + direction.x), (byte)(y + direction.y), FieldStatus.OBSTACLE);
+					setField((byte)(x + direction.x), (byte)(y + direction.y), OBSTACLE);
 					break;
 				}
 			}
 		}
 
-		private void processBackward () {// Controlled Heat Apocalypse Ordinary System
+		private void processBackward () {
 			// TODO Maybe some calibrating?
 			while (moved < amount) {
 				if (driveBackward(moved == 0, moved == amount - 1)) {
 					moved += 1;
 					x -= direction.x;
 					y -= direction.y;
-					setField(x, y, FieldStatus.FREE_VISITED);
+					setField(x, y, FREE);
 					readSensors();
 				} else {
-					setField((byte)(x - direction.x), (byte)(y - direction.y), FieldStatus.OBSTACLE);
+					setField((byte)(x - direction.x), (byte)(y - direction.y), OBSTACLE);
 					break;
 				}
 			}
