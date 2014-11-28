@@ -21,7 +21,7 @@ public abstract class Algo implements Runnable {
 
     protected final PositionQueue bestRoute = new PositionQueue(STACK_SIZE);
     protected byte bestScoredPoints = -1;
-    protected byte bestRoutePrice = Byte.MAX_VALUE;
+    protected short bestRoutePrice = Short.MAX_VALUE;
 
     public PositionQueue getBestRoute(){
         return bestRoute;
@@ -31,12 +31,12 @@ public abstract class Algo implements Runnable {
         return bestScoredPoints;
     }
 
-    public byte getBestRoutePrice(){
+    public short getBestRoutePrice(){
         return bestRoutePrice;
     }
 
-    protected byte computePrice(PositionQueue route){
-        byte price = 0;
+    protected short computePrice(PositionQueue route){
+        short price = 0; //Because of some not really efficient algos
 
         EnvironmentController.Direction actualDir = null;
 
