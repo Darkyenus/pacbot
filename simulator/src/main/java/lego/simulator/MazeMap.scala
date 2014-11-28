@@ -1,12 +1,10 @@
 package lego.simulator
 
-import java.io.{IOException, FileNotFoundException, FileInputStream, File}
-import java.util
+import java.io.{File, FileInputStream, FileNotFoundException, IOException}
 
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import lego.api.controllers.EnvironmentController
-import lego.api.controllers.EnvironmentController.FieldStatus._
 
 /**
  * Private property.
@@ -18,7 +16,7 @@ class MazeMap {
   val maze:Array[Array[MapTile]] = Array.fill(EnvironmentController.mazeWidth,EnvironmentController.mazeHeight)(MapTile.FREE)
 
   //Init basic tiles.
-  import EnvironmentController.{startX,startY}
+  import lego.api.controllers.EnvironmentController.{startX, startY}
   maze(startX)(startY) = MapTile.START
   maze(startX - 1)(startY) = MapTile.OBSTACLE
   maze(startX + 1)(startY) = MapTile.OBSTACLE
@@ -115,21 +113,18 @@ object MazeMap {
       }
     }
     catch {
-      case notFound: FileNotFoundException => {
+      case notFound: FileNotFoundException =>
         println("ERROR: Loading file not found")
-      }
-      case e: IOException => {
+      case e: IOException =>
         println("ERROR: Loading IO exception")
-      }
     }
     finally {
       if (input != null) {
         try {
-          input.close
+          input.close()
         }
         catch {
-          case ignored: Throwable => {
-          }
+          case ignored: Throwable =>
         }
       }
     }

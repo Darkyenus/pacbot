@@ -1,7 +1,7 @@
 package lego.simulator.controllers
 
 import lego.api.controllers.EnvironmentController
-import lego.api.controllers.EnvironmentController.{FieldStatus, MoveFieldsTask}
+import lego.api.controllers.EnvironmentController._
 import lego.simulator.{MapTile, MazeMap}
 
 /**
@@ -28,11 +28,11 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSim
         case MapTile.FREE =>
           x = nextX
           moved += 1
-          setField(x,y,FieldStatus.FREE_VISITED)
+          setField(x,y,FREE_VISITED)
           remaining = (remaining - direction).toByte
         case MapTile.OBSTACLE =>
           //No moving
-          setField(nextX,y,FieldStatus.OBSTACLE)
+          setField(nextX,y,OBSTACLE)
           remaining = 0
       }
     }
@@ -57,11 +57,11 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSim
         case MapTile.FREE =>
           y = nextY.toByte
           moved += 1
-          setField(x,y,FieldStatus.FREE_VISITED)
+          setField(x,y,FREE_VISITED)
           remaining = (remaining - direction).toByte
         case MapTile.OBSTACLE =>
           //No moving
-          setField(x,nextY.toByte,FieldStatus.OBSTACLE)
+          setField(x,nextY.toByte,OBSTACLE)
           remaining = 0
       }
     }

@@ -1,8 +1,6 @@
 
 package lego.api.controllers;
 
-import static lego.api.controllers.EnvironmentController.FieldStatus.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +9,7 @@ import java.io.IOException;
 import lego.api.BotController;
 
 /** Private property. User: Darkyen Date: 23/10/14 Time: 10:57 */
+@SuppressWarnings("UnusedDeclaration")
 public abstract class EnvironmentController extends BotController {
 
 	public static final byte mazeWidth = 9;
@@ -18,24 +17,15 @@ public abstract class EnvironmentController extends BotController {
 	public static final byte startX = 4;
 	public static final byte startY = 2;
 
-	private static final byte OBSTACLES = 13;
-	private static final byte FREE = 40;
-	private byte obstaclesDiscovered = 0;
-	private byte freeDiscovered = 0;
-
 	protected byte x = startX;
 	protected byte y = startY;
-	protected final FieldStatus[][] maze = new FieldStatus[mazeWidth][mazeHeight];
+	protected final byte[][] maze = new byte[mazeWidth][mazeHeight];
 
-	public final FieldStatus[][] getMindMaze () {
+	public final byte[][] getMindMaze () {
 		return maze;
 	}
 
-	/** Format:
-	 *
-	 * #<Name_Char> _ _ _ _ _ _ _ X _ X _ X _ X _ _ X S X _ _ _ _ _ _ _ _ _ X X X _ X X X _ _ _ _ _ _ _
-	 *
-	 * Details: Everything except specified chars are ignored. Name can be only one character. Use only ASCII chars (simple UTF8). */
+	/** Details: Everything except specified chars are ignored. Name can be only one character. Use only ASCII chars (simple UTF8). */
 	private boolean loadSavedMap (int mapName) {
 		FileInputStream input = null;
 		boolean readingName = false;
@@ -113,7 +103,7 @@ public abstract class EnvironmentController extends BotController {
 			input = new FileInputStream(mapsFile);
 			int mapName = input.read();
 			if (mapName == -1) {
-				onError(ERROR_LOADING_MAP_CORRUPTED);
+				onError(ERROR_LOADING_POINTER_FILE_CORRUPTED);
 			} else {
 				return loadSavedMap(mapName);
 			}
@@ -136,21 +126,13 @@ public abstract class EnvironmentController extends BotController {
 		if (!loadMap()) {
 			for (int x = 0; x < mazeWidth; x++) {
 				for (int y = 0; y < mazeHeight; y++) {
-					maze[x][y] = FieldStatus.UNKNOWN;
+					maze[x][y] = FREE_UNVISITED;
 				}
 			}
-			// Maze setup
-			/*
-			 * OSO F
-			 * 
-			 * Everything else unknown
-			 */
-			maze[x][y] = FieldStatus.START;
-			maze[x - 1][y] = FieldStatus.OBSTACLE;
-			maze[x + 1][y] = FieldStatus.OBSTACLE;
-			maze[x][y + 1] = FieldStatus.FREE_UNVISITED;
-			obstaclesDiscovered = 2;
-			freeDiscovered = 1;
+			// Maze setup: Start and closest obstacles are given, everything else is FREE_UNVISITED.
+			maze[x][y] = START;
+			maze[x - 1][y] = OBSTACLE;
+			maze[x + 1][y] = OBSTACLE;
 		}
 	}
 
@@ -164,69 +146,125 @@ public abstract class EnvironmentController extends BotController {
 		return y;
 	}
 
-	/** @return status of given field. OBSTACLE if out of bounds. */
-	public final FieldStatus getField (byte x, byte y) {
+	/** @return status of given field. OBSTACLE if out of bounds.
+	 * @deprecated Use isFree isObstacle and isStart instead */
+	@Deprecated
+	public final byte getField (byte x, byte y) {
 		if (x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight)
-			return FieldStatus.OBSTACLE;
+			return OBSTACLE;
 		else
 			return maze[x][y];
 	}
 
+	/**
+	 * Returns char that should be drawn on screen for given coords.
+	 * WILL CRASH FOR INVALID COORDS!
+	 */
+	public final String getFieldDisplay (byte x, byte y) {
+		switch (maze[x][y] & TILE_TYPE_MASK){
+			case FREE_UNVISITED:
+				return ".";
+			case FREE_VISITED:
+				return " ";
+			case OBSTACLE:
+				return "O";
+			case START:
+				return "S";
+			default:
+				return null;//Will NEVER happen.
+		}
+	}
+
+	public final boolean isFree(byte x, byte y) {
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & FREE_BIT) == FREE_BIT;
+	}
+
+	public final boolean isFreeUnvisited(byte x, byte y) {
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE_UNVISITED;
+	}
+
+	public final boolean isFreeVisited(byte x, byte y) {
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE_VISITED;
+	}
+
+	public final boolean isObstacle(byte x, byte y) {
+		return x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight || (maze[x][y] & TILE_TYPE_MASK) == OBSTACLE;
+	}
+
+	/**
+	 * Check whether there is a start at given coordinate.
+	 * (Note: Unlike isFree and isObstacle, this is hardcoded for correct coordinate.
+	 */
+	public final boolean isStart(byte x, byte y){
+		return x == startX && y == startY;
+	}
+
+	/**
+	 * Gets state of bool meta at given coord. Returns false when invalid coords.
+	 */
+	public final boolean getMetaBit(byte x, byte y) {
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_BOOL_META_BIT) == TILE_BOOL_META_BIT;
+	}
+
+	/**
+	 * Sets the meta bit to TRUE on given coord. Does nothing when invalid coords.
+	 */
+	public final void setMetaBit(byte x, byte y){
+		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
+			maze[x][y] &= TILE_BOOL_META_BIT;
+		}
+	}
+
+	/**
+	 * Sets the meta bit to FALSE on given coord. Does nothing when invalid coords.
+	 */
+	public final void unsetMetaBit(byte x, byte y){
+		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
+			maze[x][y] &= ~TILE_BOOL_META_BIT;
+		}
+	}
+
+	public final byte getMetaNum(byte x,byte y){
+		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
+			return (byte) (maze[x][y] & TILE_NUM_META_MASK);
+		}else return 0;
+	}
+
+	public final void setMetaNum(byte x,byte y,byte value){
+		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
+			byte now = maze[x][y];
+			now &= ~TILE_NUM_META_MASK;
+			now |= value & TILE_NUM_META_MASK;
+			maze[x][y] = now;
+		}
+	}
+
+	/** Safely sets field byte value, including type and all metadata. Does not produce errors.
+	 * You will probably not need this, unless doing magic. */
+	public final void setFieldRaw (byte x, byte y, byte to) {
+		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
+			maze[x][y] = to;
+		}
+	}
+
 	/** Updates information about given tile. That may be the same as already is. Updating tile out of bounds gives
-	 * ERROR_SET_OUT_OF_BOUNDS, then does nothing. Updating definitive tile gives ERROR_SET_DEFINITIVE, then updates as if nothing
-	 * happened. */
-	public final void setField (byte x, byte y, FieldStatus to) {
+	 * ERROR_SET_OUT_OF_BOUNDS, then does nothing. Updating definitive tile gives ERROR_SET_DEFINITIVE,
+	 * then updates as if nothing happened. */
+	public final void setField (byte x, byte y, byte to) {
+		to &= TILE_TYPE_MASK;
 		if (x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) {
-			if (to != FieldStatus.OBSTACLE) {
+			if (to != OBSTACLE) {
 				onError(ERROR_SET_OUT_OF_BOUNDS);
 			}
 		} else {
-			FieldStatus now = maze[x][y];
-			if (to == now)
+			byte nowTile = (byte) (maze[x][y] & TILE_TYPE_MASK);
+			if (to == nowTile)
 				return;
-			else if (now.definitive) {
+			else if (nowTile != FREE_UNVISITED) {
 				onError(ERROR_SET_DEFINITIVE);
 			}
-			maze[x][y] = to;
-			if (now == FieldStatus.UNKNOWN) {
-				if (to == FieldStatus.OBSTACLE) {
-					obstaclesDiscovered++;
-					predictRestFree();
-				} else if (to == FieldStatus.FREE_UNVISITED || to == FieldStatus.FREE_VISITED) {
-					freeDiscovered++;
-					predictRestObstacles();
-				}
-			}
-		}
-	}
-
-	private void predictRestFree () {
-		if (obstaclesDiscovered == OBSTACLES) {
-			// Rest undiscovered must be free
-			obstaclesDiscovered = 0;// So this doesn't get calculated again
-			freeDiscovered = 0;
-			for (int x = 0; x < mazeWidth; x++) {
-				for (int y = 0; y < mazeHeight; y++) {
-					if (maze[x][y] == FieldStatus.UNKNOWN) {
-						maze[x][y] = FieldStatus.FREE_UNVISITED;
-					}
-				}
-			}
-		}
-	}
-
-	private void predictRestObstacles () {
-		if (freeDiscovered == FREE) {
-			// Rest undiscovered must be obstacles
-			obstaclesDiscovered = 0;// So this doesn't get calculated again
-			freeDiscovered = 0;
-			for (int x = 0; x < mazeWidth; x++) {
-				for (int y = 0; y < mazeHeight; y++) {
-					if (maze[x][y] == FieldStatus.UNKNOWN) {
-						maze[x][y] = FieldStatus.OBSTACLE;
-					}
-				}
-			}
+			maze[x][y] &= ~TILE_TYPE_MASK;
+			maze[x][y] |= to;
 		}
 	}
 
@@ -319,24 +357,17 @@ public abstract class EnvironmentController extends BotController {
 		}
 	}
 
-	public enum FieldStatus {
-		UNKNOWN("?", false), OBSTACLE("O", true), FREE_UNVISITED(".", false), FREE_VISITED("_", true), START("S", true);
+	private static final byte FREE_BIT = (byte) 	0x80;//10_0_00000
+	private static final byte VISITED_BIT = 		0x40;//01_0_00000
 
-		/** Char as which should be this block displayed in debug views without custom rendering.
-		 *
-		 * NOTE: It is actually string, because it would have to be transformed to string during rendering anyway, which is
-		 * wasteful. */
-		public final String displayChar;
-		/** True means, that field with this status is fully known and that status will not change unless error happens. For example,
-		 * OBSTACLE is definitive, because obstacles can not be removed. On the other hand FREE_UNVISITED will be changed to
-		 * FREE_VISITED during program run, so that will change and therefore is not definitive. */
-		public final boolean definitive;
+	public static final byte FREE_UNVISITED = FREE_BIT;					//10
+	public static final byte FREE_VISITED 	= FREE_BIT | VISITED_BIT;	//11
+	public static final byte OBSTACLE 		= 0x0;						//00
+	public static final byte START 			= VISITED_BIT;				//01
 
-		FieldStatus (String displayChar, boolean definitive) {
-			this.displayChar = displayChar;
-			this.definitive = definitive;
-		}
-	}
+	private static final byte TILE_TYPE_MASK = (byte) 0xC0;//0b11_00_0000;
+	private static final byte TILE_BOOL_META_BIT = 0x20;//0b00_10_0000;
+	private static final byte TILE_NUM_META_MASK = 0x1F;//0b00_01_1111;
 
 	public static interface MoveFieldsTask {
 

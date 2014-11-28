@@ -154,16 +154,16 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
 
         byte result = 0;
 
-        if((controller.getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED || controller.getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.START) && controller.getField(x, y) != EnvironmentController.FieldStatus.START){
+        if((controller.isFreeUnvisited(x, (byte) (y - 1)) || controller.isStart(x, (byte) (y - 1))) && !controller.isStart(x, y)){
             result = (byte) (result | 8);
         }
-        if(controller.getField((byte) (x + 1), y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.isFreeUnvisited((byte) (x + 1), y)){
             result = (byte) (result | 4);
         }
-        if(controller.getField(x, (byte) (y + 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED && controller.getField(x, (byte) (y + 1)) != EnvironmentController.FieldStatus.START){
+        if(controller.isFreeUnvisited(x, (byte) (y + 1)) && !controller.isStart(x, (byte) (y + 1))){
             result = (byte) (result | 2);
         }
-        if(controller.getField((byte) (x - 1), y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.isFreeUnvisited((byte) (x - 1), y)){
             result = (byte) (result | 1);
         }
 
@@ -437,15 +437,15 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
 
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
-                if( (x != botX || y != botY) && ( controller.getField(x,y) == EnvironmentController.FieldStatus.UNKNOWN || controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED )){
+                if( (x != botX || y != botY) && controller.isFreeUnvisited(x,y)){
                     byte dist = (byte)(distances[x][y] * 3);
-                    if(controller.getField((byte)(x + 1), y) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField((byte)(x + 1), y) == EnvironmentController.FieldStatus.FREE_VISITED){
+                    if(controller.isObstacle((byte)(x + 1), y) || controller.isFreeUnvisited((byte)(x + 1), y)){
                         dist -= 1;
-                    }else if(controller.getField((byte)(x - 1), y) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField((byte)(x - 1), y) == EnvironmentController.FieldStatus.FREE_VISITED){
+                    }else if(controller.isObstacle((byte)(x - 1), y) || controller.isFreeVisited((byte)(x - 1), y)){
                         dist -= 1;
-                    }else if(controller.getField(x, (byte)(y + 1)) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField(x, (byte)(y + 1)) == EnvironmentController.FieldStatus.FREE_VISITED){
+                    }else if(controller.isObstacle(x, (byte)(y + 1)) || controller.isFreeVisited(x, (byte)(y + 1))){
                         dist -= 1;
-                    }else if(controller.getField( x, (byte)(y - 1)) == EnvironmentController.FieldStatus.OBSTACLE || controller.getField(x , (byte)(y - 1)) == EnvironmentController.FieldStatus.FREE_VISITED){
+                    }else if(controller.isObstacle( x, (byte)(y - 1)) || controller.isFreeVisited(x , (byte)(y - 1))){
                         dist -= 1;
                     }
 
@@ -485,7 +485,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
         PositionStack tmp = new PositionStack(STACK_SIZE);
         tmp.push(targetX, targetY);
 
-        controller.setField(targetX, targetY, EnvironmentController.FieldStatus.FREE_VISITED);
+        controller.setField(targetX, targetY, EnvironmentController.FREE_VISITED);
 
         byte psX = targetX;
         byte psY = targetY;
@@ -526,8 +526,8 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
                 lastDir = 8;
             }
 
-            if(controller.getField(targetX, targetY) != EnvironmentController.FieldStatus.START) {
-                controller.setField(targetX, targetY, EnvironmentController.FieldStatus.FREE_VISITED);
+            if(!controller.isStart(targetX, targetY)) {
+                controller.setField(targetX, targetY, EnvironmentController.FREE_VISITED);
             }
             tmp.push(targetX, targetY);
 
@@ -566,22 +566,22 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
             byte psY = toCalc.peekY();
             toCalc.pop();
 
-            if(controller.getField(psX, psY) != EnvironmentController.FieldStatus.OBSTACLE){
+            if(!controller.isObstacle(psX, psY)){
                 byte psDistActual = distances[ psX ][ psY ];
-                byte psDistNew = (byte) (psDistActual + ( controller.getField(psX, psY) == EnvironmentController.FieldStatus.FREE_VISITED  ? 3 : 1 ));
-                if( psX > 0 && controller.getField((byte)(psX -1), psY) != EnvironmentController.FieldStatus.OBSTACLE && ( distances[ psX - 1 ][ psY ] > psDistNew ) ) {
+                byte psDistNew = (byte) (psDistActual + ( controller.isFreeVisited(psX, psY)  ? 3 : 1 ));
+                if( psX > 0 && !controller.isObstacle((byte)(psX -1), psY) && ( distances[ psX - 1 ][ psY ] > psDistNew ) ) {
                     distances[psX - 1][psY] = psDistNew;
                     toCalc.push((byte) (psX - 1), psY);
                 }
-                if( psX < EnvironmentController.mazeWidth && controller.getField((byte)(psX + 1), psY) != EnvironmentController.FieldStatus.OBSTACLE && ( distances[ psX + 1 ][ psY ] > psDistNew ) ) {
+                if( psX < EnvironmentController.mazeWidth && !controller.isObstacle((byte)(psX + 1), psY) && ( distances[ psX + 1 ][ psY ] > psDistNew ) ) {
                     distances[psX + 1][psY] = psDistNew;
                     toCalc.push((byte) (psX + 1), psY);
                 }
-                if( psY > 0 && controller.getField(psX , (byte)(psY - 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(psX, psY) != EnvironmentController.FieldStatus.START  && ( distances[ psX ][ psY - 1 ] > psDistNew ) ) {
+                if( psY > 0 && !controller.isObstacle(psX , (byte)(psY - 1)) && !controller.isStart(psX, psY)  && ( distances[ psX ][ psY - 1 ] > psDistNew ) ) {
                     distances[psX][psY - 1] = psDistNew;
                     toCalc.push(psX, (byte) (psY - 1));
                 }
-                if( psY < EnvironmentController.mazeHeight && controller.getField(psX , (byte)(psY + 1)) != EnvironmentController.FieldStatus.OBSTACLE && controller.getField(psX, (byte)(psY + 1)) != EnvironmentController.FieldStatus.START && ( distances[ psX ][ psY + 1 ] > psDistNew ) ) {
+                if( psY < EnvironmentController.mazeHeight && !controller.isObstacle(psX , (byte)(psY + 1)) && !controller.isStart(psX, (byte)(psY + 1)) && ( distances[ psX ][ psY + 1 ] > psDistNew ) ) {
                     distances[psX][psY + 1] = psDistNew;
                     toCalc.push(psX, (byte) (psY + 1));
                 }
@@ -595,7 +595,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
     private void resetToIterate(){
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
-                toIterate[x][y] = controller.getField(x, y) == EnvironmentController.FieldStatus.FREE_UNVISITED;
+                toIterate[x][y] = controller.isFreeUnvisited(x, y);
             }
         }
     }
