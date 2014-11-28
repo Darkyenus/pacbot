@@ -9,6 +9,7 @@ import java.io.IOException;
 import lego.api.BotController;
 
 /** Private property. User: Darkyen Date: 23/10/14 Time: 10:57 */
+@SuppressWarnings("UnusedDeclaration")
 public abstract class EnvironmentController extends BotController {
 
 	public static final byte mazeWidth = 9;
@@ -49,7 +50,7 @@ public abstract class EnvironmentController extends BotController {
 						fieldToRead++;
 						break;
 					case FREE_SPACE_CHAR:
-						maze[fieldToRead % mazeWidth][fieldToRead / mazeWidth] = FREE;
+						maze[fieldToRead % mazeWidth][fieldToRead / mazeWidth] = FREE_UNVISITED;
 						fieldToRead++;
 						break;
 					case START_CHAR:
@@ -125,19 +126,13 @@ public abstract class EnvironmentController extends BotController {
 		if (!loadMap()) {
 			for (int x = 0; x < mazeWidth; x++) {
 				for (int y = 0; y < mazeHeight; y++) {
-					maze[x][y] = UNKNOWN;
+					maze[x][y] = FREE_UNVISITED;
 				}
 			}
-			// Maze setup
-			/*
-			 * OSO F
-			 * 
-			 * Everything else unknown
-			 */
+			// Maze setup: Start and closest obstacles are given, everything else is FREE_UNVISITED.
 			maze[x][y] = START;
 			maze[x - 1][y] = OBSTACLE;
 			maze[x + 1][y] = OBSTACLE;
-			maze[x][y + 1] = FREE;
 		}
 	}
 
@@ -167,21 +162,29 @@ public abstract class EnvironmentController extends BotController {
 	 */
 	public final String getFieldDisplay (byte x, byte y) {
 		switch (maze[x][y] & TILE_TYPE_MASK){
-			case FREE:
+			case FREE_UNVISITED:
+				return ".";
+			case FREE_VISITED:
 				return " ";
 			case OBSTACLE:
 				return "O";
 			case START:
 				return "S";
-			case UNKNOWN:
-				return "?";
 			default:
-				return "!";
+				return null;//Will NEVER happen.
 		}
 	}
 
 	public final boolean isFree(byte x, byte y) {
-		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE;
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & FREE_BIT) == FREE_BIT;
+	}
+
+	public final boolean isFreeUnvisited(byte x, byte y) {
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE_UNVISITED;
+	}
+
+	public final boolean isFreeVisited(byte x, byte y) {
+		return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE_VISITED;
 	}
 
 	public final boolean isObstacle(byte x, byte y) {
@@ -236,47 +239,32 @@ public abstract class EnvironmentController extends BotController {
 		}
 	}
 
-	/** Updates information about given tile. That may be the same as already is. Updating tile out of bounds gives
-	 * ERROR_SET_OUT_OF_BOUNDS, then does nothing. Updating definitive tile gives ERROR_SET_DEFINITIVE,
-	 * then updates as if nothing happened.
-	 * Supply only predefined values!
-	 * This removes metadata. */
+	/** Safely sets field byte value, including type and all metadata. Does not produce errors.
+	 * You will probably not need this, unless doing magic. */
 	public final void setFieldRaw (byte x, byte y, byte to) {
-		if (x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) {
-			if (to != OBSTACLE) {
-				onError(ERROR_SET_OUT_OF_BOUNDS);
-			}
-		} else {
-			byte now = maze[x][y];
-			if (to == now)
-				return;
-			else if (now != UNKNOWN) {
-				onError(ERROR_SET_DEFINITIVE);
-			}
+		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
 			maze[x][y] = to;
 		}
 	}
 
 	/** Updates information about given tile. That may be the same as already is. Updating tile out of bounds gives
 	 * ERROR_SET_OUT_OF_BOUNDS, then does nothing. Updating definitive tile gives ERROR_SET_DEFINITIVE,
-	 * then updates as if nothing happened.
-	 * Supply only predefined values!
-	 * This removes metadata. */
+	 * then updates as if nothing happened. */
 	public final void setField (byte x, byte y, byte to) {
+		to &= TILE_TYPE_MASK;
 		if (x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) {
 			if (to != OBSTACLE) {
 				onError(ERROR_SET_OUT_OF_BOUNDS);
 			}
 		} else {
-			byte now = maze[x][y];
-			byte nowTile = (byte) (now & TILE_TYPE_MASK);
+			byte nowTile = (byte) (maze[x][y] & TILE_TYPE_MASK);
 			if (to == nowTile)
 				return;
-			else if (nowTile != UNKNOWN) {
+			else if (nowTile != FREE_UNVISITED) {
 				onError(ERROR_SET_DEFINITIVE);
 			}
 			maze[x][y] &= ~TILE_TYPE_MASK;
-			maze[x][y] |= to & TILE_TYPE_MASK;
+			maze[x][y] |= to;
 		}
 	}
 
@@ -369,10 +357,14 @@ public abstract class EnvironmentController extends BotController {
 		}
 	}
 
-	public static final byte UNKNOWN = 		0x0;//0b00_00_0000;
-	public static final byte OBSTACLE = 	0x40;//0b01_00_0000;
-	public static final byte FREE =  (byte)	0x80;//0b10_00_0000;
-	public static final byte START = (byte) 0xC0;//0b11_00_0000;
+	private static final byte FREE_BIT = (byte) 	0x80;//10_0_00000
+	private static final byte VISITED_BIT = 		0x40;//01_0_00000
+
+	public static final byte FREE_UNVISITED = FREE_BIT;					//10
+	public static final byte FREE_VISITED 	= FREE_BIT | VISITED_BIT;	//11
+	public static final byte OBSTACLE 		= 0x0;						//00
+	public static final byte START 			= VISITED_BIT;				//01
+
 	private static final byte TILE_TYPE_MASK = (byte) 0xC0;//0b11_00_0000;
 	private static final byte TILE_BOOL_META_BIT = 0x20;//0b00_10_0000;
 	private static final byte TILE_NUM_META_MASK = 0x1F;//0b00_01_1111;
