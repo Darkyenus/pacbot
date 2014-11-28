@@ -6,15 +6,15 @@ package lego.simulator
  * Date: 28/11/14
  * Time: 21:36
  */
-class PrintGrid(width:Int, height:Int) extends CharSequence {
-  private val grid = Array.fill(height,width)(' ')
+class PrintGrid(gridWidth:Int, gridHeight:Int) extends CharSequence {
+  private val grid = Array.fill(gridHeight,gridWidth)(' ')
   private var cursorX = 0
   private var cursorY = 0
 
   private var subViewX = 0
   private var subViewY = 0
-  private var subViewW = width
-  private var subViewH = height
+  private var subViewW = gridWidth
+  private var subViewH = gridHeight
 
   def print(char:Char): Unit = {
     if(char == '\n'){
@@ -57,15 +57,18 @@ class PrintGrid(width:Int, height:Int) extends CharSequence {
   def resetSubgrid(): Unit ={
     subViewX = 0
     subViewY = 0
-    subViewW = width
-    subViewH = height
+    subViewW = gridWidth
+    subViewH = gridHeight
   }
 
   def setSubgrid(x:Int,y:Int,width:Int,height:Int): Unit ={
-    subViewX = x//x max 0 min (width - 1)
-    subViewY = y//y max 0 min (height - 1)
-    subViewW = width//width max 0 min (this.width - subViewX)
-    subViewH = height//height max 0 min (this.height - subViewY)
+    subViewX = x max 0 min (gridWidth - 1)
+    subViewY = y max 0 min (gridHeight - 1)
+    subViewW = width max 0 min (gridWidth - subViewX)
+    subViewH = height max 0 min (gridHeight - subViewY)
+    if(subViewX != x || subViewY != y || subViewW != width || subViewH != height){
+      Console.out.println("WARNING: setSubgrid params had to be changed.")
+    }
     cursorX = subViewX
     cursorY = subViewY
   }
@@ -89,7 +92,7 @@ class PrintGrid(width:Int, height:Int) extends CharSequence {
     grid(subViewY + subViewH - 1)(subViewX + subViewW - 1) = '+'
 
     val titleWidth = title.length() min subViewW
-    val titleStart = subViewX + subViewH/2 - titleWidth/2
+    val titleStart = subViewX + (subViewW/2 - titleWidth/2) //Integer math and bored brain
     for(i <- 0 until titleWidth){
       grid(subViewY)(titleStart+i) = title.charAt(i)
     }
@@ -101,7 +104,7 @@ class PrintGrid(width:Int, height:Int) extends CharSequence {
    * Prints the whole grid out to stdout.
    */
   def printOut(): Unit ={
-    for(y <- 0 until height){
+    for(y <- 0 until gridHeight){
       Console.out.print(grid(y))
       Console.out.print('\n')
     }
@@ -112,21 +115,21 @@ class PrintGrid(width:Int, height:Int) extends CharSequence {
    * In ideal world, this would print some backspaces to clear old stuff. But in most consoles here, it won't work.
    */
   def printClearOut(): Unit ={
-    for(_ <- 0 until (width * height + height)){
+    for(_ <- 0 until (gridWidth * gridHeight + gridHeight)){
       Console.out.print('\b')
     }
   }
 
   //--------------- CharSequence stuff ----------------------------
 
-  override val length: Int = width * height + height
+  override val length: Int = gridWidth * gridHeight + gridHeight
 
   override def charAt(index: Int): Char = {
-    val x = index % (width+1)
-    if(x == width){
+    val x = index % (gridWidth+1)
+    if(x == gridWidth){
       '\n'
     }else{
-      val y = index / (width+1)
+      val y = index / (gridWidth+1)
       grid(x)(y)
     }
   }

@@ -23,7 +23,14 @@ object Simulator {
   private val MapViewWidth = EnvironmentController.mazeWidth*3 + 2
   private val MapViewHeight = EnvironmentController.mazeHeight + 2
   private val MessagesViewWidth = 40
-  private val printGrid = new PrintGrid(2 * MapViewHeight + MessagesViewWidth + 2,MessagesViewWidth)
+  private val printGrid = new PrintGrid(2 * MapViewWidth + MessagesViewWidth + 3,MapViewHeight)
+  prepareMassageFrame()
+
+  def prepareMassageFrame(): Unit ={
+    printGrid.setSubgrid(MapViewWidth*2+4,0,MessagesViewWidth,MapViewHeight)
+    printGrid.frameSubgrid(" Messages ")
+    printGrid.clear()
+  }
 
   private val onChanged:(Array[Array[MapTile]]) => (EnvironmentSimulatorController) => Unit
   = (maze:Array[Array[MapTile]]) => (controller:EnvironmentSimulatorController) => {
@@ -59,8 +66,7 @@ object Simulator {
 
     printGrid.printOut()
     printGrid.clear()
-    printGrid.setSubgrid(MapViewWidth*2+3,0,MessagesViewWidth,MapViewHeight)
-    printGrid.frameSubgrid(" Messages ")
+    prepareMassageFrame()
 
     readLine()
   }
