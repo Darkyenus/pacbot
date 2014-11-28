@@ -245,10 +245,10 @@ public class TriplePass extends Algo{
 
         calcRoutePsX = targetX;
         calcRoutePsY = targetY;
-        botX = targetX; //We will end up here
-        botY = targetY;
         calcRouteRobotPosX = botX;
         calcRouteRobotPosY = botY;
+        botX = targetX; //We will end up here
+        botY = targetY;
 
         EnvironmentController.Direction lastDir = botDir;
 

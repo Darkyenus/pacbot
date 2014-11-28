@@ -373,10 +373,10 @@ public final class WeightNav extends Algo {
 
         calcRoutePsX = calcRouteTargetX;
         calcRoutePsY = calcRouteTargetY;
-        botX = calcRouteTargetX;
-        botY = calcRouteTargetY;
         calcRouteRobotPosX = botX;
         calcRouteRobotPosY = botY;
+        botX = calcRouteTargetX;
+        botY = calcRouteTargetY;
 
         byte count = 0;
         while( calcRoutePsX != calcRouteRobotPosX || calcRoutePsY != calcRouteRobotPosY ) {
