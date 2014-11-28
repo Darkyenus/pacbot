@@ -211,7 +211,7 @@ public abstract class EnvironmentController extends BotController {
 	 */
 	public final void setMetaBit(byte x, byte y){
 		if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
-			maze[x][y] &= TILE_BOOL_META_BIT;
+			maze[x][y] |= TILE_BOOL_META_BIT;
 		}
 	}
 
