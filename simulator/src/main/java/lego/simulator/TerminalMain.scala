@@ -1,15 +1,15 @@
 package lego.simulator
 
-import java.io
-import java.io.FileInputStream
+import java.io.File
 
+import com.google.common.base.Charsets
+import com.google.common.io.Files
+import lego.api.Bot
 import lego.api.controllers.EnvironmentController
-import lego.api.controllers.EnvironmentController._
-import lego.api.{Bot, BotEvent}
-import lego.simulator.controllers.EnvironmentSimulatorController
-import lego.util.Latch
 import org.reflections.Reflections
+
 import scala.collection.convert.wrapAll._
+import scala.util.Try
 
 /**
  * Private property.
@@ -18,6 +18,7 @@ import scala.collection.convert.wrapAll._
  * Time: 12:59
  */
 object TerminalMain extends App {
+  val mapPointerFile = new File("mappointer")
 
   def readOrDefault(default:String):String = {
     val in = readLine()
@@ -28,99 +29,48 @@ object TerminalMain extends App {
     }
   }
 
-  val defaultMap = new FileInputStream(new io.File("mappointer")).read().toChar.toString
-  println("Enter Map Pointer ["+defaultMap+"]:")
-
-  val map = MazeMap(readOrDefault(defaultMap))
-
-  val onChanged:(EnvironmentSimulatorController) => Unit = (controller:EnvironmentSimulatorController) => {
-    val maze = map.maze
-    val mindMaze:Array[Array[Byte]] = controller.getMindMaze
-
-    val result = new StringBuilder
-    result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append('\n')
-    for(y <- 0 until EnvironmentController.mazeHeight){
-      result.append('|')
-      for(x <- 0 until EnvironmentController.mazeWidth){
-        if(controller.getX == x && controller.getY == y){
-          result.append("(-)")
-        }else{
-          result.append(" "+maze(x)(y)+" ")
-        }
-      }
-      result.append("| |")
-      for(x <- 0 until EnvironmentController.mazeWidth){
-        if(controller.getX == x && controller.getY == y){
-          result.append("(-)")
-        }else{
-          result.append(mindMaze(x)(y) match {
-            case FREE_UNVISITED => " o "
-            case FREE_VISITED => "   "
-            case OBSTACLE => "[X]"
-            case START => " v "
-          })
-        }
-      }
-      result.append('|')
-      result.append('\n')
+  def readIntOrDefault(default:Int):Int = {
+    var in = readLine()
+    while(!in.forall(_.isDigit)){
+      println("That is not a valid number. Try again.")
+      in = readLine()
     }
-    result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+")
-
-    println(result.toString())
-    readLine()
+    if(in.isEmpty){
+      default
+    }else{
+      in.toInt
+    }
   }
 
-  val onError = (error:Byte) => {
-    println("On Error: "+error)
-  }
+  val mapPointerContent = Try(Files.readFirstLine(mapPointerFile,Charsets.UTF_8)).getOrElse("all")
+  println("Enter Map Pointer/s ["+mapPointerContent+"]:")
 
-  println(map.toPrintableString)
-  println()
+  val maps:Seq[Char] = {
+    val input = readOrDefault(mapPointerContent).trim
+    if(input == "app"){
+      ('1' to '8').toSeq
+    }else if(input.isEmpty){
+      sys.error("No maps to simulate on specified.")
+    }else{
+      input.split(" ").map(_.charAt(0))
+    }
+  }
 
   val botPackage = new Reflections("lego.bots")
-  val availableBots = botPackage.getSubTypesOf(classOf[Bot[_ <: EnvironmentController]]).toSeq
+  val availableBots = botPackage.getSubTypesOf(classOf[Bot[_ <: EnvironmentController]]).toSeq.sortBy(_.getSimpleName)
 
-  if(availableBots.nonEmpty){
-    println("Available bots: ")
+  if(availableBots.isEmpty){
+    sys.error("No bots found on classpath. Bots must be placed in lego.bots package and must support EnvironmentController.")
   }
+  val lastBot = 1 //TODO load last bot
+  println("Choose a bot["+lastBot+"]:")
   for((bot,index) <- availableBots.zipWithIndex){
-    println(index+": "+bot.getSimpleName)
+    println(index +": "+bot.getSimpleName)
   }
 
-  val defaultRobotMain = "lego.bots.clever.CleverBot"
-  println("Enter robot main ["+defaultRobotMain+"]:")
+  val bot = availableBots(readIntOrDefault(lastBot))
 
-  val bot = Class.forName({
-    val result = readOrDefault(defaultRobotMain)
-    if(result.forall(_.isDigit)){
-      availableBots(result.toInt).getCanonicalName
-    }else{
-      result
-    }
-  }).newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
-
-  val controller = new EnvironmentSimulatorController(map,onChanged,onError)
-
-  val initLatch = new Latch()
-
-  val robotThread = new Thread(){
-    override def run(): Unit = {
-      controller.initialize()
-      bot.controller = controller
-      initLatch.open()
-      bot.run()
-      controller.deinitialize()
-    }
+  for(map <- maps){
+    Simulator.simulate(bot,map)
   }
-  robotThread.setDaemon(false)
-  robotThread.setName("RobotThread")
-  robotThread.start()
-
-  initLatch.pass() //Wait for bot to initialize. Should be instant.
-
-  println("Preparing run.\n")
-  val now = System.currentTimeMillis()
-  bot.onEvent(BotEvent.RUN_PREPARE)
-  println("\nRun prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s.\n")
-  bot.onEvent(BotEvent.RUN_STARTED)
 }

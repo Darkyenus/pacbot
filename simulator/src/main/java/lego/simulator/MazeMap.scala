@@ -50,8 +50,8 @@ object MazeMap {
   def apply(from:File):MazeMap = {
     apply(scala.collection.convert.wrapAsScala.iterableAsScalaIterable(Files.readLines(from,Charsets.UTF_8)))
   }
-  def apply(mapIndex:String):MazeMap = {
-    val map = loadSavedMap(mapIndex.charAt(0))
+  def apply(mapIndex:Char):MazeMap = {
+    val map = loadSavedMap(mapIndex)
     if(map.isDefined) {
       val result = new MazeMap
 
