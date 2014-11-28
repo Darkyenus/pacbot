@@ -23,7 +23,7 @@ object Simulator {
   private val MapViewWidth = EnvironmentController.mazeWidth*3 + 2
   private val MapViewHeight = EnvironmentController.mazeHeight + 2
   private val MessagesViewWidth = 40
-  private val printGrid = new PrintGrid(2 * MapViewWidth + MessagesViewWidth + 3,MapViewHeight)
+  private val printGrid = new PrintGrid(2 * MapViewWidth + MessagesViewWidth + 4,MapViewHeight)
   prepareMassageFrame()
 
   def prepareMassageFrame(): Unit ={
@@ -72,7 +72,38 @@ object Simulator {
   }
 
   private val onError = (error:Byte) => {
-    printGrid.println("On Error: "+error)
+    error match {
+      case ERROR_SET_OUT_OF_BOUNDS =>
+        printGrid.println("ERR: Set Out of bounds")
+      case ERROR_SET_DEFINITIVE =>
+        printGrid.println("ERR: Set Definitive")
+      case ERROR_CAL_BLOCK_EXPECTED =>
+        printGrid.println("ERR: Calibration block expected")
+      case ERROR_STUCK_IN_LOOP =>
+        printGrid.println("ERR: Stuck in loop")
+      case ERROR_LOADING_INVALID_START =>
+        printGrid.println("ERR: Load: Invalid start")
+      case ERROR_LOADING_FILE_NOT_FOUND =>
+        printGrid.println("ERR: Load: maps file not found")
+      case ERROR_LOADING_MAP_NOT_FOUND =>
+        printGrid.println("ERR: Load: Map not found")
+      case ERROR_LOADING_MAP_CORRUPTED =>
+        printGrid.println("ERR: Load: Map corrupted")
+      case ERROR_LOADING_IOEXCEPTION =>
+        printGrid.println("ERR: Load: IO Exception")
+      case ERROR_LOADING_POINTER_FILE_MISSING =>
+        printGrid.println("ERR: Load: Pointer file missing")
+      case ERROR_LOADING_POINTER_FILE_CORRUPTED =>
+        printGrid.println("ERR: Load: Pointer file corrupted")
+      case WARNING_TOOK_TOO_LONG_TIME_TO_COMPUTE =>
+        printGrid.println("WRN: Took too long to compute")
+      case WARNING_ALERT =>
+        printGrid.println("WRN: ALERT!")
+      case SUCCESS_PATH_COMPUTED =>
+        printGrid.println("Success: Path computed")
+      case _ =>
+        printGrid.println("ERROR: "+error)
+    }
   }
 
   /**
