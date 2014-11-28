@@ -260,8 +260,10 @@ public abstract class EnvironmentController extends BotController {
 			byte nowTile = (byte) (maze[x][y] & TILE_TYPE_MASK);
 			if (to == nowTile)
 				return;
-			else if (nowTile != FREE_UNVISITED) {//TODO Don't trigger when setting from visited to unvisited. some alsgos use it
-				onError(ERROR_SET_DEFINITIVE);
+			else if (nowTile != FREE_UNVISITED) {
+				if (nowTile != FREE_VISITED || to != FREE_UNVISITED) {
+					onError(ERROR_SET_DEFINITIVE);
+				}
 			}
 			maze[x][y] &= ~TILE_TYPE_MASK;
 			maze[x][y] |= to;
