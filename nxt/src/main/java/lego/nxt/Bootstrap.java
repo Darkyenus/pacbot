@@ -14,7 +14,10 @@ public final class Bootstrap {
 			//new CleverBot()
 			//new NodeBot()
 			//new TestificateBot()
-			new WeightNavBot(), new DifferentialEnvironmentRobotController());
+			new WeightNavBot()
+            ,
+            new DifferentialEnvironmentRobotController()
+        );
 	}
 
 	/** Call this method from non-abstract bootstrap with selected bot and controller. */
