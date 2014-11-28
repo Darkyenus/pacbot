@@ -20,27 +20,34 @@ object Simulator {
 
   private val controllerMapPointerFile = new File("mappointer")
 
+  private val MapViewWidth = EnvironmentController.mazeWidth*3 + 2
+  private val MapViewHeight = EnvironmentController.mazeHeight + 2
+  private val MessagesViewWidth = 40
+  private val printGrid = new PrintGrid(2 * MapViewHeight + MessagesViewWidth + 2,MessagesViewWidth)
+
   private val onChanged:(Array[Array[MapTile]]) => (EnvironmentSimulatorController) => Unit
   = (maze:Array[Array[MapTile]]) => (controller:EnvironmentSimulatorController) => {
     val mindMaze:Array[Array[Byte]] = controller.getMindMaze
 
-    val result = new StringBuilder
-    result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append('\n')
+    printGrid.setSubgrid(0,0,MapViewWidth,MapViewHeight)
+    printGrid.frameSubgrid(" Overview ")
     for(y <- 0 until EnvironmentController.mazeHeight){
-      result.append('|')
       for(x <- 0 until EnvironmentController.mazeWidth){
         if(controller.getX == x && controller.getY == y){
-          result.append("(-)")
+          printGrid.print("(-)")
         }else{
-          result.append(" "+maze(x)(y)+" ")
+          printGrid.print(" "+maze(x)(y)+" ")
         }
       }
-      result.append("| |")
-      for(x <- 0 until EnvironmentController.mazeWidth){
-        if(controller.getX == x && controller.getY == y){
-          result.append("(-)")
-        }else{
-          result.append((mindMaze(x)(y) & 0xC0).toByte match {
+    }
+    printGrid.setSubgrid(MapViewWidth+2,0,MapViewWidth,MapViewHeight)
+    printGrid.frameSubgrid(" Bot Memory ")
+    for(y <- 0 until EnvironmentController.mazeHeight) {
+      for (x <- 0 until EnvironmentController.mazeWidth) {
+        if (controller.getX == x && controller.getY == y) {
+          printGrid.print("(-)")
+        } else {
+          printGrid.print((mindMaze(x)(y) & 0xC0).toByte match {
             case FREE_UNVISITED => " o "
             case FREE_VISITED => "   "
             case OBSTACLE => "[X]"
@@ -48,17 +55,18 @@ object Simulator {
           })
         }
       }
-      result.append('|')
-      result.append('\n')
     }
-    result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+")
 
-    println(result.toString())
+    printGrid.printOut()
+    printGrid.clear()
+    printGrid.setSubgrid(MapViewWidth*2+3,0,MessagesViewWidth,MapViewHeight)
+    printGrid.frameSubgrid(" Messages ")
+
     readLine()
   }
 
   private val onError = (error:Byte) => {
-    println("On Error: "+error)
+    printGrid.println("On Error: "+error)
   }
 
   /**
@@ -68,9 +76,8 @@ object Simulator {
   def simulate(botClass:Class[_ <: Bot[_ <: EnvironmentController]],mapName:Char): Unit ={
     val map = MazeMap(mapName)
 
-    println("Loaded map \""+mapName+"\"")
-    println(map.toPrintableString)
-    println()
+    printGrid.println("Loaded map \""+mapName+"\"")
+    printGrid.println()
 
     Files.write(mapName.toString,controllerMapPointerFile,Charsets.UTF_8)
 
