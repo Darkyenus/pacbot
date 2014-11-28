@@ -6,3 +6,4 @@ nxt/src/main/nxt.iml
 shared/src/main/shared.iml
 simulator/src/main/simulator.iml
 out/*
+mappointer

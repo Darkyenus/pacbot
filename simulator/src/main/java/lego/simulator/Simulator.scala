@@ -1,5 +1,9 @@
 package lego.simulator
 
+import java.io.File
+
+import com.google.common.base.Charsets
+import com.google.common.io.Files
 import lego.api.{BotEvent, Bot}
 import lego.api.controllers.EnvironmentController
 import lego.api.controllers.EnvironmentController._
@@ -13,6 +17,9 @@ import lego.util.Latch
  * Time: 19:27
  */
 object Simulator {
+
+  private val controllerMapPointerFile = new File("mappointer")
+
   private val onChanged:(Array[Array[MapTile]]) => (EnvironmentSimulatorController) => Unit
   = (maze:Array[Array[MapTile]]) => (controller:EnvironmentSimulatorController) => {
     val mindMaze:Array[Array[Byte]] = controller.getMindMaze
@@ -64,7 +71,8 @@ object Simulator {
     println("Loaded map \""+mapName+"\"")
     println(map.toPrintableString)
     println()
-    //TODO Save that map to mappointer
+
+    Files.write(mapName.toString,controllerMapPointerFile,Charsets.UTF_8)
 
     val bot = botClass.newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
 

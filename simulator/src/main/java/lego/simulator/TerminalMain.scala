@@ -19,6 +19,7 @@ import scala.util.Try
  */
 object TerminalMain extends App {
   val mapPointerFile = new File("mappointer")
+  val lastBotFile = new File("target/lastbotpointer")
 
   def readOrDefault(default:String):String = {
     val in = readLine()
@@ -62,7 +63,13 @@ object TerminalMain extends App {
   if(availableBots.isEmpty){
     sys.error("No bots found on classpath. Bots must be placed in lego.bots package and must support EnvironmentController.")
   }
-  val lastBot = 0 //TODO load last bot
+  val lastBot = {
+    if(lastBotFile.isFile){
+      Files.readFirstLine(lastBotFile,Charsets.UTF_8).toInt //Load last selected bot
+    }else{
+      0
+    }
+  }
   println("Choose a bot ["+lastBot+"]:")
   for((bot,index) <- availableBots.zipWithIndex){
     println(index +": "+bot.getSimpleName)
@@ -70,6 +77,7 @@ object TerminalMain extends App {
   println()
 
   val bot = availableBots(readIntOrDefault(lastBot))
+  Files.write(lastBot.toString,lastBotFile,Charsets.UTF_8) //Save last selected bot
 
   for(map <- maps){
     Simulator.simulate(bot,map)
