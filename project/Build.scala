@@ -153,7 +153,8 @@ object Build extends Build {
   lazy val simulatorController = Project("simulator",file("simulator"),settings = sharedSettings ++ Seq(
     autoScalaLibrary := true,
     mainClass in Compile := Some("lego.simulator.TerminalMain"),
-    libraryDependencies += "com.google.guava" % "guava" % "18.0"
+    libraryDependencies += "com.google.guava" % "guava" % "18.0",
+    libraryDependencies += "org.reflections" % "reflections" % "0.9.9"
     //,fork in run := true
     //,javaOptions in run += "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
     //TODO add dependency on pc lejos stuff
