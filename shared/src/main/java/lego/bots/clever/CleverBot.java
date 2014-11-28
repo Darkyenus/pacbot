@@ -3,7 +3,8 @@ package lego.bots.clever;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
-import lego.bots.clever.algo.ThreePass;
+import lego.bots.clever.algo.TriplePass;
+import lego.bots.clever.algo.WeightNav;
 import lego.util.Latch;
 import lego.util.PositionQueue;
 import lego.util.Queue;
@@ -24,14 +25,15 @@ public final class CleverBot  extends Bot<EnvironmentController> {
     private PositionQueue bestRoute = null;
     private short bestUnitPrice = Short.MAX_VALUE;
     private byte bestScoredPoints;
-    private String bestName; //TODO remove name stuff because NXT performance
+    private String bestName; //TODO remove name stuff because of NXT performance
 
     public void prepare(){
         Runtime.getRuntime().gc();
 
         //Here goes every single algo that has been created. Ever.
 
-        useAlgo(new ThreePass(), "ThreePass");
+        useAlgo(new TriplePass(), "Triple pass");
+        useAlgo(new WeightNav(), "Weight navigation");
 
         //
 
@@ -53,6 +55,14 @@ public final class CleverBot  extends Bot<EnvironmentController> {
             bestScoredPoints = a.getBestScoredPoints();
             bestName = name;
         }
+        for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
+                if(a.controller.isFreeVisited(x, y))
+                    a.controller.setField(x, y, EnvironmentController.FREE_UNVISITED);
+            }
+        }
+        a.controller.setField(EnvironmentController.startX, EnvironmentController.startY, EnvironmentController.START);
+
         Runtime.getRuntime().gc();
     }
 
