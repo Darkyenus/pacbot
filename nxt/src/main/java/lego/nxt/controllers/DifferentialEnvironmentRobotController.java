@@ -465,7 +465,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 					moved += 1;
 					x += direction.x;
 					y += direction.y;
-					setField(x, y, FREE);
+					setField(x, y, FREE_VISITED);
 					readSensors();
 				} else {
 					setField((byte)(x + direction.x), (byte)(y + direction.y), OBSTACLE);
@@ -481,7 +481,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 					moved += 1;
 					x -= direction.x;
 					y -= direction.y;
-					setField(x, y, FREE);
+					setField(x, y, FREE_VISITED);
 					readSensors();
 				} else {
 					setField((byte)(x - direction.x), (byte)(y - direction.y), OBSTACLE);

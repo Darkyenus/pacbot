@@ -28,7 +28,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSim
         case MapTile.FREE =>
           x = nextX
           moved += 1
-          setField(x,y,FREE)
+          setField(x,y,FREE_VISITED)
           remaining = (remaining - direction).toByte
         case MapTile.OBSTACLE =>
           //No moving
@@ -57,7 +57,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSim
         case MapTile.FREE =>
           y = nextY.toByte
           moved += 1
-          setField(x,y,FREE)
+          setField(x,y,FREE_VISITED)
           remaining = (remaining - direction).toByte
         case MapTile.OBSTACLE =>
           //No moving

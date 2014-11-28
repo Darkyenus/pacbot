@@ -4,7 +4,7 @@ import java.io
 import java.io.FileInputStream
 
 import lego.api.controllers.EnvironmentController
-import lego.api.controllers.EnvironmentController.FieldStatus
+import lego.api.controllers.EnvironmentController._
 import lego.api.{Bot, BotEvent}
 import lego.simulator.controllers.EnvironmentSimulatorController
 import lego.util.Latch
@@ -33,7 +33,7 @@ object TerminalMain extends App {
 
   val onChanged:(EnvironmentSimulatorController) => Unit = (controller:EnvironmentSimulatorController) => {
     val maze = map.maze
-    val mindMaze:Array[Array[FieldStatus]] = controller.getMindMaze
+    val mindMaze:Array[Array[Byte]] = controller.getMindMaze
 
     val result = new StringBuilder
     result.append("+").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append(" +").append("-" * (EnvironmentController.mazeWidth*3)).append("+").append('\n')
@@ -52,11 +52,10 @@ object TerminalMain extends App {
           result.append("(-)")
         }else{
           result.append(mindMaze(x)(y) match {
-            case FieldStatus.FREE_UNVISITED => " o "
-            case FieldStatus.FREE_VISITED => "   "
-            case FieldStatus.OBSTACLE => "[X]"
-            case FieldStatus.START => " v "
-            case FieldStatus.UNKNOWN => " ? "
+            case FREE_UNVISITED => " o "
+            case FREE_VISITED => "   "
+            case OBSTACLE => "[X]"
+            case START => " v "
           })
         }
       }
