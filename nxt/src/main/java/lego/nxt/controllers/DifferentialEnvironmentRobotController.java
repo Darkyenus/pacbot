@@ -105,6 +105,17 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 
 				System.gc();// While we still have time
 
+				//Alert that we're ready to go
+				warningLight.controlMotor(100,MotorPort.FORWARD);
+				Sound.playTone(800,300,100);
+				Delay.msDelay(300);
+				Sound.playTone(800,500,100);
+				Delay.msDelay(300);
+				Sound.playTone(800,500,100);
+				Delay.msDelay(300);
+				Sound.playTone(1500,800,100);
+				//ta-tada-daa!
+
 				while (!frontTouch.isPressed()) {
 					Delay.msDelay(50);
 				}
@@ -113,6 +124,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 				}
 				Delay.msDelay(500);
 				Bot.active.onEvent(BotEvent.RUN_STARTED);
+				warningLight.controlMotor(30,BasicMotorPort.FORWARD);
 
 				// noinspection InfiniteLoopStatement
 				while (true) {
