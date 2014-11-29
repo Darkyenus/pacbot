@@ -37,7 +37,7 @@ object Simulator {
     val mindMaze:Array[Array[Byte]] = controller.getMindMaze
 
     printGrid.setSubgrid(0,0,MapViewWidth,MapViewHeight)
-    printGrid.frameSubgrid(" Overview ")
+    printGrid.frameSubgrid(" Map ")
     for(y <- 0 until EnvironmentController.mazeHeight){
       for(x <- 0 until EnvironmentController.mazeWidth){
         if(controller.getX == x && controller.getY == y){
