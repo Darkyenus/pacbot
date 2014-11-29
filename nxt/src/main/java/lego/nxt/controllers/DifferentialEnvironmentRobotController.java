@@ -48,8 +48,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 	@SuppressWarnings("FieldCanBeLocal") private final byte LIGHT_THRESHOLD = 50;
 	@SuppressWarnings("FieldCanBeLocal") private final byte SONIC_BLOCK_SIZE = 28;
 
-	//
-
 	@Override
 	public void initialize () {
 		LCD.setAutoRefresh(false);
