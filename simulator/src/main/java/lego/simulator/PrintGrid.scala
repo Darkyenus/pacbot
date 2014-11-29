@@ -40,7 +40,6 @@ class PrintGrid(gridWidth:Int, gridHeight:Int) extends CharSequence {
   }
 
   def println(charSequence: CharSequence): Unit ={
-    print(' ') //We don't want the text to be sticked at the side of grid
     print(charSequence)
     println()
   }
@@ -74,6 +73,10 @@ class PrintGrid(gridWidth:Int, gridHeight:Int) extends CharSequence {
     cursorY = subViewY
   }
 
+  def offsetGridInwards(left:Int,right:Int,top:Int,bottom:Int): Unit ={
+    setSubgrid(subViewX+left,subViewY+top,subViewW-(left+right), subViewH-(top+bottom))
+  }
+
   /**
    * Will make ascii frame inside subgrid and will shrink subgrid by one from every side.
    */
@@ -98,7 +101,7 @@ class PrintGrid(gridWidth:Int, gridHeight:Int) extends CharSequence {
       grid(subViewY)(titleStart+i) = title.charAt(i)
     }
 
-    setSubgrid(subViewX+1,subViewY+1,subViewW-2,subViewH-2)
+    offsetGridInwards(1,1,1,1)
   }
 
   /**

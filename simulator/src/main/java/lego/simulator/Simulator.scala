@@ -30,6 +30,7 @@ object Simulator {
     printGrid.setSubgrid(MapViewWidth*2+4,0,MessagesViewWidth,MapViewHeight)
     printGrid.frameSubgrid(" Messages ")
     printGrid.clear()
+    printGrid.offsetGridInwards(1,1,0,0)
   }
 
   def printMessage(message:CharSequence){
