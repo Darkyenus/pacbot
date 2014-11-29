@@ -2,7 +2,7 @@ package lego.simulator.controllers
 
 import lego.api.controllers.EnvironmentController
 import lego.api.controllers.EnvironmentController._
-import lego.simulator.{MapTile, MazeMap}
+import lego.simulator.{Simulator, MapTile, MazeMap}
 
 /**
  * Private property.
@@ -33,6 +33,11 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSim
         case MapTile.OBSTACLE =>
           //No moving
           setField(nextX,y,OBSTACLE)
+          if(Math.abs(remaining) < 100 - EnvironmentController.mazeWidth) {
+            Simulator.printMessage("Collides: " + {
+              if (direction > 0) "RIGHT" else "LEFT"
+            } + ", " + Math.abs(remaining) + " to go.");
+          }
           remaining = 0
       }
     }
@@ -50,18 +55,34 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(EnvironmentSim
 
       map(x,nextY) match {
         case MapTile.START =>
-          y = nextY.toByte
-          moved += 1
-          //No exploring, this is known
-          remaining = (remaining - direction).toByte
+          if (direction < 0) {
+            y = nextY.toByte
+            moved += 1
+
+            //No exploring, this is known
+            remaining = (remaining - direction).toByte
+          } else {
+            Simulator.printMessage("Collides: DOWN, " + Math.abs(remaining) + " to go.");
+            remaining = 0
+          }
         case MapTile.FREE =>
-          y = nextY.toByte
-          moved += 1
-          setField(x,y,FREE_VISITED)
-          remaining = (remaining - direction).toByte
+          if (direction < 0 && map(x, y) == MapTile.START) {
+            Simulator.printMessage("Collides: UP, " + Math.abs(remaining) + " to go.");
+            remaining = 0
+          } else {
+            y = nextY.toByte
+            moved += 1
+            setField(x, y, FREE_VISITED)
+            remaining = (remaining - direction).toByte
+          }
         case MapTile.OBSTACLE =>
           //No moving
           setField(x,nextY.toByte,OBSTACLE)
+          if(Math.abs(remaining) < 100 - EnvironmentController.mazeHeight) { // Move until obstacle moves by 100 fields
+            Simulator.printMessage("Collides: " + {
+              if (direction > 0) "DOWN" else "UP"
+            } + ", " + Math.abs(remaining) + " to go.");
+          }
           remaining = 0
       }
     }

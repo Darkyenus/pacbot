@@ -32,6 +32,10 @@ object Simulator {
     printGrid.clear()
   }
 
+  def printMessage(message:CharSequence){
+    printGrid.println(message)
+  }
+
   private val onChanged:(Array[Array[MapTile]]) => (EnvironmentSimulatorController) => Unit
   = (maze:Array[Array[MapTile]]) => (controller:EnvironmentSimulatorController) => {
     val mindMaze:Array[Array[Byte]] = controller.getMindMaze
