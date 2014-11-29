@@ -40,6 +40,7 @@ class PrintGrid(gridWidth:Int, gridHeight:Int) extends CharSequence {
   }
 
   def println(charSequence: CharSequence): Unit ={
+    print(' ') //We don't want the text to be sticked at the side of grid
     print(charSequence)
     println()
   }
