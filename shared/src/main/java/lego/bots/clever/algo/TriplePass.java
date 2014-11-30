@@ -17,6 +17,8 @@ public class TriplePass extends Algo{
     byte botY = EnvironmentController.startY + 1; //I don't want to handle special cases for start field again.
     EnvironmentController.Direction botDir = EnvironmentController.Direction.DOWN;
 
+    private static final byte DEAD_END_MAX = 4; //Magic number
+
     //Kind of pooled vars; do not make final
     private byte calcRouteTargetX;
     private byte calcRouteTargetY;
@@ -75,7 +77,7 @@ public class TriplePass extends Algo{
             if(y < EnvironmentController.mazeHeight - 1 && controller.getMetaNum(x,(byte)(y + 1)) == 0){
                 resetToIterate();
                 res = countDots(x, (byte) (y + 1), EnvironmentController.Direction.UP, x, y);
-                if (res > 0) {
+                if (res > 0 && res <= DEAD_END_MAX) {
                     botX = x;
                     botY = y;
                     botDir = EnvironmentController.Direction.DOWN;
@@ -86,7 +88,7 @@ public class TriplePass extends Algo{
             if(y > 0 && controller.getMetaNum(x,(byte)(y - 1)) == 0){
                 resetToIterate();
                 res = countDots(x, (byte) (y - 1), EnvironmentController.Direction.DOWN, x, y);
-                if (res > 0) {
+                if (res > 0 && res <= DEAD_END_MAX) {
                     botX = x;
                     botY = y;
                     botDir = EnvironmentController.Direction.UP;
@@ -98,7 +100,7 @@ public class TriplePass extends Algo{
             if(x < EnvironmentController.mazeWidth - 1 && controller.getMetaNum((byte)(x + 1), y) == 0){
                 resetToIterate();
                 res = countDots((byte)(x + 1), y, EnvironmentController.Direction.LEFT, x, y);
-                if (res > 0) {
+                if (res > 0 && res <= DEAD_END_MAX) {
                     botX = x;
                     botY = y;
                     botDir = EnvironmentController.Direction.RIGHT;
@@ -109,7 +111,7 @@ public class TriplePass extends Algo{
             if(x > 0 && controller.getMetaNum((byte)(x - 1), y) == 0){
                 resetToIterate();
                 res = countDots((byte)(x - 1), y, EnvironmentController.Direction.RIGHT, x, y);
-                if (res > 0) {
+                if (res > 0 && res <= DEAD_END_MAX) {
                     botX = x;
                     botY = y;
                     botDir = EnvironmentController.Direction.LEFT;
@@ -314,7 +316,7 @@ public class TriplePass extends Algo{
 
         calcRouteTargetX = Byte.MIN_VALUE;
         calcRouteTargetY = Byte.MIN_VALUE;
-        calcRouteMinDist = Byte.MAX_VALUE;
+        calcRouteMinDist = Short.MAX_VALUE;
 
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
@@ -341,7 +343,7 @@ public class TriplePass extends Algo{
                 }
             }
         }
-        if(calcRouteTargetX == Byte.MIN_VALUE || calcRouteTargetX == Byte.MIN_VALUE){
+        if(calcRouteTargetX == Byte.MIN_VALUE){
             throw new Error("Done");
         }
 

@@ -323,7 +323,7 @@ public final class WeightNav extends Algo {
     private boolean calcRoute(PositionQueue outputRoute) {
         calcRouteTargetX = Byte.MIN_VALUE;
         calcRouteTargetY = Byte.MIN_VALUE;
-        calcRouteMinDist = Byte.MAX_VALUE;
+        calcRouteMinDist = Short.MAX_VALUE;
 
         for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
             for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
@@ -380,7 +380,7 @@ public final class WeightNav extends Algo {
 
         byte count = 0;
         while( calcRoutePsX != calcRouteRobotPosX || calcRoutePsY != calcRouteRobotPosY ) {
-            calcRouteMinDist = Byte.MAX_VALUE;
+            calcRouteMinDist = Short.MAX_VALUE;
             calcRouteTargetX = calcRoutePsX;
             calcRouteTargetY = calcRoutePsY;
 
