@@ -17,7 +17,7 @@ public class TriplePass extends Algo{
     byte botY = EnvironmentController.startY + 1; //I don't want to handle special cases for start field again.
     EnvironmentController.Direction botDir = EnvironmentController.Direction.DOWN;
 
-    private static final byte DEAD_END_MAX = 4; //Magic number
+    private static final byte DEAD_END_MAX = 3; //Magic number
 
     //Kind of pooled vars; do not make final
     private byte calcRouteTargetX;
