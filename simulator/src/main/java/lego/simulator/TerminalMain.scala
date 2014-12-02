@@ -76,8 +76,9 @@ object TerminalMain extends App {
   }
   println()
 
-  val bot = availableBots(readIntOrDefault(lastBot))
-  Files.write(lastBot.toString,lastBotFile,Charsets.UTF_8) //Save last selected bot
+  val selectedBot = readIntOrDefault(lastBot)
+  val bot = availableBots(selectedBot)
+  Files.write(selectedBot.toString,lastBotFile,Charsets.UTF_8) //Save last selected bot
 
   for(map <- maps){
     Simulator.simulate(bot,map)
