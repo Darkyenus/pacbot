@@ -1,14 +1,16 @@
 package lego.simulator
 
 import java.io.File
+import java.lang.reflect.ParameterizedType
 
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import lego.api.controllers.MapAwareController
 import lego.api.controllers.MapAwareController._
-import lego.api.{Bot, BotEvent}
+import lego.api.{BotController, Bot, BotEvent}
 import lego.simulator.controllers.PlannedSimulatorController
 import lego.util.Latch
+import org.reflections.Reflections
 
 /**
  * Private property.
@@ -39,40 +41,51 @@ object Simulator {
     printGrid.println(message)
   }
 
-  private val onChanged: (Array[Array[MapTile]]) => (PlannedSimulatorController) => Unit
+  private val onChanged: (Array[Array[MapTile]]) => (BotController) => Unit
   = {
     var fastForward = false
 
-    (maze: Array[Array[MapTile]]) => (controller: PlannedSimulatorController) => {
-      val mindMaze: Array[Array[Byte]] = controller.getMindMaze
+    (maze: Array[Array[MapTile]]) => (botController: BotController) => {
+      botController match {
+        case controller:MapAwareController =>
+          val mindMaze: Array[Array[Byte]] = controller.getMindMaze
 
-      printGrid.setSubgrid(0, 0, MapViewWidth, MapViewHeight)
-      printGrid.frameSubgrid(" Map ")
-      for (y <- 0 until MapAwareController.mazeHeight) {
-        for (x <- 0 until MapAwareController.mazeWidth) {
-          if (controller.getX == x && controller.getY == y) {
-            printGrid.print("(-)")
-          } else {
-            printGrid.print(" " + maze(x)(y) + " ")
+          printGrid.setSubgrid(0, 0, MapViewWidth, MapViewHeight)
+          printGrid.frameSubgrid(" Map ")
+          for (y <- 0 until MapAwareController.mazeHeight) {
+            for (x <- 0 until MapAwareController.mazeWidth) {
+              if (controller.getX == x && controller.getY == y) {
+                printGrid.print("(-)")
+              } else {
+                printGrid.print(" " + maze(x)(y) + " ")
+              }
+            }
           }
-        }
-      }
-      printGrid.setSubgrid(MapViewWidth + 2, 0, MapViewWidth, MapViewHeight)
-      printGrid.frameSubgrid(" Bot Memory ")
-      for (y <- 0 until MapAwareController.mazeHeight) {
-        for (x <- 0 until MapAwareController.mazeWidth) {
-          if (controller.getX == x && controller.getY == y) {
-            printGrid.print("(-)")
-          } else {
-            printGrid.print((mindMaze(x)(y) & 0xC0).toByte match {
-              case FREE_UNVISITED => " o "
-              case FREE_VISITED => "   "
-              case OBSTACLE => "[X]"
-              case START => " v "
-            })
+          printGrid.setSubgrid(MapViewWidth + 2, 0, MapViewWidth, MapViewHeight)
+          printGrid.frameSubgrid(" Bot Memory ")
+          for (y <- 0 until MapAwareController.mazeHeight) {
+            for (x <- 0 until MapAwareController.mazeWidth) {
+              if (controller.getX == x && controller.getY == y) {
+                printGrid.print("(-)")
+              } else {
+                printGrid.print((mindMaze(x)(y) & 0xC0).toByte match {
+                  case FREE_UNVISITED => " o "
+                  case FREE_VISITED => "   "
+                  case OBSTACLE => "[X]"
+                  case START => " v "
+                })
+              }
+            }
           }
-        }
+        case nonMapAwareController =>
+          printGrid.setSubgrid(0, 0, MapViewWidth * 2 + 2, MapViewHeight)
+          printGrid.frameSubgrid("")
+          printGrid.clear()
+
+          printGrid.offsetGridInwards(5,0,MapViewHeight/3,0)
+          printGrid.print("No map info available.")
       }
+
 
       printGrid.printOut()
       printGrid.clear()
@@ -125,11 +138,13 @@ object Simulator {
     }
   }
 
+  private val simulatorControllerPackage = new Reflections("lego.simulator.controllers")
+
   /**
    * Simulates given bot on a given map.
    * Blocks until complete.
    */
-  def simulate(botClass: Class[_ <: Bot[_ <: MapAwareController]], mapName: Char): Unit = {
+  def simulate(botClass: Class[_ <: Bot[_ <: BotController]], mapName: Char): Unit = {
     val map = MazeMap(mapName)
 
     printGrid.println("Loaded map \"" + mapName + "\"")
@@ -137,9 +152,22 @@ object Simulator {
 
     Files.write(mapName.toString, controllerMapPointerFile, Charsets.UTF_8)
 
-    val bot = botClass.newInstance().asInstanceOf[Bot[PlannedSimulatorController]]
+    val bot: Bot[BotController] = botClass.newInstance().asInstanceOf[Bot[BotController]]
 
-    val controller = new PlannedSimulatorController(map, onChanged(map.maze), onError)
+    //http://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime > Magic
+    val botControllerBase = botClass.getGenericSuperclass.asInstanceOf[ParameterizedType].getActualTypeArguments()(0).asInstanceOf[Class[_]]
+    val possibleControllers = simulatorControllerPackage.getSubTypesOf(botControllerBase)
+    if(possibleControllers.isEmpty){
+      sys.error("No controllers that extend "+botControllerBase.getCanonicalName+" found. Please make some.")
+    }else if(possibleControllers.size() > 1){
+      println("WARNING: More than one controller that extends "+botControllerBase.getCanonicalName+" found. Using first one found.")
+    }
+
+    val controllerClass = possibleControllers.iterator().next()
+    val constrollerClassConstructor = controllerClass.getConstructor(classOf[MazeMap],classOf[(BotController => Unit)],classOf[(Byte) => Unit])
+
+    val controller:BotController = constrollerClassConstructor.newInstance(map, onChanged(map.maze), onError).asInstanceOf[BotController]
+    //Above code is extremely type safe and nothing can go wrong. Ever.
 
     val initLatch = new Latch()
 
