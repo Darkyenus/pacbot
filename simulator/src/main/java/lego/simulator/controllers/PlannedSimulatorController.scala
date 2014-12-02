@@ -41,6 +41,7 @@ class PlannedSimulatorController(map:MazeMap,onStatusChanged:(PlannedSimulatorCo
           remaining = 0
       }
     }
+    onStatusChanged(this)
     moved.toByte
   }
 
@@ -85,6 +86,7 @@ class PlannedSimulatorController(map:MazeMap,onStatusChanged:(PlannedSimulatorCo
           remaining = 0
       }
     }
+    onStatusChanged(this)
     moved.toByte
   }
 

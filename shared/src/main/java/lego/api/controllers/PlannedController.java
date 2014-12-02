@@ -16,11 +16,11 @@ public abstract class PlannedController extends MapAwareController {
     private final BatchByteQueue pathQueue = new BatchByteQueue(96);
 
     public final void addXPath(byte x){
-        pathQueue.add((byte) (x | X_BIT));
+        pathQueue.add((byte) ((x + 63) | X_BIT));
     }
 
     public final void addYPath(byte y){
-        pathQueue.add((byte) (y & Y_ANTIBIT));
+        pathQueue.add((byte) ((y + 63) & Y_ANTIBIT));
     }
 
     public abstract byte travelX(byte amount);
@@ -31,7 +31,7 @@ public abstract class PlannedController extends MapAwareController {
         while(pathQueue.nonEmpty()){
             final byte command = pathQueue.remove();
             final boolean onX = (command & X_BIT) == X_BIT;
-            final byte amount = (byte) ((command << 1) >> 1);
+            final byte amount = (byte) ((command & Y_ANTIBIT) - 63); //No idea what this used to do, tested in scala console and didnt work
             if(onX){
                 travelX(amount);
             }else{
