@@ -4,7 +4,9 @@ package lego.nxt.controllers;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.nxt.controllers.util.DifferentialController;
 import lego.nxt.controllers.util.DifferentialMotorManager;
+import lego.nxt.controllers.util.DifferentialSensors;
 import lego.nxt.util.AbstractMoveTask;
 import lego.nxt.util.MotorController;
 import lego.nxt.util.TaskProcessor;
@@ -14,39 +16,19 @@ import lejos.util.Delay;
 /** Hi
  *
  * Created by Darkyen on 13.11.2014. */
-@SuppressWarnings("UnusedDeclaration")
-public final class DifferentialEnvironmentRobotController extends EnvironmentController {
+@SuppressWarnings({ "ConstantConditions"})
+public final class DifferentialEnvironmentRobotController extends EnvironmentController implements DifferentialController {
 
 	private static final DifferentialMotorManager motors = new DifferentialMotorManager(MotorPort.C, MotorPort.B);
 	private static final MotorPort warningLight = MotorPort.A;
-	private static final LightSensor leftLight = new LightSensor(SensorPort.S3);
-	private static final UltrasonicSensor rightSonic = new UltrasonicSensor(SensorPort.S4);
 	private static final TouchSensor frontTouch = new TouchSensor(SensorPort.S1);
 	private static final TouchSensor backTouch = new TouchSensor(SensorPort.S2);
+	private static final DifferentialSensors sensors = null;//Sensors are off
 
 	private String lastError = "";
-	private int displayLightReadings = 0;
-	private int displaySonicReadings = 0;
 	private byte warnings = 0;
 
 	private byte lastMoved = 0;
-
-	// Sensor related
-	private static final boolean ENABLE_SENSORS = false;
-	private boolean highLight = true;
-	private final byte READINGS = 8;
-	private byte sonicPointer = 0;
-	private int sonicSum = 0;
-	private final int[] sonicReadings = new int[READINGS];
-	private byte lowLightPointer = 0;
-	private int lowLightSum = 0;
-	private final int[] lowLightReadings = new int[READINGS];
-	private byte highLightPointer = 0;
-	private int highLightSum = 0;
-	private final int[] highLightReadings = new int[READINGS];
-
-	@SuppressWarnings("FieldCanBeLocal") private final byte LIGHT_THRESHOLD = 50;
-	@SuppressWarnings("FieldCanBeLocal") private final byte SONIC_BLOCK_SIZE = 28;
 
 	@Override
 	public void initialize () {
@@ -65,12 +47,12 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 				}
 				LCD.drawString(lastError, mazeWidth + 1, 0);
 				// LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
-				if (ENABLE_SENSORS) {
-					readSensors();
+				if(sensors != null){
+					sensors.readSensors();
 					LCD.drawString("L:", 0, mazeHeight + 1);
-					LCD.drawInt(displayLightReadings, 3, mazeHeight + 1);
+					LCD.drawInt(sensors.displayLightReadings, 3, mazeHeight + 1);
 					LCD.drawString("S:", 0, mazeHeight + 2);
-					LCD.drawInt(displaySonicReadings, 3, mazeHeight + 2);
+					LCD.drawInt(sensors.displaySonicReadings, 3, mazeHeight + 2);
 				}
 
 				if (glows) {
@@ -141,51 +123,8 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 		debugViewThread.setPriority(Thread.MIN_PRIORITY);
 		debugViewThread.start();
 
-		if (ENABLE_SENSORS) {
-			Thread sensorReadingThread = new Thread("SR") {
-				@Override
-				public void run () {
-					// noinspection InfiniteLoopStatement
-					while (true) {
-						int sonicDistance = rightSonic.getDistance();
-						if (sonicDistance != 255) {
-							sonicSum -= sonicReadings[sonicPointer];
-							sonicReadings[sonicPointer] = sonicDistance;
-							sonicSum += sonicDistance;
-							sonicPointer++;
-							if (sonicPointer == READINGS) {
-								sonicPointer = 0;
-							}
-						}
-						int lightReading = leftLight.getNormalizedLightValue();
-						if (highLight) {
-							highLightSum = highLightSum - highLightReadings[highLightPointer] + lightReading;
-							highLightReadings[highLightPointer] = lightReading;
-							highLight = false;
-							highLightPointer++;
-							if (highLightPointer == READINGS) {
-								highLightPointer = 0;
-							}
-						} else {
-							lowLightSum = lowLightSum - lowLightReadings[lowLightPointer] + lightReading;
-							lowLightReadings[lowLightPointer] = lightReading;
-							highLight = true;
-							lowLightPointer++;
-							if (lowLightPointer == READINGS) {
-								lowLightPointer = 0;
-							}
-						}
-						leftLight.setFloodlight(highLight);
-						try {
-							Thread.sleep(200);
-						} catch (InterruptedException ignored) {
-						}
-					}
-				}
-			};
-			sensorReadingThread.setDaemon(true);
-			sensorReadingThread.setPriority(Thread.NORM_PRIORITY);
-			sensorReadingThread.start();
+		if(sensors != null){
+			sensors.start();
 		}
 	}
 
@@ -216,10 +155,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 			break;
 		case WARNING_TOOK_TOO_LONG_TIME_TO_COMPUTE:
 			lastError = "wttlttc";
-			for (byte i = 0; i < 50; i++) {// TODO QQQ
-				Sound.playTone(400 + i * 15, 10);
-				Sound.playTone(1135 - i * 15, 10);
-			}
 		case SUCCESS_PATH_COMPUTED:
 			for (byte i = 0; i < 50; i++) {
 				Sound.playTone(400 + i * 15, 20);
@@ -267,7 +202,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 		// warnings--;
 		direction = to;
 		lastMoved = 0;
-		readSensors();
+		if(sensors != null)sensors.readSensors();
 		return calibrated;
 	}
 
@@ -294,37 +229,6 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 		motors.reset();
 		motors.turnRad(DifferentialMotorManager.PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
 			DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-	}
-
-	@SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions", "PointlessBooleanExpression"})
-	private void readSensors () {
-		if (!ENABLE_SENSORS) return;
-		Direction left = direction.left;
-		byte leftX = (byte)(x + left.x);
-		byte leftY = (byte)(y + left.y);
-
-		displayLightReadings = (highLightSum - lowLightSum) / READINGS;
-		if (displayLightReadings > LIGHT_THRESHOLD) {
-			// setField(leftX, leftY, FieldStatus.OBSTACLE);
-		} else {
-			// if(getField(leftX, leftY) != FieldStatus.FREE_VISITED && getField(leftX, leftY) != FieldStatus.START)
-			// setField(leftX, leftY, FieldStatus.FREE_UNVISITED);
-		}
-
-		Direction right = direction.right;
-
-		displaySonicReadings = sonicSum / READINGS;
-
-		if (displaySonicReadings != 255) { // Invalid measurement, can mean either too far away or too close.
-
-			for (int i = 1; displaySonicReadings - i * SONIC_BLOCK_SIZE > 0; i++) {
-				byte rightX = (byte)(x + right.x * i);
-				byte rightY = (byte)(y + right.y * i);
-				// if(getField(rightX, rightY) != FieldStatus.FREE_VISITED && getField(leftX, leftY) != FieldStatus.START)
-				// setField(rightX, rightY, FieldStatus.FREE_UNVISITED);
-			}
-			// setField((byte) (x + right.x), (byte) (y + right.y), FieldStatus.OBSTACLE);
-		}
 	}
 
 	private static final float BLOCK_DISTANCE = 28.75f;// 28.5 cm
@@ -442,6 +346,11 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 		return result;
 	}
 
+	@Override
+	public Direction getHeadingDirection() {
+		return direction;
+	}
+
 	private final class MoveTask extends AbstractMoveTask {
 		private Direction direction;
 		private byte amount;
@@ -476,7 +385,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 					x += direction.x;
 					y += direction.y;
 					setField(x, y, FREE_VISITED);
-					readSensors();
+					if(sensors != null)sensors.readSensors();
 				} else {
 					setField((byte)(x + direction.x), (byte)(y + direction.y), OBSTACLE);
 					break;
@@ -492,7 +401,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 					x -= direction.x;
 					y -= direction.y;
 					setField(x, y, FREE_VISITED);
-					readSensors();
+					if(sensors != null)sensors.readSensors();
 				} else {
 					setField((byte)(x - direction.x), (byte)(y - direction.y), OBSTACLE);
 					break;
