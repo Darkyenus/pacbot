@@ -1,8 +1,7 @@
 
 package lego.util;
 
-/** High performance lightweight stack.
- *
+/**
  * Created by jIRKA on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
 public final class PositionBatchQueue {
@@ -19,6 +18,10 @@ public final class PositionBatchQueue {
 
 	public boolean isEmpty () {
 		return readPosition >= writePosition;
+	}
+
+	public boolean nonEmpty(){
+		return readPosition < writePosition;
 	}
 
 	public int size () {

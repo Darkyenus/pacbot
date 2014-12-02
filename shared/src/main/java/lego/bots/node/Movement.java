@@ -40,8 +40,8 @@ public final class Movement {
                         movingDist++;
                     } else {
                         if (movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
+                            directions.add(actualDir);
+                            distances.add(movingDist);
                         }
                         actualDir = EnvironmentController.Direction.DOWN;
                         movingDist = 1;
@@ -52,8 +52,8 @@ public final class Movement {
                         movingDist++;
                     } else {
                         if (movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
+                            directions.add(actualDir);
+                            distances.add(movingDist);
                         }
                         actualDir = EnvironmentController.Direction.UP;
                         movingDist = 1;
@@ -64,8 +64,8 @@ public final class Movement {
                         movingDist++;
                     } else {
                         if (movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
+                            directions.add(actualDir);
+                            distances.add(movingDist);
                         }
                         actualDir = EnvironmentController.Direction.LEFT;
                         movingDist = 1;
@@ -76,8 +76,8 @@ public final class Movement {
                         movingDist++;
                     } else {
                         if (movingDist > 0) {
-                            directions.pushNext(actualDir);
-                            distances.pushNext(movingDist);
+                            directions.add(actualDir);
+                            distances.add(movingDist);
                         }
                         actualDir = EnvironmentController.Direction.RIGHT;
                         movingDist = 1;
@@ -89,13 +89,13 @@ public final class Movement {
             prevY = nextY;
         }
         if(movingDist > 0) {
-            directions.pushNext(actualDir);
-            distances.pushNext(movingDist);
+            directions.add(actualDir);
+            distances.add(movingDist);
         }
 
         while(!directions.isEmpty()){
-            actualDir = directions.retreiveFirst();
-            movingDist = distances.retreiveFirst();
+            actualDir = directions.remove();
+            movingDist = distances.remove();
 
             if (actualDir == EnvironmentController.Direction.DOWN) {
                 controller.moveByY(movingDist);

@@ -68,7 +68,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
                     movingDist++;
                 } else {
                     if (movingDist > 0) {
-                        pDirections.pushNext(actualDir);
+                        pDirections.add(actualDir);
                         pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.DOWN;
@@ -80,7 +80,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
                     movingDist++;
                 } else {
                     if (movingDist > 0) {
-                        pDirections.pushNext(actualDir);
+                        pDirections.add(actualDir);
                         pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.UP;
@@ -92,7 +92,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
                     movingDist++;
                 } else {
                     if (movingDist > 0) {
-                        pDirections.pushNext(actualDir);
+                        pDirections.add(actualDir);
                         pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.LEFT;
@@ -104,7 +104,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
                     movingDist++;
                 } else {
                     if (movingDist > 0) {
-                        pDirections.pushNext(actualDir);
+                        pDirections.add(actualDir);
                         pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.RIGHT;
@@ -116,7 +116,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
             prevY = nextY;
         }
         if(movingDist > 0) {
-            pDirections.pushNext(actualDir);
+            pDirections.add(actualDir);
             pDistances.add(movingDist);
         }
 
@@ -131,7 +131,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
         EnvironmentController.Direction actualDir;
         byte movingDist;
         while(!pDirections.isEmpty()){
-            actualDir = pDirections.retreiveFirst();
+            actualDir = pDirections.remove();
             movingDist = pDistances.remove();
 
             if (actualDir == EnvironmentController.Direction.DOWN) {

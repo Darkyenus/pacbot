@@ -18,16 +18,22 @@ public final class BatchQueue<T> {
 		return readPosition >= writePosition;
 	}
 
-	public T retreiveFirst () {
-		if (readPosition >= writePosition) return null;
+	public boolean nonEmpty(){
+		return readPosition < writePosition;
+	}
 
+	public T remove() {
 		T result = internal[readPosition];
 		internal[readPosition] = null;
 		readPosition++;
 		return result;
 	}
 
-	public void pushNext (T value) {
+	public T peek(){
+		return internal[readPosition];
+	}
+
+	public void add(T value) {
 		int currentSize = internal.length;
 		if (writePosition == currentSize) {
 			T[] newInternal = (T[])new Object[currentSize << 2];
