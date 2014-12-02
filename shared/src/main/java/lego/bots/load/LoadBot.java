@@ -18,7 +18,7 @@ import java.io.IOException;
  * Date: 2.12.2014
  * Time: 16:44
  */
-public class LoadBot extends Bot<PlannedController> {
+public final class LoadBot extends Bot<PlannedController> {
 
     private static final int STACK_SIZE = 16;
 
