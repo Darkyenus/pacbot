@@ -2,7 +2,7 @@ package lego.bots.clever.algo;
 
 import lego.api.controllers.EnvironmentController;
 import lego.bots.clever.Algo;
-import lego.util.PositionQueue;
+import lego.util.PositionBatchQueue;
 import lego.util.PositionStack;
 
 /**
@@ -320,7 +320,7 @@ public final class WeightNav extends Algo {
     }
 
 
-    private boolean calcRoute(PositionQueue outputRoute) {
+    private boolean calcRoute(PositionBatchQueue outputRoute) {
         calcRouteTargetX = Byte.MIN_VALUE;
         calcRouteTargetY = Byte.MIN_VALUE;
         calcRouteMinDist = Short.MAX_VALUE;

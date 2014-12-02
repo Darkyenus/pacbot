@@ -1,16 +1,16 @@
 
 package lego.util;
 
-/** High performance lightweight stack.
+/** Simple high performance queue.
  *
  * Created by jIRKA on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
-public final class Queue<T> {
+public final class BatchQueue<T> {
 	private T[] internal;
 	private int writePosition = 0;
 	private int readPosition = 0;
 
-	public Queue (int initialSize) {
+	public BatchQueue(int initialSize) {
 		internal = (T[])new Object[initialSize];
 	}
 

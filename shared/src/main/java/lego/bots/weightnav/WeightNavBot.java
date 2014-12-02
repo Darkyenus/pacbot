@@ -24,8 +24,8 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
     private byte botX = -1;
     private byte botY = -1;
 
-    private final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(STACK_SIZE);
-    private final Queue<Byte> pDistances = new Queue<Byte>(STACK_SIZE);
+    private final BatchQueue<EnvironmentController.Direction> pDirections = new BatchQueue<EnvironmentController.Direction>(STACK_SIZE);
+    private final BatchByteQueue pDistances = new BatchByteQueue(STACK_SIZE);
 
     public void prepare(){
 
@@ -39,7 +39,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
 
         generateSpecialPriority();
 
-        PositionQueue route = new PositionQueue(STACK_SIZE);
+        PositionBatchQueue route = new PositionBatchQueue(STACK_SIZE);
 
         while(!done) {
             calcDistances();
@@ -430,7 +430,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
 
 
     byte lastDir = 0;
-    private boolean calcRoute(PositionQueue outputRoute) {
+    private boolean calcRoute(PositionBatchQueue outputRoute) {
         byte targetX = Byte.MIN_VALUE;
         byte targetY = Byte.MIN_VALUE;
         byte minDist = Byte.MAX_VALUE;

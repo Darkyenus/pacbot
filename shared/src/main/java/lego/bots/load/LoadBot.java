@@ -4,9 +4,10 @@ import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.bots.clever.Algo;
+import lego.util.BatchByteQueue;
 import lego.util.Latch;
-import lego.util.PositionQueue;
-import lego.util.Queue;
+import lego.util.PositionBatchQueue;
+import lego.util.BatchQueue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,10 +26,10 @@ public class LoadBot extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 
-    private final PositionQueue route = new PositionQueue(STACK_SIZE);
+    private final PositionBatchQueue route = new PositionBatchQueue(STACK_SIZE);
 
-    private final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(Algo.STACK_SIZE);
-    private final Queue<Byte> pDistances = new Queue<Byte>(Algo.STACK_SIZE);
+    private final BatchQueue<EnvironmentController.Direction> pDirections = new BatchQueue<EnvironmentController.Direction>(Algo.STACK_SIZE);
+    private final BatchByteQueue pDistances = new BatchByteQueue(Algo.STACK_SIZE);
 
     private void prepare(){
         if(loadRoute())

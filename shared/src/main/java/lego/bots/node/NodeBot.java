@@ -5,7 +5,7 @@ import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.util.ByteStack;
 import lego.util.Latch;
-import lego.util.PositionQueue;
+import lego.util.PositionBatchQueue;
 import lego.util.PositionStack;
 
 import java.io.*;
@@ -24,7 +24,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 
-    private final PositionQueue route = new PositionQueue(STACK_SIZE);
+    private final PositionBatchQueue route = new PositionBatchQueue(STACK_SIZE);
 
     private final GraphStruct graph = new GraphStruct();
 

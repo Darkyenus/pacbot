@@ -5,9 +5,10 @@ import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.bots.clever.algo.TriplePass;
 import lego.bots.clever.algo.WeightNav;
+import lego.util.BatchByteQueue;
 import lego.util.Latch;
-import lego.util.PositionQueue;
-import lego.util.Queue;
+import lego.util.PositionBatchQueue;
+import lego.util.BatchQueue;
 
 /**
  * Private property.
@@ -19,10 +20,10 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 
-    private final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(Algo.STACK_SIZE);
-    private final Queue<Byte> pDistances = new Queue<Byte>(Algo.STACK_SIZE);
+    private final BatchQueue<EnvironmentController.Direction> pDirections = new BatchQueue<EnvironmentController.Direction>(Algo.STACK_SIZE);
+    private final BatchByteQueue pDistances = new BatchByteQueue(Algo.STACK_SIZE);
 
-    private PositionQueue bestRoute = null;
+    private PositionBatchQueue bestRoute = null;
     private short bestUnitPrice = Short.MAX_VALUE;
     private byte bestScoredPoints;
     private String bestName; //TODO remove name stuff because of NXT performance
