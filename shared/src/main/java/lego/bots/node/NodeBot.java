@@ -10,7 +10,6 @@ import lego.util.PositionStack;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Private property.
@@ -109,8 +108,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
                     data[i++] = (byte)next;
                     next = input.read();
                 }
-
-                System.out.println(Arrays.toString(data));
 
                 originalFileContent.add(data);
 

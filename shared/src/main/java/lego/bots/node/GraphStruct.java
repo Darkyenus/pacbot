@@ -36,13 +36,152 @@ public final class GraphStruct {
 
         getNextNodeStructure(n);
 
-        findRectangles();
+        findRectangles(false);
 
-        optimizeForRectangles();
+        optimizeForFreeRectangles();
+
+        findRectangles(true);
+
+        optimizeForNodeRectangles();
 
     }
 
-    private void optimizeForRectangles(){
+    private void optimizeForFreeRectangles(){
+        Node n = null;
+        for(Rectangle r: activeRectangles){
+            if(nodes[r.x][r.y] == null){
+                n = new Node();
+                n.x = r.x;
+                n.y = r.y;
+
+                if(nodes[n.x + 1][n.y] != null && nodes[n.x][n.y - 1] != null) {
+
+                    n.horRightLinkedX = (byte) (n.x + 1);
+                    n.horRightLinkedY = n.y;
+                    n.horRightPrice = PRICE_MOVE;
+                    n.horRightEdgeId = edges.size();
+                    nodes[n.x + 1][n.y].horLeftLinkedX = n.x;
+                    nodes[n.x + 1][n.y].horLeftLinkedY = n.y;
+                    nodes[n.x + 1][n.y].horLeftPrice = PRICE_MOVE;
+                    nodes[n.x + 1][n.y].horLeftEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) (((n.x + 1) << 4) | n.y)});
+
+                    n.verUpLinkedX = n.x;
+                    n.verUpLinkedY = (byte) (n.y - 1);
+                    n.verUpPrice = PRICE_MOVE;
+                    n.verUpEdgeId = edges.size();
+                    nodes[n.x][n.y - 1].verDownLinkedX = n.x;
+                    nodes[n.x][n.y - 1].verDownLinkedY = n.y;
+                    nodes[n.x][n.y - 1].verDownPrice = PRICE_MOVE;
+                    nodes[n.x][n.y - 1].verDownEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) ((n.x << 4) | (n.y - 1))});
+
+                    nodes[n.x][n.y] = n;
+                }
+            }
+            if(nodes[r.x + r.width - 1][r.y] == null){
+                n = new Node();
+                n.x = (byte)(r.x + r.width - 1);
+                n.y = r.y;
+
+                if(nodes[n.x - 1][n.y] != null && nodes[n.x][n.y - 1] != null) {
+
+                    n.horLeftLinkedX = (byte) (n.x - 1);
+                    n.horLeftLinkedY = n.y;
+                    n.horLeftPrice = PRICE_MOVE;
+                    n.horLeftEdgeId = edges.size();
+                    nodes[n.x - 1][n.y].horRightLinkedX = n.x;
+                    nodes[n.x - 1][n.y].horRightLinkedY = n.y;
+                    nodes[n.x - 1][n.y].horRightPrice = PRICE_MOVE;
+                    nodes[n.x - 1][n.y].horRightEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) (((n.x - 1) << 4) | n.y)});
+
+                    n.verUpLinkedX = n.x;
+                    n.verUpLinkedY = (byte) (n.y - 1);
+                    n.verUpPrice = PRICE_MOVE;
+                    n.verUpEdgeId = edges.size();
+                    nodes[n.x][n.y - 1].verDownLinkedX = n.x;
+                    nodes[n.x][n.y - 1].verDownLinkedY = n.y;
+                    nodes[n.x][n.y - 1].verDownPrice = PRICE_MOVE;
+                    nodes[n.x][n.y - 1].verDownEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) ((n.x << 4) | (n.y - 1))});
+
+                    nodes[n.x][n.y] = n;
+                }
+            }
+            if(nodes[r.x][r.y - r.height + 1] == null){
+                n = new Node();
+                n.x = r.x;
+                n.y = (byte)(r.y - r.height + 1);
+
+                if(nodes[n.x + 1][n.y] != null && nodes[n.x][n.y + 1] != null) {
+
+                    n.horRightLinkedX = (byte) (n.x + 1);
+                    n.horRightLinkedY = n.y;
+                    n.horRightPrice = PRICE_MOVE;
+                    n.horRightEdgeId = edges.size();
+                    nodes[n.x + 1][n.y].horLeftLinkedX = n.x;
+                    nodes[n.x + 1][n.y].horLeftLinkedY = n.y;
+                    nodes[n.x + 1][n.y].horLeftPrice = PRICE_MOVE;
+                    nodes[n.x + 1][n.y].horLeftEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) (((n.x + 1) << 4) | n.y)});
+
+                    n.verDownLinkedX = n.x;
+                    n.verDownLinkedY = (byte) (n.y + 1);
+                    n.verDownPrice = PRICE_MOVE;
+                    n.verDownEdgeId = edges.size();
+                    nodes[n.x][n.y + 1].verUpLinkedX = n.x;
+                    nodes[n.x][n.y + 1].verUpLinkedY = n.y;
+                    nodes[n.x][n.y + 1].verUpPrice = PRICE_MOVE;
+                    nodes[n.x][n.y + 1].verUpEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) ((n.x << 4) | (n.y + 1))});
+
+                    nodes[n.x][n.y] = n;
+                }
+            }
+            if(nodes[r.x + r.width - 1][r.y - r.height + 1] == null){
+                n = new Node();
+                n.x = (byte)(r.x + r.width - 1);
+                n.y = (byte)(r.y - r.height + 1);
+
+                if(nodes[n.x - 1][n.y] != null && nodes[n.x][n.y + 1] != null) {
+
+                    n.horLeftLinkedX = (byte) (n.x - 1);
+                    n.horLeftLinkedY = n.y;
+                    n.horLeftPrice = PRICE_MOVE;
+                    n.horLeftEdgeId = edges.size();
+                    nodes[n.x - 1][n.y].horRightLinkedX = n.x;
+                    nodes[n.x - 1][n.y].horRightLinkedY = n.y;
+                    nodes[n.x - 1][n.y].horRightPrice = PRICE_MOVE;
+                    nodes[n.x - 1][n.y].horRightEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) (((n.x - 1) << 4) | n.y)});
+
+                    n.verDownLinkedX = n.x;
+                    n.verDownLinkedY = (byte) (n.y + 1);
+                    n.verDownPrice = PRICE_MOVE;
+                    n.verDownEdgeId = edges.size();
+                    nodes[n.x][n.y + 1].verUpLinkedX = n.x;
+                    nodes[n.x][n.y + 1].verUpLinkedY = n.y;
+                    nodes[n.x][n.y + 1].verUpPrice = PRICE_MOVE;
+                    nodes[n.x][n.y + 1].verUpEdgeId = edges.size();
+
+                    edges.add(new byte[]{(byte) ((n.x << 4) | n.y), (byte) ((n.x << 4) | (n.y + 1))});
+
+                    nodes[n.x][n.y] = n;
+                }
+            }
+
+        }
+    }
+
+    private void optimizeForNodeRectangles(){
 
         boolean keepGlobal[][] = new boolean[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
@@ -196,12 +335,13 @@ public final class GraphStruct {
         }
     }
 
-    public void findRectangles(){
+    public void findRectangles(boolean nodeRects){
+        activeRectangles.clear();
         byte startX;
         for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
             startX = -1;
             for(byte x = 0; x < EnvironmentController.mazeWidth; x ++){
-                if(nodes[x][y] != null){
+                if((nodeRects && nodes[x][y] != null) || (!nodeRects && controller.isFree(x, y))){
                     if(startX == -1){
                         startX = x;
                     }
