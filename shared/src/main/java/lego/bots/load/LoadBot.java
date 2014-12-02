@@ -4,8 +4,11 @@ import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.api.controllers.PlannedController;
+import lego.bots.clever.Algo;
+import lego.util.BatchByteQueue;
 import lego.util.Latch;
-import lego.util.PositionQueue;
+import lego.util.PositionBatchQueue;
+import lego.util.BatchQueue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +27,7 @@ public class LoadBot extends Bot<PlannedController> {
 
     private final Latch startLatch = new Latch();
 
-    private final PositionQueue route = new PositionQueue(STACK_SIZE);
+    private final PositionBatchQueue route = new PositionBatchQueue(STACK_SIZE);
 
     private void prepare(){
         if(loadRoute())
@@ -59,11 +62,11 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         if (actualDir == EnvironmentController.Direction.UP) {
-                            controller.pushYPath((byte) -movingDist);
+                            controller.addYPath((byte) -movingDist);
                         } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                            controller.pushXPath((byte) -movingDist);
+                            controller.addXPath((byte) -movingDist);
                         } else {
-                            controller.pushXPath(movingDist);
+                            controller.addXPath(movingDist);
                         }
                     }
                     actualDir = EnvironmentController.Direction.DOWN;
@@ -76,11 +79,11 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         if (actualDir == EnvironmentController.Direction.DOWN) {
-                            controller.pushYPath(movingDist);
+                            controller.addYPath(movingDist);
                         } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                            controller.pushXPath((byte) -movingDist);
+                            controller.addXPath((byte) -movingDist);
                         } else {
-                            controller.pushXPath(movingDist);
+                            controller.addXPath(movingDist);
                         }
                     }
                     actualDir = EnvironmentController.Direction.UP;
@@ -93,11 +96,11 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         if (actualDir == EnvironmentController.Direction.DOWN) {
-                            controller.pushYPath(movingDist);
+                            controller.addYPath(movingDist);
                         } else if (actualDir == EnvironmentController.Direction.UP) {
-                            controller.pushYPath((byte) -movingDist);
+                            controller.addYPath((byte) -movingDist);
                         } else {
-                            controller.pushXPath(movingDist);
+                            controller.addXPath(movingDist);
                         }
                     }
                     actualDir = EnvironmentController.Direction.LEFT;
@@ -110,11 +113,11 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         if (actualDir == EnvironmentController.Direction.DOWN) {
-                            controller.pushYPath(movingDist);
+                            controller.addYPath(movingDist);
                         } else if (actualDir == EnvironmentController.Direction.UP) {
-                            controller.pushYPath((byte) -movingDist);
+                            controller.addYPath((byte) -movingDist);
                         } else {
-                            controller.pushXPath((byte) -movingDist);
+                            controller.addXPath((byte) -movingDist);
                         }
                     }
                     actualDir = EnvironmentController.Direction.RIGHT;
@@ -127,13 +130,13 @@ public class LoadBot extends Bot<PlannedController> {
         }
         if(movingDist > 0) {
             if (actualDir == EnvironmentController.Direction.DOWN) {
-                controller.pushYPath(movingDist);
+                controller.addYPath(movingDist);
             } else if (actualDir == EnvironmentController.Direction.UP) {
-                controller.pushYPath((byte) -movingDist);
+                controller.addYPath((byte) -movingDist);
             } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                controller.pushXPath((byte) -movingDist);
+                controller.addXPath((byte) -movingDist);
             } else {
-                controller.pushXPath(movingDist);
+                controller.addXPath(movingDist);
             }
         }
 
@@ -215,9 +218,7 @@ public class LoadBot extends Bot<PlannedController> {
     @Override
     public synchronized void run () {
         startLatch.pass();
-
         controller.travelPath();
-
     }
 
     @Override

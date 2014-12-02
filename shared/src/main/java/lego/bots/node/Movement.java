@@ -1,8 +1,8 @@
 package lego.bots.node;
 
 import lego.api.controllers.EnvironmentController;
-import lego.util.PositionQueue;
-import lego.util.Queue;
+import lego.util.PositionBatchQueue;
+import lego.util.BatchQueue;
 
 /**
  * Private property.
@@ -14,9 +14,9 @@ public final class Movement {
 
     public static final byte STACK_SIZE = 16;
 
-    public static void move(PositionQueue route, EnvironmentController controller){
-        Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
-        Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
+    public static void move(PositionBatchQueue route, EnvironmentController controller){
+        BatchQueue<EnvironmentController.Direction> directions = new BatchQueue<EnvironmentController.Direction>(STACK_SIZE);
+        BatchQueue<Byte> distances = new BatchQueue<Byte>(STACK_SIZE);
 
         EnvironmentController.Direction actualDir = null;
         byte movingDist = 0;

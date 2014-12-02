@@ -1,7 +1,7 @@
 package lego.bots.clever;
 
 import lego.api.controllers.EnvironmentController;
-import lego.util.PositionQueue;
+import lego.util.PositionBatchQueue;
 
 /**
  * Private property.
@@ -19,11 +19,11 @@ public abstract class Algo implements Runnable {
 
     protected EnvironmentController controller;
 
-    protected final PositionQueue bestRoute = new PositionQueue(STACK_SIZE);
+    protected final PositionBatchQueue bestRoute = new PositionBatchQueue(STACK_SIZE);
     protected byte bestScoredPoints = -1;
     protected short bestRoutePrice = Short.MAX_VALUE;
 
-    public PositionQueue getBestRoute(){
+    public PositionBatchQueue getBestRoute(){
         return bestRoute;
     }
 
@@ -35,7 +35,7 @@ public abstract class Algo implements Runnable {
         return bestRoutePrice;
     }
 
-    protected short computePrice(PositionQueue route){
+    protected short computePrice(PositionBatchQueue route){
         short price = 0; //Because of some not really efficient algos
 
         EnvironmentController.Direction actualDir = null;

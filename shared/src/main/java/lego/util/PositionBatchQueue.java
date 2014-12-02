@@ -5,14 +5,14 @@ package lego.util;
  *
  * Created by jIRKA on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
-public final class PositionQueue {
+public final class PositionBatchQueue {
 
 	private byte[] internalX;
 	private byte[] internalY;
 	private int writePosition = 0;
 	private int readPosition = 0;
 
-	public PositionQueue (int initialSize) {
+	public PositionBatchQueue(int initialSize) {
 		internalX = new byte[initialSize];
 		internalY = new byte[initialSize];
 	}
