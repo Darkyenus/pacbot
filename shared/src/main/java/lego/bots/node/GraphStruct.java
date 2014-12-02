@@ -15,20 +15,19 @@ import java.util.ArrayList;
 public final class GraphStruct {
 
     public static final byte PRICE_MOVE = 1;
-    public static final byte PRICE_TURN_AROUND = 2;
+    public static final byte PRICE_TURN_AROUND = 1;
     public static final byte PRICE_TURN = 1;
 
 
     public final ByteArrayArrayList edges = new ByteArrayArrayList(NodeBot.STACK_SIZE);
     public final Node[][] nodes = new Node[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
-    private EnvironmentController.FieldStatus[][] map;
 
     private final ArrayList<Rectangle> activeRectangles = new ArrayList<Rectangle>();
+    private EnvironmentController controller;
 
-
-    public void prepareNodes(EnvironmentController.FieldStatus[][] map){
-        this.map = map;
-
+    public void prepareNodes(EnvironmentController controller){
+        this.controller = controller;
+        
         Node n = new Node();
         n.x = EnvironmentController.startX;
         n.y = EnvironmentController.startY;
@@ -38,10 +37,6 @@ public final class GraphStruct {
         getNextNodeStructure(n);
 
         findRectangles();
-
-        for(Rectangle r : activeRectangles) {
-            Debug.printRectangle(r, map);
-        }
 
         optimizeForRectangles();
 
@@ -569,28 +564,20 @@ public final class GraphStruct {
 
         byte result = 0;
 
-        if((getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED || getField(x, (byte) (y - 1)) == EnvironmentController.FieldStatus.START) && getField(x, y) != EnvironmentController.FieldStatus.START){
+        if((controller.isFree(x, (byte)(y - 1)) || controller.isStart(x, (byte)(y - 1))) && !controller.isStart(x, y)){
             result = (byte) (result | 8);
         }
-        if(getField((byte) (x + 1), y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.isFree((byte)(x + 1), y)){
             result = (byte) (result | 4);
         }
-        if(getField(x, (byte) (y + 1)) == EnvironmentController.FieldStatus.FREE_UNVISITED && getField(x, (byte)(y + 1)) != EnvironmentController.FieldStatus.START){
+        if(controller.isFree(x, (byte)(y + 1))){
             result = (byte) (result | 2);
         }
-        if(getField((byte) (x - 1), y) == EnvironmentController.FieldStatus.FREE_UNVISITED){
+        if(controller.isFree((byte) (x - 1), y)){
             result = (byte) (result | 1);
         }
 
         return result;
-    }
-
-    private EnvironmentController.FieldStatus getField(byte x, byte y){
-        if(x < 0 || y < 0 || x >= EnvironmentController.mazeWidth || y >= EnvironmentController.mazeHeight){
-            return EnvironmentController.FieldStatus.OBSTACLE;
-        }else{
-            return map[y][x];
-        }
     }
 
 }

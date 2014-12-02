@@ -44,8 +44,8 @@ public final class ByteArrayArrayList {
 		size++;
 	}
 
-	public byte[] getCopyAsArray () {
-		byte[] res = new byte[size];
+	public byte[][] getCopyAsArray () {
+		byte[][] res = new byte[size][];
 		System.arraycopy(internal, 0, res, 0, size);
 		return res;
 	}

@@ -47,7 +47,7 @@ public final class Debug {
         System.out.println("+---------------------------+");
     }
 
-    public static void printNodes(Node[][] nodes, ArrayList<Byte[]> edges){
+    public static void printNodes(Node[][] nodes, byte[][] edges){
         ArrayList<Node> nodeList = new ArrayList<Node>();
 
         System.out.println("Map:");
@@ -116,7 +116,7 @@ public final class Debug {
 
         int eid = 0;
 
-        for(byte[] way: edges.toArray(new byte[0][0])){
+        for(byte[] way: edges){
 
             String s = Integer.toString(eid);
             if(s.length() == 1){
@@ -134,20 +134,20 @@ public final class Debug {
 
     }
 
-    public static void printRectangle(GraphStruct.Rectangle r, EnvironmentController.FieldStatus[][] map){
+    public static void printRectangle(GraphStruct.Rectangle r, EnvironmentController controller){
         System.out.println("Rectangle (x: "+r.x+", y: "+r.y+", width: "+r.width+", height: "+r.height+")");
         System.out.println("+---------------------------+");
-        for(int y = 0; y < 6; y++){
+        for(byte y = 0; y < 6; y++){
             System.out.print("|");
-            for(int x = 0; x < 9; x++){
+            for(byte x = 0; x < 9; x++){
                 if((r.x <= x && r.x + r.width > x) && (r.y - r.height < y && r.y >= y)){
                     System.out.print("###");
                 }else{
-                    if(map[y][x] == EnvironmentController.FieldStatus.FREE_UNVISITED){
+                    if(controller.isFree(x, y)){
                         System.out.print(" o ");
-                    }else if(map[y][x] == EnvironmentController.FieldStatus.START){
+                    }else if(controller.isStart(x, y)){
                         System.out.print(" v ");
-                    }else if(map[y][x] == EnvironmentController.FieldStatus.OBSTACLE){
+                    }else if(controller.isObstacle(x, y)){
                         System.out.print("[x]");
                     }
                 }

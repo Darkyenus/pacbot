@@ -97,19 +97,14 @@ public final class Movement {
             actualDir = directions.retreiveFirst();
             movingDist = distances.retreiveFirst();
 
-            EnvironmentController.FieldStatus nextTile = controller.getField((byte)(controller.getX() + actualDir.x * (movingDist + 1)), (byte)(controller.getY() + actualDir.y * (movingDist + 1)));
-            if(nextTile == EnvironmentController.FieldStatus.OBSTACLE){
-                controller.move(actualDir);
-            }else {
-                if (actualDir == EnvironmentController.Direction.DOWN) {
-                    controller.moveByY(movingDist);
-                } else if (actualDir == EnvironmentController.Direction.UP) {
-                    controller.moveByY((byte) -movingDist);
-                } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                    controller.moveByX((byte) -movingDist);
-                } else if (actualDir == EnvironmentController.Direction.RIGHT) {
-                    controller.moveByX(movingDist);
-                }
+            if (actualDir == EnvironmentController.Direction.DOWN) {
+                controller.moveByY(movingDist);
+            } else if (actualDir == EnvironmentController.Direction.UP) {
+                controller.moveByY((byte) -movingDist);
+            } else if (actualDir == EnvironmentController.Direction.LEFT) {
+                controller.moveByX((byte) -movingDist);
+            } else if (actualDir == EnvironmentController.Direction.RIGHT) {
+                controller.moveByX(movingDist);
             }
         }
     }

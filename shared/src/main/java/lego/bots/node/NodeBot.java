@@ -19,107 +19,16 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 
-    private static final EnvironmentController.FieldStatus FREE = EnvironmentController.FieldStatus.FREE_UNVISITED;
-    private static final EnvironmentController.FieldStatus BLOCK = EnvironmentController.FieldStatus.OBSTACLE;
-    private static final EnvironmentController.FieldStatus START = EnvironmentController.FieldStatus.START;
-
-
-
-    private final EnvironmentController.FieldStatus[][] preparedMap = {
-            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
-            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE, BLOCK,  FREE, BLOCK, START, BLOCK,  FREE, BLOCK,  FREE},
-            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE, BLOCK,  FREE, BLOCK, BLOCK, BLOCK,  FREE, BLOCK,  FREE},
-            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE}
-    };
-
-
-    /*
-    private final EnvironmentController.FieldStatus[][] preparedMap = {
-            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            {BLOCK, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
-            { FREE,  FREE, BLOCK, BLOCK, START, BLOCK,  FREE,  FREE,  FREE},
-            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE,  FREE,  FREE, BLOCK, BLOCK, BLOCK,  FREE, BLOCK,  FREE},
-            { FREE,  FREE,  FREE, BLOCK,  FREE,  FREE,  FREE, BLOCK,  FREE}
-    };
-    */
-
-    /*
-    private final EnvironmentController.FieldStatus[][] preparedMap = {
-            {BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            {BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            {BLOCK,  FREE, BLOCK, BLOCK, START, BLOCK,  FREE, BLOCK,  FREE},
-            {BLOCK,  FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
-            {BLOCK,  FREE, BLOCK, BLOCK,  FREE, BLOCK, BLOCK, BLOCK,  FREE},
-            {BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE}
-    };
-    */
-
-    /*
-    private final EnvironmentController.FieldStatus[][] preparedMap = {
-            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE},
-            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE, BLOCK,  FREE, BLOCK, START, BLOCK,  FREE, BLOCK,  FREE},
-            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE,  FREE, BLOCK,  FREE,  FREE,  FREE, BLOCK, BLOCK,  FREE},
-            { FREE,  FREE, BLOCK, BLOCK,  FREE, BLOCK, BLOCK,  FREE,  FREE}
-    };
-    */
-
-    /*
-    private final EnvironmentController.FieldStatus[][] preparedMap = {
-            { FREE,  FREE,  FREE, BLOCK,  FREE, BLOCK,  FREE,  FREE,  FREE},
-            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE,  FREE,  FREE, BLOCK, START, BLOCK,  FREE,  FREE,  FREE},
-            { FREE, BLOCK,  FREE,  FREE,  FREE,  FREE,  FREE, BLOCK,  FREE},
-            { FREE, BLOCK, BLOCK,  FREE, BLOCK,  FREE, BLOCK, BLOCK,  FREE},
-            { FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE,  FREE}
-    };
-    */
-
-
-    private final Thread prepareThread = new Thread(){
-        @Override
-        public void run() {
-            for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
-                for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-                    controller.setField(x, y, preparedMap[y][x]);
-                }
-            }
-            prepare();
-        }
-    };
-
-    private static boolean stopPreparing = false;
-
     private final PositionStack route = new PositionStack(STACK_SIZE);
 
     private final GraphStruct graph = new GraphStruct();
 
     private void prepare(){
-        graph.prepareNodes(preparedMap);
+        graph.prepareNodes(controller);
         findBestWay();
-
-        /*
-        for(Byte edgeId: bestPath){
-            Debug.printEdge(graph.edges.get(edgeId));
-            try{
-                System.in.read();
-            }catch (IOException ignored){
-
-            }
-        }
-        */
-
-        //System.out.println();
 
         System.out.println("Price: "+bestPrice);
 
-        //System.out.println();
-
-        //System.out.println("Computation ended, waiting for start signal");
     }
 
 
@@ -179,12 +88,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         Node startNode = graph.nodes[EnvironmentController.startX][EnvironmentController.startY];
 
-        try {
-            decideOnNode(startNode);
-            checkCompletedMap((byte)-1, (byte)-1);
-        } catch (InternalError ignored){
-            //controller.onError((byte)30); //Something stopped
-        }
+        decideOnNode(startNode);
 
     }
 
@@ -207,13 +111,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
                 bestPath = path.getCopyAsArray();
                 bestPrice = price;
                 controller.onError(EnvironmentController.WARNING_ALERT);
-                /*System.out.println("Have something (" + bestPrice + ")");
-                System.out.println("Path: "+Arrays.toString(bestPath));
-                System.out.println();*/
-            }
-
-            if(stopPreparing){
-                throw new InternalError("Stopped preparing");
+                System.out.println("Found one ("+price+")");
             }
 
             revertLast();
@@ -562,12 +460,14 @@ public final class NodeBot extends Bot<EnvironmentController> {
     }
 
 
-    private boolean[][] toIterate = new boolean[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
-
     private void resetToIterate(){
         for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
             for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-                toIterate[x][y] = preparedMap[y][x] == FREE;
+                if(controller.isFree(x, y)){
+                    controller.setMetaBit(x, y);
+                }else{
+                    controller.unsetMetaBit(x, y);
+                }
             }
         }
     }
@@ -581,11 +481,11 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         byte result = 0;
 
-        if(x >= 0 && y >= 0 && x < EnvironmentController.mazeWidth && y < EnvironmentController.mazeHeight && toIterate[x][y]){
+        if(x >= 0 && y >= 0 && x < EnvironmentController.mazeWidth && y < EnvironmentController.mazeHeight && controller.getMetaBit(x, y)){
 
             boolean notCollected = visited[x][y] == 0;
             result = (byte)(notCollected ? -1 : 1);
-            toIterate[x][y] = false;
+            controller.unsetMetaBit(x, y);
 
             if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != EnvironmentController.Direction.UP){
                 byte val = countDots(x, (byte)(y - 1), EnvironmentController.Direction.DOWN, masterStartX, masterStartY);
@@ -694,13 +594,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
     public synchronized void run() {
         startLatch.pass();
 
-        if(prepareThread.isAlive()){
-            try {
-                stopPreparing = true;
-                prepareThread.join();
-            } catch (InterruptedException ignored) {}
-        }
-
         byte[] edgePath = graph.edges.get(bestPath[0]);
         byte i;
         for(i = 1; i < bestPath.length; i++){
@@ -728,13 +621,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
                 startLatch.open();
                 break;
             case RUN_STARTED:
-                stopPreparing = true;
                 startLatch.open();
                 break;
             case RUN_PREPARE:
-                prepareThread.setPriority(Thread.MAX_PRIORITY);
-                prepareThread.setName("Prep");
-                prepareThread.start();
+                prepare();
                 break;
         }
     }
