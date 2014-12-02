@@ -3,6 +3,7 @@ package lego.bots.load;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.api.controllers.PlannedController;
 import lego.bots.clever.Algo;
 import lego.util.BatchByteQueue;
 import lego.util.Latch;
@@ -20,7 +21,7 @@ import java.io.IOException;
  * Date: 2.12.2014
  * Time: 16:44
  */
-public class LoadBot extends Bot<EnvironmentController> {
+public class LoadBot extends Bot<PlannedController> {
 
     private static final int STACK_SIZE = 16;
 
@@ -115,6 +116,22 @@ public class LoadBot extends Bot<EnvironmentController> {
             pDistances.pushNext(movingDist);
         }
 
+        
+        while(!pDirections.isEmpty()){
+            actualDir = pDirections.retreiveFirst();
+            movingDist = pDistances.retreiveFirst();
+
+            if (actualDir == EnvironmentController.Direction.DOWN) {
+                controller.pushYPath(movingDist);
+            } else if (actualDir == EnvironmentController.Direction.UP) {
+                controller.pushYPath((byte) -movingDist);
+            } else if (actualDir == EnvironmentController.Direction.LEFT) {
+                controller.pushXPath((byte) -movingDist);
+            } else if (actualDir == EnvironmentController.Direction.RIGHT) {
+                controller.pushXPath(movingDist);
+            }
+        }
+
         controller.onError(EnvironmentController.SUCCESS_PATH_COMPUTED);
     }
 
@@ -193,24 +210,7 @@ public class LoadBot extends Bot<EnvironmentController> {
     @Override
     public synchronized void run () {
         startLatch.pass();
-
-        EnvironmentController.Direction actualDir;
-        byte movingDist;
-        while(!pDirections.isEmpty()){
-            actualDir = pDirections.retreiveFirst();
-            movingDist = pDistances.retreiveFirst();
-
-            if (actualDir == EnvironmentController.Direction.DOWN) {
-                controller.moveByY(movingDist);
-            } else if (actualDir == EnvironmentController.Direction.UP) {
-                controller.moveByY((byte) -movingDist);
-            } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                controller.moveByX((byte) -movingDist);
-            } else if (actualDir == EnvironmentController.Direction.RIGHT) {
-                controller.moveByX(movingDist);
-            }
-        }
-
+        controller.travelPath();
     }
 
     @Override
