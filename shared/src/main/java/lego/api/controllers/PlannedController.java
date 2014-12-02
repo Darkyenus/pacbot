@@ -3,6 +3,9 @@ package lego.api.controllers;
 import lego.util.BatchByteQueue;
 
 /**
+ * Max supported x/y amount is 63. Undefined results for numbers any bigger.
+ * Min is -64.
+ *
  * Private property.
  * User: Darkyen
  * Date: 02/12/14
@@ -31,7 +34,7 @@ public abstract class PlannedController extends MapAwareController {
         while(pathQueue.nonEmpty()){
             final byte command = pathQueue.remove();
             final boolean onX = (command & X_BIT) == X_BIT;
-            final byte amount = (byte) ((command << 1) >> 1);
+            final byte amount = (byte) (((byte)(command << 1)) >> 1);
             if(onX){
                 travelX(amount);
             }else{
