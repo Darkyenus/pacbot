@@ -96,7 +96,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.DOWN;
                     movingDist = 1;
@@ -108,7 +108,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.UP;
                     movingDist = 1;
@@ -120,7 +120,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.LEFT;
                     movingDist = 1;
@@ -132,7 +132,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.RIGHT;
                     movingDist = 1;
@@ -144,7 +144,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         }
         if(movingDist > 0) {
             pDirections.pushNext(actualDir);
-            pDistances.pushNext(movingDist);
+            pDistances.add(movingDist);
         }
 
         controller.onError(EnvironmentController.SUCCESS_PATH_COMPUTED);
@@ -158,7 +158,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         byte movingDist;
         while(!pDirections.isEmpty()){
             actualDir = pDirections.retreiveFirst();
-            movingDist = pDistances.retreiveFirst();
+            movingDist = pDistances.remove();
 
             if (actualDir == EnvironmentController.Direction.DOWN) {
                 controller.moveByY(movingDist);

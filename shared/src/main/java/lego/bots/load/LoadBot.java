@@ -65,7 +65,7 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.DOWN;
                     movingDist = 1;
@@ -77,7 +77,7 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.UP;
                     movingDist = 1;
@@ -89,7 +89,7 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.LEFT;
                     movingDist = 1;
@@ -101,7 +101,7 @@ public class LoadBot extends Bot<PlannedController> {
                 } else {
                     if (movingDist > 0) {
                         pDirections.pushNext(actualDir);
-                        pDistances.pushNext(movingDist);
+                        pDistances.add(movingDist);
                     }
                     actualDir = EnvironmentController.Direction.RIGHT;
                     movingDist = 1;
@@ -113,22 +113,22 @@ public class LoadBot extends Bot<PlannedController> {
         }
         if(movingDist > 0) {
             pDirections.pushNext(actualDir);
-            pDistances.pushNext(movingDist);
+            pDistances.add(movingDist);
         }
 
         
         while(!pDirections.isEmpty()){
             actualDir = pDirections.retreiveFirst();
-            movingDist = pDistances.retreiveFirst();
+            movingDist = pDistances.remove();
 
             if (actualDir == EnvironmentController.Direction.DOWN) {
-                controller.pushYPath(movingDist);
+                controller.addYPath(movingDist);
             } else if (actualDir == EnvironmentController.Direction.UP) {
-                controller.pushYPath((byte) -movingDist);
+                controller.addYPath((byte) -movingDist);
             } else if (actualDir == EnvironmentController.Direction.LEFT) {
-                controller.pushXPath((byte) -movingDist);
+                controller.addXPath((byte) -movingDist);
             } else if (actualDir == EnvironmentController.Direction.RIGHT) {
-                controller.pushXPath(movingDist);
+                controller.addXPath(movingDist);
             }
         }
 
