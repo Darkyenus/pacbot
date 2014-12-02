@@ -5,6 +5,7 @@ import java.io.{File, FileInputStream, FileNotFoundException, IOException}
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import lego.api.controllers.EnvironmentController
+import lego.api.controllers.MapAwareController._
 
 /**
  * Private property.
@@ -13,10 +14,9 @@ import lego.api.controllers.EnvironmentController
  * Time: 15:25
  */
 class MazeMap {
-  val maze:Array[Array[MapTile]] = Array.fill(EnvironmentController.mazeWidth,EnvironmentController.mazeHeight)(MapTile.FREE)
+  val maze:Array[Array[MapTile]] = Array.fill(mazeWidth,mazeHeight)(MapTile.FREE)
 
   //Init basic tiles.
-  import lego.api.controllers.EnvironmentController.{startX, startY}
   maze(startX)(startY) = MapTile.START
   maze(startX - 1)(startY) = MapTile.OBSTACLE
   maze(startX + 1)(startY) = MapTile.OBSTACLE
@@ -24,21 +24,21 @@ class MazeMap {
 
   def toPrintableString:String = {
     val result = new StringBuilder
-    result.append("+").append("-" * EnvironmentController.mazeWidth * 3).append("+").append('\n')
-    for(y <- 0 until EnvironmentController.mazeHeight){
+    result.append("+").append("-" * mazeWidth * 3).append("+").append('\n')
+    for(y <- 0 until mazeHeight){
       result.append('|')
-      for(x <- 0 until EnvironmentController.mazeWidth){
+      for(x <- 0 until mazeWidth){
         result.append(" "+maze(x)(y)+" ")
       }
       result.append('|')
       result.append('\n')
     }
-    result.append("+").append("-" * EnvironmentController.mazeWidth * 3).append("+")
+    result.append("+").append("-" * mazeWidth * 3).append("+")
     result.toString()
   }
 
   def apply(x:Int,y:Int):MapTile = {
-    if(x < 0 || y < 0 || x >= EnvironmentController.mazeWidth || y >= EnvironmentController.mazeHeight){
+    if(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight){
       MapTile.OBSTACLE
     }else{
       maze(x)(y)
@@ -55,7 +55,7 @@ object MazeMap {
     if(map.isDefined) {
       val result = new MazeMap
 
-      for (x <- 0 until EnvironmentController.mazeWidth; y <- 0 until EnvironmentController.mazeHeight) {
+      for (x <- 0 until mazeWidth; y <- 0 until mazeHeight) {
         result.maze(x)(y) = map.get(x)(y) //BECAUSE
       }
       result
@@ -70,7 +70,7 @@ object MazeMap {
     var readingName: Boolean = false
     var readingMap: Boolean = false
     var fieldToRead: Int = 0
-    val maze:Array[Array[MapTile]] = Array.fill(EnvironmentController.mazeWidth,EnvironmentController.mazeHeight)(MapTile.FREE)
+    val maze:Array[Array[MapTile]] = Array.fill(mazeWidth,mazeHeight)(MapTile.FREE)
     try {
       val mapsFile: File = new File("maps")
       input = new FileInputStream(mapsFile)
@@ -79,23 +79,23 @@ object MazeMap {
       val OBSTACLE_CHAR: Int = 'X'
       val FREE_SPACE_CHAR: Int = '_'
       val START_CHAR: Int = 'S'
-      val FIELDS_TO_READ: Int = EnvironmentController.mazeWidth * EnvironmentController.mazeHeight
+      val FIELDS_TO_READ: Int = mazeWidth * mazeHeight
       while (i != -1) {
         if (readingMap) {
           i match {
             case OBSTACLE_CHAR =>
-              maze(fieldToRead % EnvironmentController.mazeWidth)(fieldToRead / EnvironmentController.mazeWidth) = MapTile.OBSTACLE
+              maze(fieldToRead % mazeWidth)(fieldToRead / mazeWidth) = MapTile.OBSTACLE
               fieldToRead += 1
             case FREE_SPACE_CHAR =>
-              maze(fieldToRead % EnvironmentController.mazeWidth)(fieldToRead / EnvironmentController.mazeWidth) = MapTile.FREE
+              maze(fieldToRead % mazeWidth)(fieldToRead / mazeWidth) = MapTile.FREE
               fieldToRead += 1
             case START_CHAR =>
-              maze(fieldToRead % EnvironmentController.mazeWidth)(fieldToRead / EnvironmentController.mazeWidth) = MapTile.START
+              maze(fieldToRead % mazeWidth)(fieldToRead / mazeWidth) = MapTile.START
               fieldToRead += 1
             case _ =>
           }
           if (fieldToRead == FIELDS_TO_READ) {
-            if (maze(EnvironmentController.startX)(EnvironmentController.startY) != MapTile.START) {
+            if (maze(startX)(startY) != MapTile.START) {
               println("ERROR: map loading invalid start")
             }
             return Some(maze)
@@ -111,14 +111,12 @@ object MazeMap {
         }
         i = input.read
       }
-    }
-    catch {
+    } catch {
       case notFound: FileNotFoundException =>
         println("ERROR: Loading file not found")
       case e: IOException =>
         println("ERROR: Loading IO exception")
-    }
-    finally {
+    } finally {
       if (input != null) {
         try {
           input.close()
@@ -137,7 +135,7 @@ object MazeMap {
   }
 
   def apply(lines:Iterable[String]):MazeMap = {
-    val maze = lines.take(EnvironmentController.mazeHeight).map(_.take(EnvironmentController.mazeWidth).map({
+    val maze = lines.take(mazeHeight).map(_.take(mazeWidth).map({
       case 'O' => MapTile.OBSTACLE
       case ' ' | 'F' => MapTile.FREE
       case 'S' => MapTile.START
@@ -145,7 +143,7 @@ object MazeMap {
 
     val result = new MazeMap
 
-    for(x <- 0 until EnvironmentController.mazeWidth; y <- 0 until EnvironmentController.mazeHeight){
+    for(x <- 0 until mazeWidth; y <- 0 until mazeHeight){
       result.maze(x)(y) = maze(y)(x)//BECAUSE
     }
     result

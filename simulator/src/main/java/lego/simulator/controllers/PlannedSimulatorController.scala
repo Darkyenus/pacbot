@@ -1,25 +1,24 @@
 package lego.simulator.controllers
 
-import lego.api.controllers.{MapAwareController, EnvironmentController}
-import lego.api.controllers.EnvironmentController.MoveFieldsTask
 import lego.api.controllers.MapAwareController._
-import lego.simulator.{Simulator, MapTile, MazeMap}
+import lego.api.controllers.{MapAwareController, PlannedController}
+import lego.simulator.{MazeMap, Simulator, MapTile}
 
 /**
  * Private property.
  * User: Darkyen
- * Date: 24/10/14
- * Time: 15:24
+ * Date: 02/12/14
+ * Time: 17:53
  */
-class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(MapAwareController)=>Unit,val onError:(Byte)=>Unit) extends EnvironmentController {
+class PlannedSimulatorController(map:MazeMap,onStatusChanged:(PlannedSimulatorController)=>Unit,val onError:(Byte)=>Unit) extends PlannedController {
 
-  override def moveByXAsync(xMove: Byte): MoveFieldsTask = {
+  override def travelX(xMove: Byte): Byte = {
     val direction:Byte = xMove.signum.toByte
     var remaining = xMove
     var moved = 0
 
     while(remaining != 0){ //Used to work only in positive direction
-      val nextX:Byte = (x + direction).toByte
+    val nextX:Byte = (x + direction).toByte
       map(nextX,y) match {
         case MapTile.START =>
           x = nextX
@@ -42,17 +41,16 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(MapAwareContro
           remaining = 0
       }
     }
-
-    new MockMoveFieldTask(moved.toByte)
+    moved.toByte
   }
 
-  override def moveByYAsync(yMove: Byte): MoveFieldsTask = {
+  override def travelY(yMove: Byte): Byte = {
     val direction:Byte = yMove.signum.toByte
     var remaining = yMove
     var moved = 0
 
     while(remaining != 0){ //Used to work only in positive direction
-      val nextY = y + direction
+    val nextY = y + direction
 
       map(x,nextY) match {
         case MapTile.START =>
@@ -87,19 +85,7 @@ class EnvironmentSimulatorController(map:MazeMap,onStatusChanged:(MapAwareContro
           remaining = 0
       }
     }
-
-    new MockMoveFieldTask(moved.toByte)
-  }
-
-  private class MockMoveFieldTask(movedFields:Byte) extends MoveFieldsTask {
-
-    onStatusChanged(EnvironmentSimulatorController.this)
-
-    override def isDone: Boolean = true
-
-    override def waitUntilDone(): Unit = {}
-
-    override def moved(): Byte = movedFields
+    moved.toByte
   }
 
   override def onError(error: Byte): Unit = onError.apply(error)
