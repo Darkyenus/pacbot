@@ -18,7 +18,11 @@ public final class BatchByteQueue {
 		return readPosition >= writePosition;
 	}
 
-	public byte retreiveFirst () {
+	public boolean nonEmpty(){
+		return readPosition < writePosition;
+	}
+
+	public byte remove() {
 		byte result = internal[readPosition];
 		readPosition++;
 		if(readPosition == writePosition){
@@ -28,7 +32,11 @@ public final class BatchByteQueue {
 		return result;
 	}
 
-	public void pushNext (byte value) {
+	public byte peek(){
+		return internal[readPosition];
+	}
+
+	public void add(byte value) {
 		int currentSize = internal.length;
 		if (writePosition == currentSize) {
 			byte[] newInternal = new byte[currentSize << 2];

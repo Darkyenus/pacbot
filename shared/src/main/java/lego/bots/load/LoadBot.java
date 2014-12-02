@@ -4,11 +4,8 @@ import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.api.controllers.PlannedController;
-import lego.bots.clever.Algo;
-import lego.util.BatchByteQueue;
 import lego.util.Latch;
 import lego.util.PositionBatchQueue;
-import lego.util.BatchQueue;
 
 import java.io.File;
 import java.io.FileInputStream;
