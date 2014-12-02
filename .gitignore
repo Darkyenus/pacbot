@@ -7,3 +7,5 @@ shared/src/main/shared.iml
 simulator/src/main/simulator.iml
 out/*
 mappointer
+/maps
+/routes
