@@ -5,7 +5,12 @@ import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.util.ByteStack;
 import lego.util.Latch;
+import lego.util.PositionQueue;
 import lego.util.PositionStack;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Private property.
@@ -19,7 +24,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     private final Latch startLatch = new Latch();
 
-    private final PositionStack route = new PositionStack(STACK_SIZE);
+    private final PositionQueue route = new PositionQueue(STACK_SIZE);
 
     private final GraphStruct graph = new GraphStruct();
 
@@ -27,8 +32,149 @@ public final class NodeBot extends Bot<EnvironmentController> {
         graph.prepareNodes(controller);
         findBestWay();
 
+        byte[] edgePath = graph.edges.get(bestPath[0]);
+        byte i;
+        for(i = 1; i < bestPath.length; i++){
+            edgePath = mergeEdges(edgePath, graph.edges.get(bestPath[i]));
+        }
+
+        if(edgePath[0] != ((EnvironmentController.startX << 4) | (EnvironmentController.startY))) {
+            for (i = (byte)(edgePath.length - 1); i >= 0; i--) {
+                route.pushNext((byte) ((edgePath[i] >> 4) & 15), (byte) (edgePath[i] & 15));
+            }
+        }else{
+            for (i = 0; i < edgePath.length; i++) {
+                route.pushNext((byte) ((edgePath[i] >> 4) & 15), (byte) (edgePath[i] & 15));
+            }
+        }
+
         System.out.println("Price: "+bestPrice);
 
+
+        saveRoute(getIndex());
+    }
+
+    private int getIndex(){
+        FileInputStream input = null;
+        File mapsFile = new File("mappointer");
+        try {
+            input = new FileInputStream(mapsFile);
+            int mapName = input.read();
+            if (mapName == -1) {
+                controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_CORRUPTED);
+            } else {
+                return mapName;
+            }
+        } catch (FileNotFoundException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return -1;
+    }
+
+    ArrayList<byte[]> originalFileContent = new ArrayList<byte[]>();
+
+    private void loadEverything(){
+        FileInputStream input = null;
+        File mapsFile = new File("routes");
+        try {
+            input = new FileInputStream(mapsFile);
+            int mapName = input.read();
+            while (mapName != -1) {
+
+                int skip = 0;
+                skip += (input.read() - '0') * 1000;
+                skip += (input.read() - '0') * 100;
+                skip += (input.read() - '0') * 10;
+                skip += (input.read() - '0');
+
+                byte[] data = new byte[skip + 5];
+                data[0] = (byte)mapName;
+                data[1] = (byte)((skip / 1000) + '0');
+                data[2] = (byte)(((skip / 100) % 10) + '0');
+                data[3] = (byte)(((skip / 10) % 10) + '0');
+                data[4] = (byte)((skip % 10) + '0');
+
+                int next = input.read();
+                int i = 5;
+                while(next != '\n' && next != -1){
+                    data[i++] = (byte)next;
+                    next = input.read();
+                }
+
+                System.out.println(Arrays.toString(data));
+
+                originalFileContent.add(data);
+
+                mapName = input.read();
+
+            }
+        } catch (FileNotFoundException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+    private void saveRoute(int name){
+        if(name != -1){
+            loadEverything();
+            FileOutputStream output = null;
+            File routesFile = new File("routes");
+
+            try {
+                output = new FileOutputStream(routesFile);
+
+                output.write(name);
+                int size = route.size();
+                output.write((size*2 / 1000) + '0');
+                output.write(((size*2 / 100) % 10) + '0');
+                output.write(((size*2 / 10) % 10) + '0');
+                output.write((size*2 % 10) + '0');
+
+                for (int i = 0; i < size; i++) {
+
+                    output.write('0' + route.getXAt(i));
+                    output.write('0' + route.getYAt(i));
+
+                }
+                output.write('\n');
+
+                for(int j = 0; j < originalFileContent.size(); j ++){
+                    if(originalFileContent.get(j)[0] != name) {
+                        byte[] data = originalFileContent.get(j); //Saving CPU time
+                        for (int i = 0; i < data.length; i++) {
+                            output.write(data[i]);
+                        }
+                        output.write('\n');
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (output != null) {
+                    try {
+                        output.close();
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+        }
     }
 
 
@@ -593,22 +739,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
     @Override
     public synchronized void run() {
         startLatch.pass();
-
-        byte[] edgePath = graph.edges.get(bestPath[0]);
-        byte i;
-        for(i = 1; i < bestPath.length; i++){
-            edgePath = mergeEdges(edgePath, graph.edges.get(bestPath[i]));
-        }
-
-        if(edgePath[0] == ((EnvironmentController.startX << 4) | (EnvironmentController.startY))) {
-            for (i = (byte)(edgePath.length - 1); i >= 0; i--) {
-                route.push((byte) ((edgePath[i] >> 4) & 15), (byte) (edgePath[i] & 15));
-            }
-        }else{
-            for (i = 0; i < edgePath.length; i++) {
-                route.push((byte) ((edgePath[i] >> 4) & 15), (byte) (edgePath[i] & 15));
-            }
-        }
 
         Movement.move(route, controller);
     }

@@ -22,7 +22,7 @@ public final class PositionQueue {
 	}
 
 	public int size () {
-		return writePosition;
+		return writePosition - readPosition;
 	}
 
 	public byte retreiveFirstX () {

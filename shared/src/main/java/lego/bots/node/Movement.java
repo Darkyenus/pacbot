@@ -1,7 +1,7 @@
 package lego.bots.node;
 
 import lego.api.controllers.EnvironmentController;
-import lego.util.PositionStack;
+import lego.util.PositionQueue;
 import lego.util.Queue;
 
 /**
@@ -14,7 +14,7 @@ public final class Movement {
 
     public static final byte STACK_SIZE = 16;
 
-    public static void move(PositionStack route, EnvironmentController controller){
+    public static void move(PositionQueue route, EnvironmentController controller){
         Queue<EnvironmentController.Direction> directions = new Queue<EnvironmentController.Direction>(STACK_SIZE);
         Queue<Byte> distances = new Queue<Byte>(STACK_SIZE);
 
@@ -24,14 +24,14 @@ public final class Movement {
         if(route.isEmpty())
             return;
 
-        byte prevX = route.peekX();
-        byte prevY = route.peekY();
-        route.pop();
+        byte prevX = route.retreiveFirstX();
+        byte prevY = route.retreiveFirstY();
+        route.moveReadHead();
 
         while(!route.isEmpty()){
-            byte nextX = route.peekX();
-            byte nextY = route.peekY();
-            route.pop();
+            byte nextX = route.retreiveFirstX();
+            byte nextY = route.retreiveFirstY();
+            route.moveReadHead();
 
             if(nextX != prevX || nextY != prevY) {
 

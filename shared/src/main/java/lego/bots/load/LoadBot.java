@@ -1,0 +1,228 @@
+package lego.bots.load;
+
+import lego.api.Bot;
+import lego.api.BotEvent;
+import lego.api.controllers.EnvironmentController;
+import lego.bots.clever.Algo;
+import lego.util.Latch;
+import lego.util.PositionQueue;
+import lego.util.Queue;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+/**
+ * Private property.
+ * User: jIRKA
+ * Date: 2.12.2014
+ * Time: 16:44
+ */
+public class LoadBot extends Bot<EnvironmentController> {
+
+    private static final int STACK_SIZE = 16;
+
+    private final Latch startLatch = new Latch();
+
+    private final PositionQueue route = new PositionQueue(STACK_SIZE);
+
+    private final Queue<EnvironmentController.Direction> pDirections = new Queue<EnvironmentController.Direction>(Algo.STACK_SIZE);
+    private final Queue<Byte> pDistances = new Queue<Byte>(Algo.STACK_SIZE);
+
+    private void prepare(){
+        if(loadRoute())
+            preprocessRoute();
+        else
+            controller.onError(EnvironmentController.WARNING_ALERT);
+    }
+
+    private void preprocessRoute(){
+        EnvironmentController.Direction actualDir = null;
+        byte movingDist = 0;
+
+        byte prevX = 0;
+        byte prevY = 0;
+        byte nextX, nextY;
+
+        if(!route.isEmpty()) {
+            prevX = route.retreiveFirstX();
+            prevY = route.retreiveFirstY();
+            route.moveReadHead();
+        }
+
+        //Preprocess path
+        while(!route.isEmpty()){
+            nextX = route.retreiveFirstX();
+            nextY = route.retreiveFirstY();
+            route.moveReadHead();
+
+            if (nextX == prevX && nextY == prevY + 1) {
+                if (actualDir == EnvironmentController.Direction.DOWN) {
+                    movingDist++;
+                } else {
+                    if (movingDist > 0) {
+                        pDirections.pushNext(actualDir);
+                        pDistances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.DOWN;
+                    movingDist = 1;
+                }
+            }
+            if (nextX == prevX && nextY == prevY - 1) {
+                if (actualDir == EnvironmentController.Direction.UP) {
+                    movingDist++;
+                } else {
+                    if (movingDist > 0) {
+                        pDirections.pushNext(actualDir);
+                        pDistances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.UP;
+                    movingDist = 1;
+                }
+            }
+            if (nextX == prevX - 1 && nextY == prevY) {
+                if (actualDir == EnvironmentController.Direction.LEFT) {
+                    movingDist++;
+                } else {
+                    if (movingDist > 0) {
+                        pDirections.pushNext(actualDir);
+                        pDistances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.LEFT;
+                    movingDist = 1;
+                }
+            }
+            if (nextX == prevX + 1 && nextY == prevY) {
+                if (actualDir == EnvironmentController.Direction.RIGHT) {
+                    movingDist++;
+                } else {
+                    if (movingDist > 0) {
+                        pDirections.pushNext(actualDir);
+                        pDistances.pushNext(movingDist);
+                    }
+                    actualDir = EnvironmentController.Direction.RIGHT;
+                    movingDist = 1;
+                }
+            }
+
+            prevX = nextX;
+            prevY = nextY;
+        }
+        if(movingDist > 0) {
+            pDirections.pushNext(actualDir);
+            pDistances.pushNext(movingDist);
+        }
+
+        controller.onError(EnvironmentController.SUCCESS_PATH_COMPUTED);
+    }
+
+    private boolean loadSavedRoute(int mapId){
+        FileInputStream input = null;
+        File mapsFile = new File("routes");
+        try {
+            input = new FileInputStream(mapsFile);
+            while (true) {
+                int mapName = input.read();
+                if (mapName == mapId) {
+                    input.skip(4);
+                    int next = input.read();
+                    while(next != '\n'){
+                        byte x = (byte)(next - '0');
+                        byte y = (byte)(input.read() - '0');
+
+                        route.pushNext(x, y);
+
+                        next = input.read();
+                    }
+                    return true;
+                }else{
+                    int skip = 1;
+                    skip += (input.read() - '0') * 1000;
+                    skip += (input.read() - '0') * 100;
+                    skip += (input.read() - '0') * 10;
+                    skip += (input.read() - '0');
+                    if(input.skip(skip) == -1){
+                        controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+                        return false;
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean loadRoute () {
+        FileInputStream input = null;
+        File mapsFile = new File("mappointer");
+        try {
+            input = new FileInputStream(mapsFile);
+            int mapName = input.read();
+            if (mapName == -1) {
+                controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_CORRUPTED);
+            } else {
+                return loadSavedRoute(mapName);
+            }
+        } catch (FileNotFoundException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public synchronized void run () {
+        startLatch.pass();
+
+        EnvironmentController.Direction actualDir;
+        byte movingDist;
+        while(!pDirections.isEmpty()){
+            actualDir = pDirections.retreiveFirst();
+            movingDist = pDistances.retreiveFirst();
+
+            if (actualDir == EnvironmentController.Direction.DOWN) {
+                controller.moveByY(movingDist);
+            } else if (actualDir == EnvironmentController.Direction.UP) {
+                controller.moveByY((byte) -movingDist);
+            } else if (actualDir == EnvironmentController.Direction.LEFT) {
+                controller.moveByX((byte) -movingDist);
+            } else if (actualDir == EnvironmentController.Direction.RIGHT) {
+                controller.moveByX(movingDist);
+            }
+        }
+
+    }
+
+    @Override
+    public void onEvent (BotEvent event) {
+        switch (event) {
+            case RUN_PREPARE:
+                prepare();
+            case RUN_ENDED:
+                startLatch.open();
+                break;
+            case RUN_STARTED:
+                startLatch.open();
+                break;
+        }
+    }
+}
