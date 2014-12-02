@@ -17,6 +17,10 @@ public final class ByteStack {
 		return nextPosition == 0;
 	}
 
+	public boolean nonEmpty() {
+		return nextPosition != 0;
+	}
+
 	public void clear () {
 		nextPosition = 0;
 	}

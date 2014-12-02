@@ -4,10 +4,10 @@ import java.io.File
 
 import com.google.common.base.Charsets
 import com.google.common.io.Files
-import lego.api.controllers.EnvironmentController
-import lego.api.controllers.EnvironmentController._
+import lego.api.controllers.MapAwareController
+import lego.api.controllers.MapAwareController._
 import lego.api.{Bot, BotEvent}
-import lego.simulator.controllers.EnvironmentSimulatorController
+import lego.simulator.controllers.PlannedSimulatorController
 import lego.util.Latch
 
 /**
@@ -20,8 +20,8 @@ object Simulator {
 
   private val controllerMapPointerFile = new File("mappointer")
 
-  private val MapViewWidth = EnvironmentController.mazeWidth * 3 + 2
-  private val MapViewHeight = EnvironmentController.mazeHeight + 2
+  private val MapViewWidth = MapAwareController.mazeWidth * 3 + 2
+  private val MapViewHeight = MapAwareController.mazeHeight + 2
   private val MessagesViewWidth = 40
   private val printGrid = new PrintGrid(2 * MapViewWidth + MessagesViewWidth + 4, MapViewHeight)
   prepareMassageFrame()
@@ -39,17 +39,17 @@ object Simulator {
     printGrid.println(message)
   }
 
-  private val onChanged: (Array[Array[MapTile]]) => (EnvironmentSimulatorController) => Unit
+  private val onChanged: (Array[Array[MapTile]]) => (PlannedSimulatorController) => Unit
   = {
     var fastForward = false
 
-    (maze: Array[Array[MapTile]]) => (controller: EnvironmentSimulatorController) => {
+    (maze: Array[Array[MapTile]]) => (controller: PlannedSimulatorController) => {
       val mindMaze: Array[Array[Byte]] = controller.getMindMaze
 
       printGrid.setSubgrid(0, 0, MapViewWidth, MapViewHeight)
       printGrid.frameSubgrid(" Map ")
-      for (y <- 0 until EnvironmentController.mazeHeight) {
-        for (x <- 0 until EnvironmentController.mazeWidth) {
+      for (y <- 0 until MapAwareController.mazeHeight) {
+        for (x <- 0 until MapAwareController.mazeWidth) {
           if (controller.getX == x && controller.getY == y) {
             printGrid.print("(-)")
           } else {
@@ -59,8 +59,8 @@ object Simulator {
       }
       printGrid.setSubgrid(MapViewWidth + 2, 0, MapViewWidth, MapViewHeight)
       printGrid.frameSubgrid(" Bot Memory ")
-      for (y <- 0 until EnvironmentController.mazeHeight) {
-        for (x <- 0 until EnvironmentController.mazeWidth) {
+      for (y <- 0 until MapAwareController.mazeHeight) {
+        for (x <- 0 until MapAwareController.mazeWidth) {
           if (controller.getX == x && controller.getY == y) {
             printGrid.print("(-)")
           } else {
@@ -129,7 +129,7 @@ object Simulator {
    * Simulates given bot on a given map.
    * Blocks until complete.
    */
-  def simulate(botClass: Class[_ <: Bot[_ <: EnvironmentController]], mapName: Char): Unit = {
+  def simulate(botClass: Class[_ <: Bot[_ <: MapAwareController]], mapName: Char): Unit = {
     val map = MazeMap(mapName)
 
     printGrid.println("Loaded map \"" + mapName + "\"")
@@ -137,9 +137,9 @@ object Simulator {
 
     Files.write(mapName.toString, controllerMapPointerFile, Charsets.UTF_8)
 
-    val bot = botClass.newInstance().asInstanceOf[Bot[EnvironmentSimulatorController]]
+    val bot = botClass.newInstance().asInstanceOf[Bot[PlannedSimulatorController]]
 
-    val controller = new EnvironmentSimulatorController(map, onChanged(map.maze), onError)
+    val controller = new PlannedSimulatorController(map, onChanged(map.maze), onError)
 
     val initLatch = new Latch()
 
