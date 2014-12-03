@@ -10,7 +10,7 @@ import lego.util.PositionStack;
  * Date: 28.11.2014
  * Time: 21:21
  */
-public class TriplePass extends Algo{
+public final class TriplePass extends Algo{
 
     private final short[][] distances = new short[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight]; //After about 4 days of no idea I noticed that this might overflow
     byte botX = EnvironmentController.startX;
