@@ -152,9 +152,11 @@ public final class NodeBot extends Bot<EnvironmentController> {
                 }
                 output.write('\n');
 
+                //noinspection ForLoopReplaceableByForEach
                 for(int j = 0; j < originalFileContent.size(); j ++){
                     if(originalFileContent.get(j)[0] != name) {
                         byte[] data = originalFileContent.get(j); //Saving CPU time
+                        //noinspection ForLoopReplaceableByForEach
                         for (int i = 0; i < data.length; i++) {
                             output.write(data[i]);
                         }
@@ -179,7 +181,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
     byte[] edgesUsed;
     byte[] edgesPrice;
 
-    ByteStack path = new ByteStack(STACK_SIZE);
+    final ByteStack path = new ByteStack(STACK_SIZE);
     short price = 0;
 
     byte[] bestPath = new byte[0];
@@ -190,6 +192,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
     final ByteStack directionStack = new ByteStack(STACK_SIZE);
     final PositionStack positionStack = new PositionStack(STACK_SIZE);
 
+    /** Called once from prepare() */
     public void findBestWay(){
 
         edgesUsed = new byte[graph.edges.size()];
@@ -283,13 +286,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
                 visitedVal = 0;
             }
             visited[junctionNodeX][junctionNodeY] = visitedVal;
-
-
-            /*if(junctionNodeX == 2 && junctionNodeY == 0 && visited[junctionNodeX][junctionNodeY] == 0){
-                System.out.println("Edge: "+edgeId);
-                System.out.println("Post visited: "+visited[junctionNodeX][junctionNodeY]);
-            }*/
-
         }
     }
 
@@ -371,6 +367,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         return result;
     }
 
+    /** Called once from findBestWay with start node and then recursively from itself */
     private void decideOnNode(final Node n){
 
         if (price >= bestPrice) {
@@ -449,7 +446,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
                     hintLeft = Byte.MAX_VALUE; //We don't want to go there, cuz there is nothing or we have been there already
                 }else{ //collected partially or even not touched yet
                     if(returnedFrom == 1){
-                        if((visited[n.x][n.y] & 7) == 0+4){
+                        if((visited[n.x][n.y] & 7) == 4){
                             revertLast();
                             return;
                         }
@@ -485,40 +482,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
 
-
-        /*
-        if(hint != 0){
-            System.out.println("hint: "+hint+" @ x: "+n.x+", y: "+n.y);
-        }
-        */
-/*        if(hintUp == Byte.MAX_VALUE){
-            System.out.println("restriction up  @ x: "+n.x+", y: "+n.y);
-        }
-        if(hintDown == Byte.MAX_VALUE){
-            System.out.println("restriction down  @ x: "+n.x+", y: "+n.y);
-        }
-        if(hintLeft == Byte.MAX_VALUE){
-            System.out.println("restriction left  @ x: "+n.x+", y: "+n.y);
-        }
-        if(hintRight == Byte.MAX_VALUE){
-            System.out.println("restriction right  @ x: "+n.x+", y: "+n.y);
-        }
-*/
-/*
-        System.out.println("x: "+n.x+", y: "+n.y);
-        System.out.println("hint: "+hint);
-        System.out.println("up: "+hintUp);
-        System.out.println("right: "+hintRight);
-        System.out.println("down: "+hintDown);
-        System.out.println("left: "+hintLeft);
-        System.out.println();
-
-        try {
-            System.in.read();
-        } catch (IOException e) {
-
-        }
-*/
 
         for(byte lookingFor = -1; lookingFor < 2; lookingFor ++){
 
@@ -610,80 +573,83 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
     }
 
-    private byte countDots(final byte x, final byte y, final Direction from, final byte masterStartX, final byte masterStartY){
-
+    /** Called from decideOnNode and from itself recursively
+     * -Byte.MAX_VALUE = cyclic
+     * zero and positive = dont go here ever
+     * negative = go here, maybe
+     *
+     * TODO Cache results
+     * */
+    private byte countDots(final int x, final int y, final Direction from, final int masterStartX, final int masterStartY){
         if(x == masterStartX && y == masterStartY){
             return -Byte.MAX_VALUE;
         }
-
-
-        byte result = 0;
-
-        if(x >= 0 && y >= 0 && x < EnvironmentController.mazeWidth && y < EnvironmentController.mazeHeight && controller.getMetaBit(x, y)){
-
-            boolean notCollected = visited[x][y] == 0;
-            result = (byte)(notCollected ? -1 : 1);
-            controller.unsetMetaBit(x, y);
-
-            if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.UP){
-                byte val = countDots(x, (byte)(y - 1), Direction.DOWN, masterStartX, masterStartY);
-                if(val == -Byte.MAX_VALUE)
-                    return -Byte.MAX_VALUE;
-                if(result < 0){
-                    result -= Math.abs(val);
-                }else {
-                    result += Math.abs(val);
-                }
-                if(val < 0 || notCollected){
-                    if(result > 0)
-                        result *= -1;
-                }
-            }
-            if(from != Direction.RIGHT){
-                byte val = countDots((byte)(x + 1), y, Direction.LEFT, masterStartX, masterStartY);
-                if(val == -Byte.MAX_VALUE)
-                    return -Byte.MAX_VALUE;
-
-                if(result < 0){
-                    result -= Math.abs(val);
-                }else {
-                    result += Math.abs(val);
-                }
-                if(val < 0 || notCollected){
-                    if(result > 0)
-                        result *= -1;
-                }
-            }
-            if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.DOWN){
-                byte val = countDots(x, (byte)(y + 1), Direction.UP, masterStartX, masterStartY);
-                if(val == -Byte.MAX_VALUE)
-                    return -Byte.MAX_VALUE;
-                if(result < 0){
-                    result -= Math.abs(val);
-                }else {
-                    result += Math.abs(val);
-                }
-                if(val < 0 || notCollected){
-                    if(result > 0)
-                        result *= -1;
-                }
-            }
-            if(from != Direction.LEFT){
-                byte val = countDots((byte)(x - 1), y, Direction.RIGHT, masterStartX, masterStartY);
-                if(val == -Byte.MAX_VALUE)
-                    return -Byte.MAX_VALUE;
-                if(result < 0){
-                    result -= Math.abs(val);
-                }else {
-                    result += Math.abs(val);
-                }
-                if(val < 0 || notCollected){
-                    if(result > 0)
-                        result *= -1;
-                }
-            }
+        if (x < 0 || y < 0 || x >= EnvironmentController.mazeWidth || y >= EnvironmentController.mazeHeight || !controller.getMetaBitUnsafe(x, y)) {
+            return 0;
         }
 
+        byte result;
+        boolean notCollected = visited[x][y] == 0;
+        result = (byte)(notCollected ? -1 : 1);
+        controller.unsetMetaBitUnsafe(x, y);
+
+        if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.UP){
+            byte val = countDots(x, (y - 1), Direction.DOWN, masterStartX, masterStartY);
+            if(val == -Byte.MAX_VALUE)
+                return -Byte.MAX_VALUE;
+            if(result < 0){
+                result -= Math.abs(val);
+            }else {
+                result += Math.abs(val);
+            }
+            if(val < 0 || notCollected){
+                if(result > 0)
+                    result *= -1;
+            }
+        }
+        if(from != Direction.RIGHT){
+            byte val = countDots((x + 1), y, Direction.LEFT, masterStartX, masterStartY);
+            if(val == -Byte.MAX_VALUE)
+                return -Byte.MAX_VALUE;
+
+            if(result < 0){
+                result -= Math.abs(val);
+            }else {
+                result += Math.abs(val);
+            }
+            if(val < 0 || notCollected){
+                if(result > 0)
+                    result *= -1;
+            }
+        }
+        if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.DOWN){
+            byte val = countDots(x, (y + 1), Direction.UP, masterStartX, masterStartY);
+            if(val == -Byte.MAX_VALUE)
+                return -Byte.MAX_VALUE;
+            if(result < 0){
+                result -= Math.abs(val);
+            }else {
+                result += Math.abs(val);
+            }
+            if(val < 0 || notCollected){
+                if(result > 0)
+                    result *= -1;
+            }
+        }
+        if(from != Direction.LEFT){
+            byte val = countDots((x - 1), y, Direction.RIGHT, masterStartX, masterStartY);
+            if(val == -Byte.MAX_VALUE)
+                return -Byte.MAX_VALUE;
+            if(result < 0){
+                result -= Math.abs(val);
+            }else {
+                result += Math.abs(val);
+            }
+            if(val < 0 || notCollected){
+                if(result > 0)
+                    result *= -1;
+            }
+        }
 
         return result;
     }
@@ -699,16 +665,19 @@ public final class NodeBot extends Bot<EnvironmentController> {
             for (byte i = 0; i < edge1.length; i++){
                 result[i] = edge1[edge1.length - 1 - i];
             }
-            for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
+            System.arraycopy(edge2, (byte) (edge1.length - 1) - edge1.length + 1, result, (byte) (edge1.length - 1), edge2.length + edge1.length - 1 - (byte) (edge1.length - 1));
+            /*for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
                 result[i] = edge2[i - edge1.length + 1];
-            }
+            }*/
         }else if(edge1end == edge2start){
-            for (byte i = 0; i < edge1.length; i++){
+            System.arraycopy(edge1, 0, result, 0, edge1.length);
+            /*for (byte i = 0; i < edge1.length; i++){
                 result[i] = edge1[i];
-            }
-            for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
+            }*/
+            System.arraycopy(edge2, (byte) (edge1.length - 1) - edge1.length + 1, result, (byte) (edge1.length - 1), edge2.length + edge1.length - 1 - (byte) (edge1.length - 1));
+            /*for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
                 result[i] = edge2[i - edge1.length + 1];
-            }
+            }*/
         }else if(edge1start == edge2end){
             for (byte i = 0; i < edge1.length; i++){
                 result[i] = edge1[edge1.length - 1 - i];
@@ -717,9 +686,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
                 result[i] = edge2[edge2.length + edge1.length - 2 - i];
             }
         }else if(edge1end == edge2end){
-            for (byte i = 0; i < edge1.length; i++){
+            System.arraycopy(edge1, 0, result, 0, edge1.length);
+            /*for (byte i = 0; i < edge1.length; i++){
                 result[i] = edge1[i];
-            }
+            }*/
             for (byte i = (byte) (edge1.length - 1); i < edge2.length + edge1.length - 1; i++){
                 result[i] = edge2[edge2.length + edge1.length - 2 - i];
             }
