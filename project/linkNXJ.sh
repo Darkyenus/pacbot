@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### Shared header
-cd "$(dirname "$0")"
+cd "$(dirname "$0")"/..
 
 COMPILEDIR="target/nxj"
 
