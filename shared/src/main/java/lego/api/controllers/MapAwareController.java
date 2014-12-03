@@ -231,12 +231,26 @@ public abstract class MapAwareController extends BotController {
     }
 
     /**
+     * Same as setMetaBit, but doesn't perform bounds checking.
+     */
+    public final void setMetaBitUnsafe(byte x, byte y){
+        maze[x][y] |= TILE_BOOL_META_BIT;
+    }
+
+    /**
      * Sets the meta bit to FALSE on given coord. Does nothing when invalid coords.
      */
     public final void unsetMetaBit(byte x, byte y){
         if (x >= 0 && y >= 0 && x < mazeWidth && y < mazeHeight) {
             maze[x][y] &= ~TILE_BOOL_META_BIT;
         }
+    }
+
+    /**
+     * Same as unsetMetaBit, but doesn't perform bounds checking.
+     */
+    public final void unsetMetaBitUnsafe(byte x, byte y){
+        maze[x][y] &= ~TILE_BOOL_META_BIT;
     }
 
     public final byte getMetaNum(byte x,byte y){

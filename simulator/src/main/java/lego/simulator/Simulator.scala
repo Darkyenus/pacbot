@@ -30,7 +30,7 @@ object Simulator {
 
   def prepareMassageFrame(): Unit = {
     printGrid.setSubgrid(MapViewWidth * 2 + 4, MapViewHeight - 1, MessagesViewWidth, 1)
-    printGrid.print("Q:uit F:ast-forward")
+    printGrid.print("Q:uit F:astForward S:ilentFastForward")
     printGrid.setSubgrid(MapViewWidth * 2 + 4, 0, MessagesViewWidth, MapViewHeight - 1)
     printGrid.frameSubgrid(" Messages ")
     printGrid.clear()
@@ -44,62 +44,67 @@ object Simulator {
   private val onChanged: (Array[Array[MapTile]]) => (BotController) => Unit
   = {
     var fastForward = false
+    var silentFastForward = false
 
     (maze: Array[Array[MapTile]]) => (botController: BotController) => {
-      botController match {
-        case controller:MapAwareController =>
-          val mindMaze: Array[Array[Byte]] = controller.getMindMaze
+      if (!silentFastForward) {
+        botController match {
+          case controller: MapAwareController =>
+            val mindMaze: Array[Array[Byte]] = controller.getMindMaze
 
-          printGrid.setSubgrid(0, 0, MapViewWidth, MapViewHeight)
-          printGrid.frameSubgrid(" Map ")
-          for (y <- 0 until MapAwareController.mazeHeight) {
-            for (x <- 0 until MapAwareController.mazeWidth) {
-              if (controller.getX == x && controller.getY == y) {
-                printGrid.print("(-)")
-              } else {
-                printGrid.print(" " + maze(x)(y) + " ")
+            printGrid.setSubgrid(0, 0, MapViewWidth, MapViewHeight)
+            printGrid.frameSubgrid(" Map ")
+            for (y <- 0 until MapAwareController.mazeHeight) {
+              for (x <- 0 until MapAwareController.mazeWidth) {
+                if (controller.getX == x && controller.getY == y) {
+                  printGrid.print("(-)")
+                } else {
+                  printGrid.print(" " + maze(x)(y) + " ")
+                }
               }
             }
-          }
-          printGrid.setSubgrid(MapViewWidth + 2, 0, MapViewWidth, MapViewHeight)
-          printGrid.frameSubgrid(" Bot Memory ")
-          for (y <- 0 until MapAwareController.mazeHeight) {
-            for (x <- 0 until MapAwareController.mazeWidth) {
-              if (controller.getX == x && controller.getY == y) {
-                printGrid.print("(-)")
-              } else {
-                printGrid.print((mindMaze(x)(y) & 0xC0).toByte match {
-                  case FREE_UNVISITED => " o "
-                  case FREE_VISITED => "   "
-                  case OBSTACLE => "[X]"
-                  case START => " v "
-                })
+            printGrid.setSubgrid(MapViewWidth + 2, 0, MapViewWidth, MapViewHeight)
+            printGrid.frameSubgrid(" Bot Memory ")
+            for (y <- 0 until MapAwareController.mazeHeight) {
+              for (x <- 0 until MapAwareController.mazeWidth) {
+                if (controller.getX == x && controller.getY == y) {
+                  printGrid.print("(-)")
+                } else {
+                  printGrid.print((mindMaze(x)(y) & 0xC0).toByte match {
+                    case FREE_UNVISITED => " o "
+                    case FREE_VISITED => "   "
+                    case OBSTACLE => "[X]"
+                    case START => " v "
+                  })
+                }
               }
             }
-          }
-        case nonMapAwareController =>
-          printGrid.setSubgrid(0, 0, MapViewWidth * 2 + 2, MapViewHeight)
-          printGrid.frameSubgrid("")
-          printGrid.clear()
+          case nonMapAwareController =>
+            printGrid.setSubgrid(0, 0, MapViewWidth * 2 + 2, MapViewHeight)
+            printGrid.frameSubgrid("")
+            printGrid.clear()
 
-          printGrid.offsetGridInwards(5,0,MapViewHeight/3,0)
-          printGrid.print("No map info available.")
-      }
-
-
-      printGrid.printOut()
-      printGrid.clear()
-      prepareMassageFrame()
-
-      if (!fastForward)
-        readLine() match {
-          case "q" | "Q" | "quit" =>
-            throw SimulatorEndThrowable //This is being catched up there somewhere
-          case "f" | "F" | "fastforward" | "skip" =>
-            fastForward = true
-          case _ =>
-            //Continue normally
+            printGrid.offsetGridInwards(5, 0, MapViewHeight / 3, 0)
+            printGrid.print("No map info available.")
         }
+
+
+        printGrid.printOut()
+        printGrid.clear()
+        prepareMassageFrame()
+
+        if (!fastForward)
+          readLine() match {
+            case "q" | "Q" | "quit" =>
+              throw SimulatorEndThrowable //This is being catched up there somewhere
+            case "f" | "F" | "fastforward" | "skip" =>
+              fastForward = true
+            case "s" | "S" | "silentfastforward" =>
+              silentFastForward = true
+            case _ =>
+            //Continue normally
+          }
+      }
     }
   }
 
@@ -198,10 +203,10 @@ object Simulator {
 
     initLatch.pass() //Wait for bot to initialize. Should be instant.
 
-    println("Preparing run.\n")
+    println("Preparing run of "+mapName+"")
     val now = System.currentTimeMillis()
     bot.onEvent(BotEvent.RUN_PREPARE)
-    println("\nRun prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s.\n")
+    println("Run of "+mapName+" prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
     bot.onEvent(BotEvent.RUN_STARTED)
     robotThread.join() //Block until stops
   }

@@ -3,6 +3,7 @@ package lego.bots.node;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.api.controllers.EnvironmentController.Direction;
 import lego.util.ByteStack;
 import lego.util.Latch;
 import lego.util.PositionBatchQueue;
@@ -236,31 +237,21 @@ public final class NodeBot extends Bot<EnvironmentController> {
     }
 
     private boolean checkCompletedMap(byte posX, byte posY){
-        boolean complete = true;
-
-        for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-            for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
+        for (int x = EnvironmentController.mazeWidth - 1; x >= 0; x--) {
+            for (int y = EnvironmentController.mazeHeight - 1; y >= 0; y--) {
                 if(visited[x][y] == 0 && !(posX == x && posY == y)){
-                    complete = false;
-                    x = EnvironmentController.mazeWidth;
-                    y = EnvironmentController.mazeHeight;
+                    return false;
                 }
             }
         }
-
-        if(complete){
-
-            if(price < bestPrice){
-                bestPath = path.getCopyAsArray();
-                bestPrice = price;
-                controller.onError(EnvironmentController.WARNING_ALERT);
-                System.out.println("Found one ("+price+")");
-            }
-
-            revertLast();
+        if(price < bestPrice){
+            bestPath = path.getCopyAsArray();
+            bestPrice = price;
+            controller.onError(EnvironmentController.WARNING_ALERT);
+            //System.out.println("Found one ("+price+")");
         }
-
-        return complete;
+        revertLast();
+        return true;
     }
 
     private void revertLast(){
@@ -343,7 +334,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
     }
 
     private byte nodeTurnPrice(byte dir, byte arrivedFrom){
-        byte lastDir = (byte)(directionStack.isEmpty() ? 0 : (directionStack.peek() & 15));
+        byte lastDir = (byte)(directionStack.isEmpty() ? 0 : (directionStack.peek() & 0xF));
 
         if(lastDir == 0){
             directionStack.push(dir);
@@ -380,7 +371,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         return result;
     }
 
-    private void decideOnNode(Node n){
+    private void decideOnNode(final Node n){
 
         if (price >= bestPrice) {
             revertLast();
@@ -394,11 +385,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
         byte hintUp = 0, hintRight = 0, hintDown = 0, hintLeft = 0;
         byte returnedFrom = (byte)(directionStack.isEmpty() ? 0 : (((directionStack.peek() >> 4) & 15)));
 
-        //System.out.println("a");
 
         if(n.verUpEdgeId != -1){
             resetToIterate();
-            byte val = countDots(n.x, (byte)(n.y - 1), EnvironmentController.Direction.DOWN, n.x, n.y);
+            byte val = countDots(n.x, (byte)(n.y - 1), Direction.DOWN, n.x, n.y);
             //System.out.println("count up: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -416,7 +406,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.horRightEdgeId != -1){
             resetToIterate();
-            byte val = countDots((byte)(n.x + 1), n.y, EnvironmentController.Direction.LEFT, n.x, n.y);
+            byte val = countDots((byte)(n.x + 1), n.y, Direction.LEFT, n.x, n.y);
             //System.out.println("count right: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -434,7 +424,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.verDownEdgeId != -1){
             resetToIterate();
-            byte val = countDots(n.x, (byte)(n.y + 1), EnvironmentController.Direction.UP, n.x, n.y);
+            byte val = countDots(n.x, (byte)(n.y + 1), Direction.UP, n.x, n.y);
             //System.out.println("count down: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -452,7 +442,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.horLeftEdgeId != -1){
             resetToIterate();
-            byte val = countDots((byte)(n.x - 1), n.y, EnvironmentController.Direction.RIGHT, n.x, n.y);
+            byte val = countDots((byte)(n.x - 1), n.y, Direction.RIGHT, n.x, n.y);
             //System.out.println("count left: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -604,18 +594,23 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
 
     private void resetToIterate(){
-        for(byte y = 0; y < EnvironmentController.mazeHeight; y ++){
-            for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
-                if(controller.isFree(x, y)){
-                    controller.setMetaBit(x, y);
+        final byte[][] maze = controller.getMindMaze();
+        final byte FREE_BIT = (byte) 	0x80;//EnvironmentController.FREE_BIT;
+        final byte META_BIT = 0x20;
+        final byte META_ANTIBIT = ~META_BIT;
+
+        for (int x = EnvironmentController.mazeWidth - 1; x >= 0; x--) {
+            for (int y = EnvironmentController.mazeHeight - 1; y >= 0; y--) {
+                if((maze[x][y] & FREE_BIT) == FREE_BIT){
+                    maze[x][y] |= META_BIT;
                 }else{
-                    controller.unsetMetaBit(x, y);
+                    maze[x][y] &= META_ANTIBIT;
                 }
             }
         }
     }
 
-    private byte countDots(byte x, byte y, EnvironmentController.Direction from, byte masterStartX, byte masterStartY){
+    private byte countDots(final byte x, final byte y, final Direction from, final byte masterStartX, final byte masterStartY){
 
         if(x == masterStartX && y == masterStartY){
             return -Byte.MAX_VALUE;
@@ -630,8 +625,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
             result = (byte)(notCollected ? -1 : 1);
             controller.unsetMetaBit(x, y);
 
-            if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != EnvironmentController.Direction.UP){
-                byte val = countDots(x, (byte)(y - 1), EnvironmentController.Direction.DOWN, masterStartX, masterStartY);
+            if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.UP){
+                byte val = countDots(x, (byte)(y - 1), Direction.DOWN, masterStartX, masterStartY);
                 if(val == -Byte.MAX_VALUE)
                     return -Byte.MAX_VALUE;
                 if(result < 0){
@@ -644,8 +639,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
                         result *= -1;
                 }
             }
-            if(from != EnvironmentController.Direction.RIGHT){
-                byte val = countDots((byte)(x + 1), y, EnvironmentController.Direction.LEFT, masterStartX, masterStartY);
+            if(from != Direction.RIGHT){
+                byte val = countDots((byte)(x + 1), y, Direction.LEFT, masterStartX, masterStartY);
                 if(val == -Byte.MAX_VALUE)
                     return -Byte.MAX_VALUE;
 
@@ -659,8 +654,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
                         result *= -1;
                 }
             }
-            if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != EnvironmentController.Direction.DOWN){
-                byte val = countDots(x, (byte)(y + 1), EnvironmentController.Direction.UP, masterStartX, masterStartY);
+            if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.DOWN){
+                byte val = countDots(x, (byte)(y + 1), Direction.UP, masterStartX, masterStartY);
                 if(val == -Byte.MAX_VALUE)
                     return -Byte.MAX_VALUE;
                 if(result < 0){
@@ -673,8 +668,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
                         result *= -1;
                 }
             }
-            if(from != EnvironmentController.Direction.LEFT){
-                byte val = countDots((byte)(x - 1), y, EnvironmentController.Direction.RIGHT, masterStartX, masterStartY);
+            if(from != Direction.LEFT){
+                byte val = countDots((byte)(x - 1), y, Direction.RIGHT, masterStartX, masterStartY);
                 if(val == -Byte.MAX_VALUE)
                     return -Byte.MAX_VALUE;
                 if(result < 0){
