@@ -36,7 +36,7 @@ public final class ByteArrayArrayList {
 	public void add (byte[] value) {
 		int currentSize = internal.length;
 		if (size == currentSize) {
-			byte[][] newInternal = new byte[currentSize << 2][0];
+			byte[][] newInternal = new byte[currentSize << 1][0];
 			System.arraycopy(internal, 0, newInternal, 0, currentSize);
 			internal = newInternal;
 		}

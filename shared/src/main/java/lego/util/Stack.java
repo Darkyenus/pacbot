@@ -33,7 +33,7 @@ public final class Stack<T> {
 	public void push (T value) {
 		int currentSize = internal.length;
 		if (nextPosition == currentSize) {
-			T[] newInternal = (T[])new Object[currentSize << 2];
+			T[] newInternal = (T[])new Object[currentSize << 1];
 			System.arraycopy(internal, 0, newInternal, 0, currentSize);
 			internal = newInternal;
 		}

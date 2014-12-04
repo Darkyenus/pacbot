@@ -25,8 +25,8 @@ public final class PositionStack {
 	public void push (byte x, byte y) {
 		int currentSize = internalX.length;
 		if (lastPosition + 1 == currentSize) {
-			byte[] newInternalX = new byte[currentSize << 2];
-			byte[] newInternalY = new byte[currentSize << 2];
+			byte[] newInternalX = new byte[currentSize << 1];
+			byte[] newInternalY = new byte[currentSize << 1];
 			System.arraycopy(internalX, 0, newInternalX, 0, currentSize);
 			System.arraycopy(internalY, 0, newInternalY, 0, currentSize);
 			internalX = newInternalX;

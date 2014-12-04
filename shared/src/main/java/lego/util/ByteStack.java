@@ -40,7 +40,7 @@ public final class ByteStack {
 	public void push (byte value) {
 		int currentSize = internal.length;
 		if (nextPosition == currentSize) {
-			byte[] newInternal = new byte[currentSize << 2];
+			byte[] newInternal = new byte[currentSize << 1];
 			System.arraycopy(internal, 0, newInternal, 0, currentSize);
 			internal = newInternal;
 		}
