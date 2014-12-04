@@ -38,7 +38,7 @@ public final class DirectionArrayList {
 	public void add (EnvironmentController.Direction value) {
 		int currentSize = internal.length;
 		if (size == currentSize) {
-			EnvironmentController.Direction[] newInternal = new EnvironmentController.Direction[currentSize << 2];
+			EnvironmentController.Direction[] newInternal = new EnvironmentController.Direction[currentSize << 1];
 			System.arraycopy(internal, 0, newInternal, 0, currentSize);
 			internal = newInternal;
 		}

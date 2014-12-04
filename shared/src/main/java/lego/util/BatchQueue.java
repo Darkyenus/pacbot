@@ -36,7 +36,7 @@ public final class BatchQueue<T> {
 	public void add(T value) {
 		int currentSize = internal.length;
 		if (writePosition == currentSize) {
-			T[] newInternal = (T[])new Object[currentSize << 2];
+			T[] newInternal = (T[])new Object[currentSize << 1];
 			System.arraycopy(internal, 0, newInternal, 0, currentSize);
 			internal = newInternal;
 		}
