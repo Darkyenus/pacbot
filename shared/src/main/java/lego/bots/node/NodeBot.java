@@ -382,7 +382,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         if(n.verUpEdgeId != -1){
             resetToIterate();
-            byte val = countDots(n.x, (byte)(n.y - 1), Direction.DOWN, n.x, n.y);
+            byte val = countDots(Direction.UP, n.x, n.y);
             //System.out.println("count up: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -400,7 +400,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.horRightEdgeId != -1){
             resetToIterate();
-            byte val = countDots((byte)(n.x + 1), n.y, Direction.LEFT, n.x, n.y);
+            byte val = countDots(Direction.RIGHT, n.x, n.y);
             //System.out.println("count right: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -418,7 +418,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.verDownEdgeId != -1){
             resetToIterate();
-            byte val = countDots(n.x, (byte)(n.y + 1), Direction.UP, n.x, n.y);
+            byte val = countDots(Direction.DOWN, n.x, n.y);
             //System.out.println("count down: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -436,7 +436,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.horLeftEdgeId != -1){
             resetToIterate();
-            byte val = countDots((byte)(n.x - 1), n.y, Direction.RIGHT, n.x, n.y);
+            byte val = countDots(Direction.LEFT, n.x, n.y);
             //System.out.println("count left: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -573,20 +573,26 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     private PositionDirectionArrayList dotCache = new PositionDirectionArrayList(STACK_SIZE);
 
+    private byte countDots(final Direction to, final int startX, final int startY){
+        if(dotCache.containsCombination((byte)startX, (byte)startY, to)){
+            return -Byte.MAX_VALUE;
+        }
+        byte res = countDotsRec(startX + to.x, startY + to.y, to, startX, startY);
+        if(res == -Byte.MAX_VALUE){
+            dotCache.addCombination((byte)startX, (byte)startY, to);
+        }
+        return -Byte.MAX_VALUE;
+    }
+
     /** Called from decideOnNode and from itself recursively
      * -Byte.MAX_VALUE = cyclic
      * zero and positive = dont go here ever
      * negative = go here, now
      *
-     * TODO Cache results
      * */
-    private byte countDots(final int x, final int y, final Direction from, final int masterStartX, final int masterStartY){
-        if(dotCache.containsCombination((byte)x, (byte)y, from)){
-            return -Byte.MAX_VALUE;
-        }
+    private byte countDotsRec(final int x, final int y, final Direction from, final int masterStartX, final int masterStartY){
 
         if(x == masterStartX && y == masterStartY){
-            dotCache.addCombination((byte) x, (byte) y, from);
             return -Byte.MAX_VALUE;
         }
         if (x < 0 || y < 0 || x >= EnvironmentController.mazeWidth || y >= EnvironmentController.mazeHeight || !controller.getMetaBitUnsafe(x, y)) {
@@ -599,9 +605,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
         controller.unsetMetaBitUnsafe(x, y);
 
         if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.UP){
-            byte val = countDots(x, (y - 1), Direction.DOWN, masterStartX, masterStartY);
+            byte val = countDotsRec(x, (y - 1), Direction.DOWN, masterStartX, masterStartY);
             if(val == -Byte.MAX_VALUE) {
-                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
             }
             if(result < 0){
@@ -615,9 +620,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
         if(from != Direction.RIGHT){
-            byte val = countDots((x + 1), y, Direction.LEFT, masterStartX, masterStartY);
+            byte val = countDotsRec((x + 1), y, Direction.LEFT, masterStartX, masterStartY);
             if(val == -Byte.MAX_VALUE) {
-                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
             }
 
@@ -632,9 +636,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
         if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.DOWN){
-            byte val = countDots(x, (y + 1), Direction.UP, masterStartX, masterStartY);
+            byte val = countDotsRec(x, (y + 1), Direction.UP, masterStartX, masterStartY);
             if(val == -Byte.MAX_VALUE) {
-                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
             }
             if(result < 0){
@@ -648,9 +651,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
         if(from != Direction.LEFT){
-            byte val = countDots((x - 1), y, Direction.RIGHT, masterStartX, masterStartY);
+            byte val = countDotsRec((x - 1), y, Direction.RIGHT, masterStartX, masterStartY);
             if(val == -Byte.MAX_VALUE) {
-                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
             }
             if(result < 0){

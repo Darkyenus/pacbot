@@ -60,26 +60,24 @@ public class PositionDirectionArrayList {
     }
 
     public void addCombination(byte valueX, byte valueY, Direction valueDir) {
-        if(!containsCombination(valueX, valueY, valueDir)) {
-            int currentSize = internalX.length;
-            if (writePosition == currentSize) {
-                byte[] newInternalX = new byte[currentSize << 2];
-                byte[] newInternalY = new byte[currentSize << 2];
-                Direction[] newInternalDir = new Direction[currentSize << 2];
-                System.arraycopy(internalX, readPosition, newInternalX, 0, currentSize);
-                System.arraycopy(internalY, readPosition, newInternalY, 0, currentSize);
-                System.arraycopy(internalDir, readPosition, newInternalDir, 0, currentSize);
-                internalX = newInternalX;
-                internalY = newInternalY;
-                internalDir = newInternalDir;
-                writePosition -= readPosition;
-                readPosition = 0;
-            }
-            internalX[writePosition] = valueX;
-            internalY[writePosition] = valueY;
-            internalDir[writePosition] = valueDir;
-            writePosition++;
+        int currentSize = internalX.length;
+        if (writePosition == currentSize) {
+            byte[] newInternalX = new byte[currentSize << 1];
+            byte[] newInternalY = new byte[currentSize << 1];
+            Direction[] newInternalDir = new Direction[currentSize << 1];
+            System.arraycopy(internalX, readPosition, newInternalX, 0, currentSize);
+            System.arraycopy(internalY, readPosition, newInternalY, 0, currentSize);
+            System.arraycopy(internalDir, readPosition, newInternalDir, 0, currentSize);
+            internalX = newInternalX;
+            internalY = newInternalY;
+            internalDir = newInternalDir;
+            writePosition -= readPosition;
+            readPosition = 0;
         }
+        internalX[writePosition] = valueX;
+        internalY[writePosition] = valueY;
+        internalDir[writePosition] = valueDir;
+        writePosition++;
     }
 
     public void clear () {
