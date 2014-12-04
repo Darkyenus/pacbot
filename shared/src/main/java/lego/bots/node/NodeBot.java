@@ -4,10 +4,7 @@ import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.api.controllers.EnvironmentController.Direction;
-import lego.util.ByteStack;
-import lego.util.Latch;
-import lego.util.PositionBatchQueue;
-import lego.util.PositionStack;
+import lego.util.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -573,15 +570,23 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
     }
 
+
+    private PositionDirectionArrayList dotCache = new PositionDirectionArrayList(STACK_SIZE);
+
     /** Called from decideOnNode and from itself recursively
      * -Byte.MAX_VALUE = cyclic
      * zero and positive = dont go here ever
-     * negative = go here, maybe
+     * negative = go here, now
      *
      * TODO Cache results
      * */
     private byte countDots(final int x, final int y, final Direction from, final int masterStartX, final int masterStartY){
+        if(dotCache.containsCombination((byte)x, (byte)y, from)){
+            return -Byte.MAX_VALUE;
+        }
+
         if(x == masterStartX && y == masterStartY){
+            dotCache.addCombination((byte) x, (byte) y, from);
             return -Byte.MAX_VALUE;
         }
         if (x < 0 || y < 0 || x >= EnvironmentController.mazeWidth || y >= EnvironmentController.mazeHeight || !controller.getMetaBitUnsafe(x, y)) {
@@ -595,8 +600,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.UP){
             byte val = countDots(x, (y - 1), Direction.DOWN, masterStartX, masterStartY);
-            if(val == -Byte.MAX_VALUE)
+            if(val == -Byte.MAX_VALUE) {
+                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
+            }
             if(result < 0){
                 result -= Math.abs(val);
             }else {
@@ -609,8 +616,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(from != Direction.RIGHT){
             byte val = countDots((x + 1), y, Direction.LEFT, masterStartX, masterStartY);
-            if(val == -Byte.MAX_VALUE)
+            if(val == -Byte.MAX_VALUE) {
+                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
+            }
 
             if(result < 0){
                 result -= Math.abs(val);
@@ -624,8 +633,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if((x != EnvironmentController.startX || y + 1 != EnvironmentController.startY) && from != Direction.DOWN){
             byte val = countDots(x, (y + 1), Direction.UP, masterStartX, masterStartY);
-            if(val == -Byte.MAX_VALUE)
+            if(val == -Byte.MAX_VALUE) {
+                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
+            }
             if(result < 0){
                 result -= Math.abs(val);
             }else {
@@ -638,8 +649,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(from != Direction.LEFT){
             byte val = countDots((x - 1), y, Direction.RIGHT, masterStartX, masterStartY);
-            if(val == -Byte.MAX_VALUE)
+            if(val == -Byte.MAX_VALUE) {
+                dotCache.addCombination((byte) x, (byte) y, from);
                 return -Byte.MAX_VALUE;
+            }
             if(result < 0){
                 result -= Math.abs(val);
             }else {
