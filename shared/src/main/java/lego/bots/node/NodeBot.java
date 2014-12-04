@@ -571,15 +571,15 @@ public final class NodeBot extends Bot<EnvironmentController> {
     }
 
 
-    private PositionDirectionArrayList dotCache = new PositionDirectionArrayList(STACK_SIZE);
+    private PositionDirectionCache dotCache = new PositionDirectionCache(STACK_SIZE);
 
     private byte countDots(final Direction to, final int startX, final int startY){
-        if(dotCache.containsCombination((byte)startX, (byte)startY, to)){
+        if(dotCache.contains((byte) startX, (byte) startY, to)){
             return -Byte.MAX_VALUE;
         }
         byte res = countDotsRec(startX + to.x, startY + to.y, to, startX, startY);
         if(res == -Byte.MAX_VALUE){
-            dotCache.addCombination((byte)startX, (byte)startY, to);
+            dotCache.add((byte) startX, (byte) startY, to);
         }
         return -Byte.MAX_VALUE;
     }
