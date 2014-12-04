@@ -34,7 +34,8 @@ object Build extends Build {
   lazy val LEJOS_NXT_JAVA_HOME:String = {
     val possibleHomes = Array(
       "C:\\Program Files (x86)\\Java\\jdk1.8.0_25\\",
-      "C:\\Program Files (x86)\\Java\\jdk1.7.0_51\\"
+      "C:\\Program Files (x86)\\Java\\jdk1.7.0_51\\",
+      "C:\\Program Files (x86)\\Java\\jdk1.7.0_71\\"
     )
     possibleHomes.find(home => {
       val f = file(home)
@@ -106,7 +107,7 @@ object Build extends Build {
       "echo Doing NXW Task" + "\r\n" +
       s"call ..\\..\\lejos\\bin\\nxjc.bat -d . -source 6 -target 6 $sourceFiles" + "\r\n" +
       s"call ..\\..\\lejos\\bin\\nxjlink.bat -v -od linkDump -o $PROGRAM_NAME.nxj ${mainClass.value.getOrElse(sys.error("Main class must be defined to use nxw task."))} > debugInfo.txt" + "\r\n" +
-      s"call ..\\..\\lejos\\bin\\nxjupload.bat -u -r $PROGRAM_NAME.nxj"
+      s"call ..\\..\\lejos\\bin\\nxjupload.bat -u $PROGRAM_NAME.nxj"
 
       nxtCompileFolder.mkdirs()
       Files.write(batContent,nxwBat,Charsets.UTF_8)

@@ -29,7 +29,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
     private String bestName; //TODO remove name stuff because of NXT performance
 
     public void prepare(){
-        Runtime.getRuntime().gc();
+        System.gc();
 
         //Here goes every single algo that has been created. Ever.
 
@@ -66,7 +66,7 @@ public final class CleverBot  extends Bot<EnvironmentController> {
         }
         controller.setField(EnvironmentController.startX, EnvironmentController.startY, EnvironmentController.START);
 
-        Runtime.getRuntime().gc();
+        System.gc();
     }
 
 

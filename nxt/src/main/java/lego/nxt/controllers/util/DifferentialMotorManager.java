@@ -9,13 +9,13 @@ import lejos.nxt.MotorPort;
  * Created by Darkyen on 13.11.2014. */
 public final class DifferentialMotorManager {
 
-	private static final boolean FLIP_DIRECTION = false;
+	private static final boolean FLIP_DIRECTION = HWParameters.FLIP_DIRECTION;
 
 	public static final float HALF_PI = (float)(Math.PI / 2.0);
 	public static final float PI = (float)Math.PI;
 
-	private final MotorController leftMotor;
-	private final MotorController rightMotor;
+	public final MotorController leftMotor;
+	public final MotorController rightMotor;
 
 	public DifferentialMotorManager (MotorPort leftMotorPort, MotorPort rightMotorPort) {
 		leftMotor = new MotorController(leftMotorPort);
@@ -24,16 +24,16 @@ public final class DifferentialMotorManager {
 	}
 
 	public static float MAX_SPEED () {
-		return MotorController.getMaxSpeed() * 0.95f;
+		return MotorController.getMaxSpeed() * HWParameters.SPEED;
 	}
 
 	public static final float MAX_ACCELERATION = 9000;
-	public static final float SMOOTH_ACCELERATION = 1300;
+	public static final float SMOOTH_ACCELERATION = HWParameters.ACCELERATION;
 	public static final float NO_DECELERATION = MotorController.DONT_STOP;
 
-	public static final float wheelDiameterCM = 8.3f;
+	public static final float wheelDiameterCM = HWParameters.WHEEL_DIAMETER;
 	public static final float wheelCircumferenceCM = PI * wheelDiameterCM;
-	public static final float wheelDistanceCM = 6.8f;// Half distance between wheels
+	public static final float wheelDistanceCM = HWParameters.WHEEL_DISTANCE;// Half distance between wheels
 
 	public void turnRad (float angleRad, float speed, float acceleration, float deceleration, boolean hold) {
 		move(-wheelDistanceCM * angleRad, wheelDistanceCM * angleRad, speed, acceleration, deceleration, hold);

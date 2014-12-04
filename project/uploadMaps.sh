@@ -14,7 +14,10 @@ if [[ $OSTYPE == darwin* ]]; then
 fi
 
 #######
-
+pwd
 echo "Uploading maps with params: -u ..."
-../../lejos/bin/nxjupload -u ../../bot/maps
+../../lejos/bin/nxjupload.bat -u ../../bot/maps
+echo "Uploaded"
+echo "Uploading routes with params: -u ..."
+../../lejos/bin/nxjupload.bat -u ../../routes
 echo "Uploaded"

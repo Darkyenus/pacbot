@@ -3,8 +3,11 @@ package lego.nxt;
 
 import lego.api.Bot;
 import lego.api.BotController;
+import lego.bots.load.LoadBot;
+import lego.bots.test.PlanTestBot;
 import lego.bots.weightnav.WeightNavBot;
 import lego.nxt.controllers.DifferentialEnvironmentRobotController;
+import lego.nxt.controllers.DifferentialPlannedRobotController;
 
 /** Private property. User: Darkyen Date: 23/10/14 Time: 11:01 */
 public final class Bootstrap {
@@ -14,9 +17,11 @@ public final class Bootstrap {
 			//new CleverBot()
 			//new NodeBot()
 			//new TestificateBot()
-			new WeightNavBot()
+			//new WeightNavBot()
+			new PlanTestBot()
             ,
-            new DifferentialEnvironmentRobotController()
+            //new DifferentialEnvironmentRobotController()
+			new DifferentialPlannedRobotController()
         );
 	}
 

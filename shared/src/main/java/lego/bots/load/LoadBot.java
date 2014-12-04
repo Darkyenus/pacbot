@@ -223,6 +223,7 @@ public final class LoadBot extends Bot<PlannedController> {
         switch (event) {
             case RUN_PREPARE:
                 prepare();
+                break;
             case RUN_ENDED:
                 startLatch.open();
                 break;

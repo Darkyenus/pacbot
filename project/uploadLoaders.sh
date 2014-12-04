@@ -14,7 +14,7 @@ if [[ $OSTYPE == darwin* ]]; then
 fi
 
 #######
-
+pwd
 mkdir loaderprograms
 cd loaderprograms
 

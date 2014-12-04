@@ -22,6 +22,9 @@ import lejos.util.Delay;
 @SuppressWarnings("ConstantConditions")//Due to sensors field
 public final class DifferentialPlannedRobotController extends PlannedController implements DifferentialController {
 
+    private static final int CALIBRATION_WAITING = 200;
+    private static final float TURNING_BIAS = 0.00f;//0.010f;//Racing values
+
     private static final DifferentialMotorManager motors = new DifferentialMotorManager(MotorPort.C, MotorPort.B);
     private static final MotorPort warningLight = MotorPort.A;
     private static final TouchSensor frontTouch = new TouchSensor(SensorPort.S1);
@@ -36,7 +39,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     public void initialize () {
         LCD.setAutoRefresh(false);
         TaskProcessor.initialize();
-
         Thread debugViewThread = new Thread("DV") {
 
             private boolean glows = false;
@@ -49,6 +51,8 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 }
                 LCD.drawString(lastError, mazeWidth + 1, 0);
                 // LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
+
+                LCD.drawString("d"+(motors.rightMotor.getTachoCount() - motors.leftMotor.getTachoCount())+"   ", 0, LCD.DISPLAY_CHAR_DEPTH - 2);
                 if(sensors != null){
                     sensors.readSensors();
                     LCD.drawString("L:", 0, mazeHeight + 1);
@@ -208,9 +212,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         return calibrated;
     }
 
-    private static final int CALIBRATION_WAITING = 200;
-    private static final float TURNING_BIAS = 0.010f;
-
     private float calculateBias () {
         return TURNING_BIAS * lastDirection;
     }
@@ -219,18 +220,21 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         motors.reset();
         motors.turnRad(DifferentialMotorManager.HALF_PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+        motors.reset();
     }
 
     private void turnRight () {
         motors.reset();
         motors.turnRad(-DifferentialMotorManager.HALF_PI - calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+        motors.reset();
     }
 
     private void turnAround () {
         motors.reset();
         motors.turnRad(DifferentialMotorManager.PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+        motors.reset();
     }
 
     private static final float BLOCK_DISTANCE = 28.75f;// 28.5 cm
@@ -259,6 +263,10 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             } catch (InterruptedException ignored) {
             }
         }
+        if(decelerate){
+            motors.completeAsync();
+            motors.reset();
+        }
         return true;
     }
 
@@ -284,6 +292,10 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             } catch (InterruptedException ignored) {
             }
         }
+        if(decelerate){
+            motors.completeAsync();
+            motors.reset();
+        }
         warnings--;
         return true;
     }
@@ -296,11 +308,13 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
         while (motors.asyncMoving()) {
             if (backTouch.isPressed()) {
+                //Calibrated successfully
                 Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 if (stopAfterCalibrating) {
                     motors.move(BACKING_DISTANCE, BACKING_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
                             DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+                    motors.reset();
                 } else {
                     motors.moveAsync(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
                             DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
@@ -310,6 +324,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 return;
             }
         }
+        //Not calibrated, aborting, no touch
         onError(ERROR_CAL_BLOCK_EXPECTED);
         motors.reset();
         if (stopAfterCalibrating) {
