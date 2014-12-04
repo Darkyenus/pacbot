@@ -14,10 +14,16 @@ if [[ $OSTYPE == darwin* ]]; then
 fi
 
 #######
-pwd
+
+SCRIPT_SUFFIX=""
+
+if [[ $OSTYPE == cygwin* ]]; then
+    SCRIPT_SUFFIX=".bat"
+fi
+
 echo "Uploading maps with params: -u ..."
-../../lejos/bin/nxjupload.bat -u ../../bot/maps
+../../lejos/bin/nxjupload$SCRIPT_SUFFIX -u ../../bot/maps
 echo "Uploaded"
 echo "Uploading routes with params: -u ..."
-../../lejos/bin/nxjupload.bat -u ../../routes
+../../lejos/bin/nxjupload$SCRIPT_SUFFIX -u ../../routes
 echo "Uploaded"
