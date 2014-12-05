@@ -49,7 +49,11 @@ object TerminalMain extends App {
   val maps:Seq[Char] = {
     val input = readOrDefault(mapPointerContent).trim
     if(input == "all"){
-      ('1' to '8').toSeq
+      ('0' to '9').toSeq
+    }else if(input.contains("to")){
+      val pre = input.charAt(0) //Ugly workaround to be space insensitive
+      val post = input.charAt(input.length - 1)
+      (pre to post).toSeq
     }else if(input.isEmpty){
       sys.error("No maps to simulate on specified.")
     }else{

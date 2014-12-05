@@ -60,7 +60,6 @@ object MazeMap {
       }
       result
     }else{
-      System.exit(1)
       null
     }
   }

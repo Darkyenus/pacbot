@@ -152,63 +152,66 @@ object Simulator {
   def simulate(botClass: Class[_ <: Bot[_ <: BotController]], mapName: Char): Unit = {
     val map = MazeMap(mapName)
 
-    printGrid.println("Loaded map \"" + mapName + "\"")
-    printGrid.println()
+    if(map != null) {
 
-    Files.write(mapName.toString, controllerMapPointerFile, Charsets.UTF_8)
+      printGrid.println("Loaded map \"" + mapName + "\"")
+      printGrid.println()
 
-    val bot: Bot[BotController] = botClass.newInstance().asInstanceOf[Bot[BotController]]
+      Files.write(mapName.toString, controllerMapPointerFile, Charsets.UTF_8)
 
-    //http://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime > Magic
-    val botControllerBase = botClass.getGenericSuperclass.asInstanceOf[ParameterizedType].getActualTypeArguments()(0).asInstanceOf[Class[_]]
-    val possibleControllers = simulatorControllerPackage.getSubTypesOf(botControllerBase)
-    if(possibleControllers.isEmpty){
-      sys.error("No controllers that extend "+botControllerBase.getCanonicalName+" found. Please make some.")
-    }else if(possibleControllers.size() > 1){
-      println("WARNING: More than one controller that extends "+botControllerBase.getCanonicalName+" found. Using first one found.")
-    }
+      val bot: Bot[BotController] = botClass.newInstance().asInstanceOf[Bot[BotController]]
 
-    val controllerClass = possibleControllers.iterator().next()
-    val constrollerClassConstructor = controllerClass.getConstructor(classOf[MazeMap],classOf[(BotController => Unit)],classOf[(Byte) => Unit])
+      //http://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime > Magic
+      val botControllerBase = botClass.getGenericSuperclass.asInstanceOf[ParameterizedType].getActualTypeArguments()(0).asInstanceOf[Class[_]]
+      val possibleControllers = simulatorControllerPackage.getSubTypesOf(botControllerBase)
+      if (possibleControllers.isEmpty) {
+        sys.error("No controllers that extend " + botControllerBase.getCanonicalName + " found. Please make some.")
+      } else if (possibleControllers.size() > 1) {
+        println("WARNING: More than one controller that extends " + botControllerBase.getCanonicalName + " found. Using first one found.")
+      }
 
-    val controller:BotController = constrollerClassConstructor.newInstance(map, onChanged(map.maze), onError).asInstanceOf[BotController]
-    //Above code is extremely type safe and nothing can go wrong. Ever.
+      val controllerClass = possibleControllers.iterator().next()
+      val constrollerClassConstructor = controllerClass.getConstructor(classOf[MazeMap], classOf[(BotController => Unit)], classOf[(Byte) => Unit])
 
-    val initLatch = new Latch()
+      val controller: BotController = constrollerClassConstructor.newInstance(map, onChanged(map.maze), onError).asInstanceOf[BotController]
+      //Above code is extremely type safe and nothing can go wrong. Ever.
 
-    val robotThread = new Thread() {
-      override def run(): Unit = {
-        try {
-          controller.initialize()
-          bot.controller = controller
-          initLatch.open()
+      val initLatch = new Latch()
+
+      val robotThread = new Thread() {
+        override def run(): Unit = {
           try {
-            bot.run()
-          } catch {
-            case SimulatorEndThrowable =>
-              println("Simulation stopped.")
-          }
+            controller.initialize()
+            bot.controller = controller
+            initLatch.open()
+            try {
+              bot.run()
+            } catch {
+              case SimulatorEndThrowable =>
+                println("Simulation stopped.")
+            }
 
-          controller.deinitialize()
-        } catch {
-          case e: Exception =>
-            println(s"Bot ${botClass.getCanonicalName} threw an exception on map $mapName:")
-            e.printStackTrace()
+            controller.deinitialize()
+          } catch {
+            case e: Exception =>
+              println(s"Bot ${botClass.getCanonicalName} threw an exception on map $mapName:")
+              e.printStackTrace()
+          }
         }
       }
+      robotThread.setDaemon(false)
+      robotThread.setName("RobotThread")
+      robotThread.start()
+
+      initLatch.pass() //Wait for bot to initialize. Should be instant.
+
+      println("Preparing run of #" + mapName + "")
+      val now = System.currentTimeMillis()
+      bot.onEvent(BotEvent.RUN_PREPARE)
+      println("Run of " + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
+      bot.onEvent(BotEvent.RUN_STARTED)
+      robotThread.join() //Block until stops
     }
-    robotThread.setDaemon(false)
-    robotThread.setName("RobotThread")
-    robotThread.start()
-
-    initLatch.pass() //Wait for bot to initialize. Should be instant.
-
-    println("Preparing run of #"+mapName+"")
-    val now = System.currentTimeMillis()
-    bot.onEvent(BotEvent.RUN_PREPARE)
-    println("Run of "+mapName+" prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
-    bot.onEvent(BotEvent.RUN_STARTED)
-    robotThread.join() //Block until stops
   }
 }
 
