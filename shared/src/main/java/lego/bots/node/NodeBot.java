@@ -367,7 +367,9 @@ public final class NodeBot extends Bot<EnvironmentController> {
         return result;
     }
 
-    /** Called once from findBestWay with start node and then recursively from itself */
+    /** Called once from findBestWay with start node and then recursively from itself
+     *
+     * */
     private void decideOnNode(final Node n){
 
         if (price >= bestPrice) {
