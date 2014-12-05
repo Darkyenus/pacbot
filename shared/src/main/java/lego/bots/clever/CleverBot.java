@@ -3,6 +3,7 @@ package lego.bots.clever;
 import lego.api.Bot;
 import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
+import lego.bots.clever.algo.TestOfNodeAlgo;
 import lego.bots.clever.algo.TriplePass;
 import lego.bots.clever.algo.WeightNav;
 import lego.util.BatchByteQueue;
@@ -33,8 +34,9 @@ public final class CleverBot  extends Bot<EnvironmentController> {
 
         //Here goes every single algo that has been created. Ever.
 
-        useAlgo(new TriplePass(), "Triple pass");
-        useAlgo(new WeightNav(), "Weight navigation");
+        //useAlgo(new TriplePass(), "Triple pass");
+        //useAlgo(new WeightNav(), "Weight navigation");
+        useAlgo(new TestOfNodeAlgo(), "Test");
 
         //
 

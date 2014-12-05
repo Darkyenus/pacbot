@@ -27,6 +27,9 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     private void prepare(){
         graph.prepareNodes(controller);
+
+        Debug.printNodes(graph.nodes, graph.edges.getCopyAsArray());
+
         findBestWay();
 
         byte[] edgePath = graph.edges.get(bestPath[0]);
@@ -382,7 +385,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         if(n.verUpEdgeId != -1){
             resetToIterate();
-            byte val = countDots(Direction.UP, n.x, n.y);
+            byte val = countDots(Direction.DOWN, n.x, n.y);
             //System.out.println("count up: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -400,7 +403,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.horRightEdgeId != -1){
             resetToIterate();
-            byte val = countDots(Direction.RIGHT, n.x, n.y);
+            byte val = countDots(Direction.LEFT, n.x, n.y);
             //System.out.println("count right: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -418,7 +421,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.verDownEdgeId != -1){
             resetToIterate();
-            byte val = countDots(Direction.DOWN, n.x, n.y);
+            byte val = countDots(Direction.UP, n.x, n.y);
             //System.out.println("count down: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -436,7 +439,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
         if(n.horLeftEdgeId != -1){
             resetToIterate();
-            byte val = countDots(Direction.LEFT, n.x, n.y);
+            byte val = countDots(Direction.RIGHT, n.x, n.y);
             //System.out.println("count left: "+val);
             if(val != -Byte.MAX_VALUE){ //cyclic
                 if(val >= 0){
@@ -571,17 +574,17 @@ public final class NodeBot extends Bot<EnvironmentController> {
     }
 
 
-    private PositionDirectionCache dotCache = new PositionDirectionCache(STACK_SIZE);
+    private final PositionDirectionCache dotCache = new PositionDirectionCache(STACK_SIZE);
 
-    private byte countDots(final Direction to, final int startX, final int startY){
-        if(dotCache.contains((byte) startX, (byte) startY, to)){
+    private byte countDots(final Direction from, final int startX, final int startY){
+        if(dotCache.contains((byte) startX, (byte) startY, from)){
             return -Byte.MAX_VALUE;
         }
-        byte res = countDotsRec(startX + to.x, startY + to.y, to, startX, startY);
+        byte res = countDotsRec(startX - from.x, startY - from.y, from, startX, startY);
         if(res == -Byte.MAX_VALUE){
-            dotCache.add((byte) startX, (byte) startY, to);
+            dotCache.add((byte) startX, (byte) startY, from);
         }
-        return -Byte.MAX_VALUE;
+        return res;
     }
 
     /** Called from decideOnNode and from itself recursively

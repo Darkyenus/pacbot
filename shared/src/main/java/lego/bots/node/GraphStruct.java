@@ -14,7 +14,7 @@ import java.util.ArrayList;
  */
 public final class GraphStruct {
 
-    public static final byte PRICE_MOVE = 1;
+    public static final byte PRICE_MOVE = 10;
     public static final byte PRICE_TURN_AROUND = 1;
     public static final byte PRICE_TURN = 1;
 

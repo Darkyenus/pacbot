@@ -11,10 +11,12 @@ import lego.api.controllers.EnvironmentController.Direction;
 final class PositionDirectionCache {
 
     private int[] cache;
+    private int[] bloom;
     private int size = 0;
 
     public PositionDirectionCache(int initialSize) {
         cache = new int[initialSize];
+        bloom = new int[8];
     }
 
     private int key(byte x, byte y, Direction direction){
@@ -23,6 +25,10 @@ final class PositionDirectionCache {
 
     public boolean contains(byte x, byte y, Direction direction){
         final int key = key(x,y,direction);
+        final int keyHash = key * 61;
+        if ((bloom[(key * 41) % bloom.length] & keyHash) != keyHash) {
+            return false;
+        }
 
         for(int i = size - 1; i >= 0; i--){
             if(key == cache[i]){
@@ -39,7 +45,10 @@ final class PositionDirectionCache {
             System.arraycopy(cache,0,newCache,0,currentSize);
             cache = newCache;
         }
-        cache[size] = key(x, y, direction);
+        final int key = key(x, y, direction);
+        cache[size] = key;
+        bloom[(key * 41) % bloom.length] |= key * 61;
+
         size++;
     }
 
