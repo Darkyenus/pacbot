@@ -26,6 +26,10 @@ public abstract class PlannedController extends MapAwareController {
         pathQueue.add((byte) (y & Y_ANTIBIT));
     }
 
+    public final void clearPath(){
+        pathQueue.clear();
+    }
+
     public abstract byte travelX(byte amount);
 
     public abstract byte travelY(byte amount);
