@@ -38,7 +38,7 @@ public abstract class PlannedController extends MapAwareController {
         while(pathQueue.nonEmpty()){
             final byte command = pathQueue.remove();
             final boolean onX = (command & X_BIT) == X_BIT;
-            final byte amount = (byte) (((byte)(command << 1)) >> 1);
+            final byte amount = (byte) ((command << 25) >> 25);
             if(onX){
                 travelX(amount);
             }else{
