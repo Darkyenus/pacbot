@@ -53,7 +53,7 @@ public final class ByteStack {
 
 	/**
 	 * @return Content of this stack in a new array
-	 * NOTE: Creates garbage, use #getCopyAsArray(int[]) instead
+	 * NOTE: Creates garbage, use #getCopyAsArray(byte[]) instead
 	 */
 	public byte[] getCopyAsArray () {
 		byte[] res = new byte[nextPosition];
