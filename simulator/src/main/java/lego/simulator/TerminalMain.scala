@@ -46,19 +46,37 @@ object TerminalMain extends App {
   val mapPointerContent = Try(Files.readFirstLine(mapPointerFile,Charsets.UTF_8)).getOrElse("all")
   println("Enter Map Pointer/s ["+mapPointerContent+"]:")
 
+  val ListRegex = "\\s*(par)?((?:\\w| )*)".r //Matches letters and numbers in sequence that may contain spaces and may be prefixed with "par" to denote parallel execution
+  val RangeRegex = "\\s*(par)?\\s*(\\S)\\s*(?:to)\\s*(\\S)\\s*".r //Matches "X to Y" optionally prefixed with "par"
+
+  var parallelExecution = false
   val maps:Seq[Char] = {
-    val input = readOrDefault(mapPointerContent).trim
-    if(input == "all"){
-      ('0' to '9').toSeq
-    }else if(input.contains("to")){
-      val pre = input.charAt(0) //Ugly workaround to be space insensitive
-      val post = input.charAt(input.length - 1)
-      (pre to post).toSeq
-    }else if(input.isEmpty){
-      sys.error("No maps to simulate on specified.")
-    }else{
-      input.replaceAll("\\s","") //Remove all whitespace (Unlikely to be name of map)
+      readOrDefault(mapPointerContent) match {
+        case RangeRegex(parallel,from,to) =>
+          if(parallel == "par"){
+            parallelExecution = true
+          }
+          var fromC = from.head
+          var toC = to.head
+          if(toC < fromC){
+            println("Reversing from with to")
+            val b = fromC
+            fromC = toC
+            toC = b
+          }
+          (fromC to toC).toSeq
+        case ListRegex(parallel,letters) =>
+          if(parallel == "par"){
+            parallelExecution = true
+          }
+          letters.replace(" ","")
+        case _ =>
+          sys.error("No maps to simulate on specified.")
     }
+  }
+
+  if(maps.isEmpty){
+    sys.error("No maps specified.")
   }
 
   val botPackage = new Reflections("lego.bots")

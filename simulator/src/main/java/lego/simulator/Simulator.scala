@@ -8,7 +8,6 @@ import com.google.common.io.Files
 import lego.api.controllers.MapAwareController
 import lego.api.controllers.MapAwareController._
 import lego.api.{BotController, Bot, BotEvent}
-import lego.simulator.controllers.PlannedSimulatorController
 import lego.util.Latch
 import org.reflections.Reflections
 
