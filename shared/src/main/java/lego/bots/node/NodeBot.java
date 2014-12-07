@@ -28,7 +28,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
     private void prepare(){
         graph.prepareNodes(controller);
 
-        Debug.printNodes(graph.nodes, graph.edges.getCopyAsArray());
+        //Debug.printNodes(graph.nodes, graph.edges.getCopyAsArray());
 
         findBestWay();
 
