@@ -35,7 +35,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         byte[] edgePath = graph.edges.get(bestPath[0]);
         byte i;
-        for(i = 1; i < bestPath.length; i++){
+        for(i = 1; i < bestPathLength; i++){
             edgePath = mergeEdges(edgePath, graph.edges.get(bestPath[i]));
         }
 
