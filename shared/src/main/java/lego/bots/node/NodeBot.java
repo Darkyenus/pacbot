@@ -185,8 +185,9 @@ public final class NodeBot extends Bot<EnvironmentController> {
     final ByteStack path = new ByteStack(STACK_SIZE);
     short price = 0;
 
-    byte[] bestPath = new byte[0];
-    short bestPrice = Short.MAX_VALUE;
+    private byte[] bestPath = new byte[32];
+    private int bestPathLength = 0;
+    private short bestPrice = Short.MAX_VALUE;
 
     final byte[][] visited = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
@@ -251,7 +252,16 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
         if(price < bestPrice){
-            bestPath = path.getCopyAsArray();
+            if(path.size() > bestPath.length){
+                int newSize = bestPath.length << 1;
+                while(newSize > path.size()){
+                    newSize <<= 1;
+                }
+                bestPath = new byte[newSize];
+            }
+            path.getCopyAsArray(bestPath);
+            bestPathLength = path.size();
+
             bestPrice = price;
             controller.onError(EnvironmentController.WARNING_ALERT);
             //System.out.println("Found one ("+price+")");

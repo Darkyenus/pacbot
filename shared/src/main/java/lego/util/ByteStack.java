@@ -71,4 +71,8 @@ public final class ByteStack {
 		System.arraycopy(internal, 0, to, 0, nextPosition);
 		return to;
 	}
+
+	public byte[] getUnderlyingArray(){
+		return internal;
+	}
 }
