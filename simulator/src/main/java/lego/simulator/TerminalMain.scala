@@ -102,7 +102,13 @@ object TerminalMain extends App {
   val bot = availableBots(selectedBot)
   Files.write(selectedBot.toString,lastBotFile,Charsets.UTF_8) //Save last selected bot
 
-  for(map <- maps){
-    Simulator.simulate(bot,map)
+  if(parallelExecution){
+    maps.par.foreach(map => {
+      Simulator.simulate(bot,map,parallel = true)
+    })
+  }else{
+    for(map <- maps){
+      Simulator.simulate(bot,map)
+    }
   }
 }
