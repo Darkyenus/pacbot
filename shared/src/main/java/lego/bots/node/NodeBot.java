@@ -129,49 +129,54 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
     }
+
+    private static final Object SAVE_ROUTE_LOCK = new Object();
+
     private void saveRoute(int name){
         if(name != -1){
-            loadEverything();
-            FileOutputStream output = null;
-            File routesFile = new File("routes");
+            synchronized (SAVE_ROUTE_LOCK){// So multiple NodeBots can run in parallel and not mess with each others saving
+                loadEverything();
+                FileOutputStream output = null;
+                File routesFile = new File("routes");
 
-            try {
-                output = new FileOutputStream(routesFile);
+                try {
+                    output = new FileOutputStream(routesFile);
 
-                output.write(name);
-                int size = route.size();
-                output.write((size*2 / 1000) + '0');
-                output.write(((size*2 / 100) % 10) + '0');
-                output.write(((size*2 / 10) % 10) + '0');
-                output.write((size*2 % 10) + '0');
+                    output.write(name);
+                    int size = route.size();
+                    output.write((size*2 / 1000) + '0');
+                    output.write(((size*2 / 100) % 10) + '0');
+                    output.write(((size*2 / 10) % 10) + '0');
+                    output.write((size*2 % 10) + '0');
 
-                for (int i = 0; i < size; i++) {
+                    for (int i = 0; i < size; i++) {
 
-                    output.write('0' + route.getXAt(i));
-                    output.write('0' + route.getYAt(i));
+                        output.write('0' + route.getXAt(i));
+                        output.write('0' + route.getYAt(i));
 
-                }
-                output.write('\n');
-
-                //noinspection ForLoopReplaceableByForEach
-                for(int j = 0; j < originalFileContent.size(); j ++){
-                    if(originalFileContent.get(j)[0] != name) {
-                        byte[] data = originalFileContent.get(j); //Saving CPU time
-                        //noinspection ForLoopReplaceableByForEach
-                        for (int i = 0; i < data.length; i++) {
-                            output.write(data[i]);
-                        }
-                        output.write('\n');
                     }
-                }
+                    output.write('\n');
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (output != null) {
-                    try {
-                        output.close();
-                    } catch (Throwable ignored) {
+                    //noinspection ForLoopReplaceableByForEach
+                    for(int j = 0; j < originalFileContent.size(); j ++){
+                        if(originalFileContent.get(j)[0] != name) {
+                            byte[] data = originalFileContent.get(j); //Saving CPU time
+                            //noinspection ForLoopReplaceableByForEach
+                            for (int i = 0; i < data.length; i++) {
+                                output.write(data[i]);
+                            }
+                            output.write('\n');
+                        }
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (output != null) {
+                        try {
+                            output.close();
+                        } catch (Throwable ignored) {
+                        }
                     }
                 }
             }
