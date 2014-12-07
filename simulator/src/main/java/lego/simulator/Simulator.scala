@@ -205,11 +205,17 @@ object Simulator {
 
       initLatch.pass() //Wait for bot to initialize. Should be instant.
 
-      println("Preparing run of #" + mapName + "")
-      val now = System.currentTimeMillis()
-      bot.onEvent(BotEvent.RUN_PREPARE)
-      println("Run of " + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
-      bot.onEvent(BotEvent.RUN_STARTED)
+      try {
+        println("Preparing run of #" + mapName + "")
+        val now = System.currentTimeMillis()
+        bot.onEvent(BotEvent.RUN_PREPARE)
+        println("Run of " + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
+        bot.onEvent(BotEvent.RUN_STARTED)
+      } catch {
+        case e: Exception =>
+          println(s"Bot ${botClass.getCanonicalName} threw an exception during preparation on map $mapName:")
+          e.printStackTrace()
+      }
       robotThread.join() //Block until stops
     }
   }
