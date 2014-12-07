@@ -254,7 +254,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         if(price < bestPrice){
             if(path.size() > bestPath.length){
                 int newSize = bestPath.length << 1;
-                while(newSize > path.size()){
+                while(newSize < path.size()){
                     newSize <<= 1;
                 }
                 bestPath = new byte[newSize];
