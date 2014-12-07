@@ -5,12 +5,12 @@ package lego.util;
  *
  * Created by Darkyen on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
-public final class ByteStack {
-	private byte[] internal;
+public final class IntStack {
+	private int[] internal;
 	private int nextPosition = 0;
 
-	public ByteStack (int initialSize) {
-		internal = new byte[initialSize];
+	public IntStack(int initialSize) {
+		internal = new int[initialSize];
 	}
 
 	public boolean isEmpty () {
@@ -31,19 +31,19 @@ public final class ByteStack {
 
 	/** Pops head of stack. Will throw an exception on underflow.
 	 * @return head of the stack */
-	public byte pop () {
+	public int pop () {
 		nextPosition--;
 		return internal[nextPosition];
 	}
 
-	public byte peek () {
+	public int peek () {
 		return internal[nextPosition - 1];
 	}
 
-	public void push (byte value) {
+	public void push (int value) {
 		int currentSize = internal.length;
 		if (nextPosition == currentSize) {
-			byte[] newInternal = new byte[currentSize << 1];
+			int[] newInternal = new int[currentSize << 1];
 			System.arraycopy(internal, 0, newInternal, 0, currentSize);
 			internal = newInternal;
 		}
@@ -53,10 +53,11 @@ public final class ByteStack {
 
 	/**
 	 * @return Content of this stack in a new array
-	 * NOTE: Creates garbage, use #getCopyAsArray(int[]) instead
+	 * @deprecated Creates garbage, use #getCopyAsArray(int[])
 	 */
-	public byte[] getCopyAsArray () {
-		byte[] res = new byte[nextPosition];
+	@Deprecated
+	public int[] getCopyAsArray () {
+		int[] res = new int[nextPosition];
 		System.arraycopy(internal, 0, res, 0, nextPosition);
 		return res;
 	}
@@ -67,7 +68,7 @@ public final class ByteStack {
 	 * @param to which array copy
 	 * @return to for convenience
 	 */
-	public byte[] getCopyAsArray (byte[] to) {
+	public int[] getCopyAsArray (int[] to) {
 		System.arraycopy(internal, 0, to, 0, nextPosition);
 		return to;
 	}

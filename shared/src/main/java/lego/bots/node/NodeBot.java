@@ -17,6 +17,7 @@ import java.util.ArrayList;
  */
 public final class NodeBot extends Bot<EnvironmentController> {
 
+    private static final byte MAX_ALLOWED_COMPLEXITY = 50;
     static final int STACK_SIZE = 16;
 
     private final Latch startLatch = new Latch();
@@ -189,6 +190,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     final byte[][] visited = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
 
+    /** 4 most significant bits contain direction to which has bot went
+     *  4 least significant bits contain direction from which bot arrived */
     final ByteStack directionStack = new ByteStack(STACK_SIZE);
     final PositionStack positionStack = new PositionStack(STACK_SIZE);
 
@@ -318,11 +321,11 @@ public final class NodeBot extends Bot<EnvironmentController> {
         if(n.verUpEdgeId != -1 && n.verUpLinkedX == fromX && n.verUpLinkedY == fromY){
             arrivedFrom = 8;
         }else if(n.horRightEdgeId != -1 && n.horRightLinkedX == fromX && n.horRightLinkedY == fromY){
-            arrivedFrom = 8;
+            arrivedFrom = 4;
         }else if(n.verDownEdgeId != -1 && n.verDownLinkedX == fromX && n.verDownLinkedY == fromY){
-            arrivedFrom = 8;
+            arrivedFrom = 2;
         }else if(n.horLeftEdgeId != -1 && n.verDownLinkedX == fromX && n.verDownLinkedY == fromY){
-            arrivedFrom = 8;
+            arrivedFrom = 1;
         }
 
         price += edgesPrice[edgeId];
@@ -377,12 +380,17 @@ public final class NodeBot extends Bot<EnvironmentController> {
             return;
         }
 
+        if(directionStack.size() > MAX_ALLOWED_COMPLEXITY){
+            revertLast();
+            return;
+        }
+
         if (checkCompletedMap(n.x, n.y)) {
             return;
         }
 
         byte hintUp = 0, hintRight = 0, hintDown = 0, hintLeft = 0;
-        byte returnedFrom = (byte)(directionStack.isEmpty() ? 0 : (((directionStack.peek() >> 4) & 15)));
+        byte returnedFrom = (byte)(directionStack.isEmpty() ? 0 : (((directionStack.peek() >> 4) & 0xF)));//Return 4 most significant bits or zero
 
 
         if(n.verUpEdgeId != -1){
