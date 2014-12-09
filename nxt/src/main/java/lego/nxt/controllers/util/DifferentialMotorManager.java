@@ -17,9 +17,6 @@ public final class DifferentialMotorManager {
 	public final MotorController leftMotor;
 	public final MotorController rightMotor;
 
-    private byte leftLastDir = 0;
-    private byte rightLastDir = 0;
-
 	public DifferentialMotorManager (MotorPort leftMotorPort, MotorPort rightMotorPort) {
 		leftMotor = new MotorController(leftMotorPort);
 		rightMotor = new MotorController(rightMotorPort);
@@ -75,35 +72,9 @@ public final class DifferentialMotorManager {
 			rightSpeed = (rightCM / leftCM) * speed;
 		}
 
-        float toMoveLeft = leftMotor.permanentSavedLocation;
-        float toMoveRight = rightMotor.permanentSavedLocation;
+		float toMoveLeft = leftMotor.permanentSavedLocation + (leftCM / wheelCircumferenceCM) * 360f;
+		float toMoveRight = rightMotor.permanentSavedLocation + (rightCM / wheelCircumferenceCM) * 360f;
 
-        boolean twitch = false;
-
-        if(leftLastDir * Math.signum(leftCM) == -1) { //Dir has changed
-            twitch = true;
-            toMoveLeft += Math.signum(leftCM) * HWParameters.GEARBOX_INACCURACY_MOTOR_DEG;
-        }
-        if(rightLastDir * Math.signum(rightCM) == -1) { //Dir has changed
-            twitch = true;
-            toMoveRight += Math.signum(leftCM) * HWParameters.GEARBOX_INACCURACY_MOTOR_DEG;
-        }
-
-        if(twitch){
-            leftMotor.permanentSavedLocation = toMoveLeft;
-            rightMotor.permanentSavedLocation = toMoveRight;
-
-            leftMotor.newMove(Math.abs(leftSpeed), SMOOTH_ACCELERATION, NO_DECELERATION, toMoveLeft, true, false);
-            rightMotor.newMove(Math.abs(rightSpeed), SMOOTH_ACCELERATION, NO_DECELERATION, toMoveRight, true, true);
-            leftMotor.waitComplete();
-        }
-
-        //These are not in above condition, because the initialValue = 0, so the condition would never be true
-        leftLastDir = (byte) Math.signum(leftCM);
-        rightLastDir = (byte) Math.signum(rightCM);
-
-		toMoveLeft = leftMotor.permanentSavedLocation + (leftCM / wheelCircumferenceCM) * 360f;
-		toMoveRight = rightMotor.permanentSavedLocation + (rightCM / wheelCircumferenceCM) * 360f;
 		leftMotor.permanentSavedLocation = toMoveLeft;
 		rightMotor.permanentSavedLocation = toMoveRight;
 

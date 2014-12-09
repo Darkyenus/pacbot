@@ -52,6 +52,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 // LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
 
                 LCD.drawString("d"+(motors.rightMotor.getTachoCount() - motors.leftMotor.getTachoCount())+"   ", 0, LCD.DISPLAY_CHAR_DEPTH - 2);
+                LCD.drawString("p"+(motors.asyncProgress())+"   ", 0, LCD.DISPLAY_CHAR_DEPTH - 1);
                 if(sensors != null){
                     sensors.readSensors();
                     LCD.drawString("L:", 0, mazeHeight + 1);
@@ -378,8 +379,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         return direction;
     }
 
-    private boolean firstCalibration = true;
-    private byte movesWithoutCalibration = 0;
+    private byte movesWithoutCalibration = 100;
 
     //Movement
     private byte move(Direction direction, byte amount, Direction nextDirection){
@@ -389,7 +389,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         byte moved = 0;
 
-        boolean timeToCalibrate = firstCalibration || movesWithoutCalibration > 3 || amount > 3;
+        boolean timeToCalibrate = movesWithoutCalibration > 3 || amount > 3;
         boolean calibrateBefore = timeToCalibrate && isObstacle(x - direction.x, y - direction.y);
         boolean calibrateAfter = timeToCalibrate && isObstacle(x + direction.x * amount + direction.x, y + direction.y * amount + direction.y);
 
@@ -397,7 +397,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             if(calibrateBefore){
                 calibrateBackward(false);
                 movesWithoutCalibration = 0;
-                firstCalibration = false;
             }
             while(moved < amount){
                 if(driveForward(moved == 0 && !calibrateBefore, moved == amount - 1 && !calibrateAfter)){
@@ -416,19 +415,17 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 boolean willGoBackward = direction.isOpposite(nextDirection);
                 calibrateForward(!willGoBackward);
                 movesWithoutCalibration = 0;
-                firstCalibration = false;
             }
         }else{//going backward
             if(calibrateBefore){
                 calibrateForward(false);
                 movesWithoutCalibration = 0;
-                firstCalibration = false;
             }
             while(moved < amount){
                 if(driveBackward(moved == 0 && !calibrateBefore, moved == amount - 1 && !calibrateAfter)){
                     moved += 1;
-                    x -= direction.x;
-                    y -= direction.y;
+                    x += direction.x;
+                    y += direction.y;
                     setField(x, y, FREE_VISITED);
                     if(sensors != null)sensors.readSensors();
                 } else {
@@ -441,7 +438,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 boolean willGoForward = direction.isOpposite(nextDirection);
                 calibrateBackward(!willGoForward);
                 movesWithoutCalibration = 0;
-                firstCalibration = false;
             }
         }
         return moved;

@@ -291,6 +291,7 @@ public final class MotorController {
 	/** SHOULD Return value 0 to 1. Probably does. */
 	public float getProgress () {
 		if (moving) {
+			if(currentLimit == baseTCount)return 1f;
 			return ((currentTCount - baseTCount) / (currentLimit - baseTCount));
 		} else {
 			return 1f;
