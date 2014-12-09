@@ -78,29 +78,32 @@ public final class DifferentialMotorManager {
         float toMoveLeft = leftMotor.permanentSavedLocation;
         float toMoveRight = rightMotor.permanentSavedLocation;
 
-        boolean twitch = false;
+        if(HWParameters.GEARBOX_INACCURACY_MOTOR_DEG != 0) { //Disable flag
 
-        if(leftLastDir * Math.signum(leftCM) == -1) { //Dir has changed
-            twitch = true;
-            toMoveLeft += Math.signum(leftCM) * HWParameters.GEARBOX_INACCURACY_MOTOR_DEG;
+            boolean twitch = false;
+
+            if (leftLastDir * Math.signum(leftCM) == -1) { //Dir has changed
+                twitch = true;
+                toMoveLeft += Math.signum(leftCM) * HWParameters.GEARBOX_INACCURACY_MOTOR_DEG;
+            }
+            if (rightLastDir * Math.signum(rightCM) == -1) { //Dir has changed
+                twitch = true;
+                toMoveRight += Math.signum(leftCM) * HWParameters.GEARBOX_INACCURACY_MOTOR_DEG;
+            }
+
+            if (twitch) {
+                leftMotor.permanentSavedLocation = toMoveLeft;
+                rightMotor.permanentSavedLocation = toMoveRight;
+
+                leftMotor.newMove(Math.abs(leftSpeed), SMOOTH_ACCELERATION, NO_DECELERATION, toMoveLeft, true, false);
+                rightMotor.newMove(Math.abs(rightSpeed), SMOOTH_ACCELERATION, NO_DECELERATION, toMoveRight, true, true);
+                leftMotor.waitComplete();
+            }
+
+            //These are not in above condition, because the initialValue = 0, so the condition would never be true
+            leftLastDir = (byte) Math.signum(leftCM);
+            rightLastDir = (byte) Math.signum(rightCM);
         }
-        if(rightLastDir * Math.signum(rightCM) == -1) { //Dir has changed
-            twitch = true;
-            toMoveRight += Math.signum(leftCM) * HWParameters.GEARBOX_INACCURACY_MOTOR_DEG;
-        }
-
-        if(twitch){
-            leftMotor.permanentSavedLocation = toMoveLeft;
-            rightMotor.permanentSavedLocation = toMoveRight;
-
-            leftMotor.newMove(Math.abs(leftSpeed), SMOOTH_ACCELERATION, NO_DECELERATION, toMoveLeft, true, false);
-            rightMotor.newMove(Math.abs(rightSpeed), SMOOTH_ACCELERATION, NO_DECELERATION, toMoveRight, true, true);
-            leftMotor.waitComplete();
-        }
-
-        //These are not in above condition, because the initialValue = 0, so the condition would never be true
-        leftLastDir = (byte) Math.signum(leftCM);
-        rightLastDir = (byte) Math.signum(rightCM);
 
 		toMoveLeft = leftMotor.permanentSavedLocation + (leftCM / wheelCircumferenceCM) * 360f;
 		toMoveRight = rightMotor.permanentSavedLocation + (rightCM / wheelCircumferenceCM) * 360f;
