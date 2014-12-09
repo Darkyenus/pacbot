@@ -372,7 +372,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         byte directionCompressed = 0;
         if(directionMoved != 0) {
-            while ((directionMoved >> directionCompressed ++) != 1);
+            while ((directionMoved >> directionCompressed++) != 1);
         }
         byte visitedVal = visited[fromX][fromY];
         visitedVal = (byte)((((visitedVal >> 4) & 15) + 1) << 4);
