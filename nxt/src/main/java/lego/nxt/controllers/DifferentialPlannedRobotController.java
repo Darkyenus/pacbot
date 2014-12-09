@@ -185,6 +185,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             case 1:
                 turnLeft();
                 direction = to;
+                movesWithoutCalibration = 10;
                 if(sensors != null)sensors.readSensors();
                 return true;
             case 2:
@@ -192,6 +193,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             case 3:
                 turnRight();
                 direction = to;
+                movesWithoutCalibration = 10;
                 if(sensors != null)sensors.readSensors();
                 return true;
         }
@@ -227,14 +229,13 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         while (motors.asyncProgress() < 0.95f) {
-            if (frontTouch.isPressed()) {// && motors.asyncProgress() > 0.7f //TODO OOOOO?
-                // warnings++;
+            if (frontTouch.isPressed() && motors.asyncProgress() < 0.8f) {
+                //Going forward for a bit, because we hit an obstacle
 
                 Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
                         DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, false);
-                // warnings--;
                 return false;
             }
             try {
@@ -256,7 +257,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         warnings++;
         while (motors.asyncProgress() < 0.95) {
-            if (backTouch.isPressed()) {// && motors.asyncProgress() > 0.7f //TODO
+            if (backTouch.isPressed() && motors.asyncProgress() < 0.8f) {
 
                 Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
@@ -389,11 +390,13 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         byte moved = 0;
 
-        boolean timeToCalibrate = movesWithoutCalibration > 3 || amount > 3;
+        boolean goingForward = ensureDirectionForward(direction);
+
+        boolean timeToCalibrate = movesWithoutCalibration >= 3 || amount >= 3;
         boolean calibrateBefore = timeToCalibrate && isObstacle(x - direction.x, y - direction.y);
         boolean calibrateAfter = timeToCalibrate && isObstacle(x + direction.x * amount + direction.x, y + direction.y * amount + direction.y);
 
-        if(ensureDirectionForward(direction)){//going forward
+        if(goingForward){//going forward
             if(calibrateBefore){
                 calibrateBackward(false);
                 movesWithoutCalibration = 0;

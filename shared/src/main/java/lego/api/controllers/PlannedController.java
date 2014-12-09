@@ -57,7 +57,7 @@ public abstract class PlannedController extends MapAwareController {
             amount = amount(command);
         }
 
-        do{
+        while(true){
             final byte nextCommand = pathQueue.isEmpty() ? 0 : pathQueue.remove();
             final boolean nextOnX = onX(nextCommand);
             final byte nextAmount = amount(nextCommand);
@@ -68,6 +68,7 @@ public abstract class PlannedController extends MapAwareController {
             }
             onX = nextOnX;
             amount = nextAmount;
-        }while(pathQueue.nonEmpty());
+            if(amount == 0 && pathQueue.isEmpty())break;
+        }
     }
 }
