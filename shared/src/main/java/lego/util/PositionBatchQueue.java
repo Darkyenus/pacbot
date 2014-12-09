@@ -48,6 +48,13 @@ public final class PositionBatchQueue {
 		return internalY[index];
 	}
 
+    public void changeValue(int index, byte x, byte y){
+        if(index < writePosition && index >= readPosition){
+            internalX[readPosition + index] = x;
+            internalY[readPosition + index] = y;
+        }
+    }
+
     public void insertAfter(int index, byte x, byte y){
         int currentSize = internalX.length;
         byte[] newInternalX = new byte[currentSize + 1];

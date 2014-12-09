@@ -704,16 +704,16 @@ public final class GraphStruct {
 
         byte result = 0;
 
-        if((controller.isFree(x, (byte)(y - 1)) || controller.isStart(x, (byte)(y - 1))) && !controller.isStart(x, y)){
+        if((controller.isFree(x, y - 1) || controller.isStart(x, y - 1)) && !controller.isStart(x, y)){
             result = (byte) (result | 8);
         }
-        if(controller.isFree((byte)(x + 1), y)){
+        if(controller.isFree(x + 1, y)){
             result = (byte) (result | 4);
         }
-        if(controller.isFree(x, (byte)(y + 1))){
+        if(controller.isFree(x, y + 1)){
             result = (byte) (result | 2);
         }
-        if(controller.isFree((byte) (x - 1), y)){
+        if(controller.isFree(x - 1, y)){
             result = (byte) (result | 1);
         }
 

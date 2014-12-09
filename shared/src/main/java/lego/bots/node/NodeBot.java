@@ -19,6 +19,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     private static final byte MAX_ALLOWED_COMPLEXITY = 50;
     static final int STACK_SIZE = 32;
+    private static final int ARTIFACTS_SEARCH_SIZE = 4;
 
     private final Latch startLatch = new Latch();
 
@@ -49,10 +50,59 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
 
-        System.out.println("Price: "+bestPrice);
+        byte positionsIndex = 0;
+        byte[] positions = new byte[ARTIFACTS_SEARCH_SIZE + 2];
+
+
+        for(i = 0; i < route.size(); i++){
+            visited[route.getXAt(i)][route.getYAt(i)] ++;
+        }
+
+        for (i = 0; i < route.size(); i++){
+            byte x = route.getXAt(i);
+            byte y = route.getYAt(i);
+
+            if(visited[x][y] > 1){
+                if(positionsIndex < ARTIFACTS_SEARCH_SIZE + 1){
+                    positionsIndex ++;
+                } else {
+                    positionsIndex = 0; //This situation wont happen. And if will (for example when returning from long dead end) start over and ignore prev results.
+                }
+                positions[positionsIndex] = (byte)((x << 4) | y);
+
+                if(checkIfContainsLoop(positions, positionsIndex, i, x, y)){
+                    positionsIndex = 0;
+                    positions[0] = (byte)((x << 4) | y);
+                }
+            } else {
+                if(positionsIndex > 0){
+                    checkIfContainsLoop(positions, positionsIndex, i, x, y);
+                }
+                positionsIndex = 0;
+                positions[0] = (byte)((x << 4) | y);
+            }
+
+        }
 
 
         saveRoute(getIndex());
+    }
+
+    private boolean checkIfContainsLoop(byte[] positions, byte positionsIndex, byte i, byte x, byte y){
+        byte foundFrom = -1;
+        for (byte j = 0; j < positionsIndex; j++){
+            if(positions[j] == positions[positionsIndex]){
+                foundFrom = j;
+                break;
+            }
+        }
+        if(foundFrom != -1){
+            for(byte j = foundFrom; j < positionsIndex; j++){
+                route.changeValue(i + j - positionsIndex, x, y);
+            }
+            return true;
+        }
+        return false;
     }
 
     private int getIndex(){
