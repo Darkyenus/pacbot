@@ -1,22 +1,29 @@
 package lego.nxt.controllers.util;
 
 /**
- * Created by admin on 4.12.2014.
+ * HW specific settings for differential bot.
+ * Created on 4.12.2014.
  */
 public class HWParameters {
+    //0.50f;//0.95f; //Racing values for direct bot 0.95f
+    public static final float SPEED = 0.95f;
 
-    public static final float SPEED = 0.50f;//* 0.95f; //Racing values
+    //900;//1300;
+    public static final int ACCELERATION = 1300;
 
-    public static final int ACCELERATION = 900;//1300;
+    //13.8333333f;//8.3f;//For direct motor
+    public static final float WHEEL_DIAMETER = 8.3f;
 
-    public static final float WHEEL_DIAMETER = 13.8333333f;//8.3f;//For direct motor
+    // Half distance between wheels
+    public static final float WHEEL_DISTANCE = 6.8f;
 
-    public static final float WHEEL_DISTANCE = 6.8f;// Half distance between wheels
+    // For direct bot false, for geared bot true
+    public static final boolean FLIP_DIRECTION = false;
 
-    public static final boolean FLIP_DIRECTION = true;//false;//For direct bot
+    //0.010f;//Racing values
+    public static final float TURNING_BIAS = 0.00f;
 
-    public static final float TURNING_BIAS = 0.00f;//0.010f;//Racing values
-
+    //How long wait after button touch
     public static final int CALIBRATION_WAITING = 200;
 
     /**
@@ -24,5 +31,4 @@ public class HWParameters {
      * Write here absolute value of measured motor rotation in degrees.
      */
     public static final int GEARBOX_INACCURACY_MOTOR_DEG = 0;
-
 }

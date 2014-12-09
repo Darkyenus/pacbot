@@ -18,7 +18,8 @@ public final class Bootstrap {
 			//new NodeBot()
 			//new TestificateBot()
 			//new WeightNavBot()
-			new PlanTestBot()
+			//new PlanTestBot()
+			new LoadBot()
             ,
             //new DifferentialEnvironmentRobotController()
 			new DifferentialPlannedRobotController()

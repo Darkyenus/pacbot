@@ -1,6 +1,7 @@
 package lego.api.controllers;
 
 import lego.util.BatchByteQueue;
+import lego.api.controllers.EnvironmentController.Direction;
 
 /**
  * Max supported x/y amount is 63. Undefined results for numbers any bigger.
@@ -33,23 +34,40 @@ public abstract class PlannedController extends MapAwareController {
         pathQueue.clear();
     }
 
-    public abstract byte travelX(byte amount);
+    public abstract byte travelX(byte amount,Direction nextDirection);
 
-    public abstract byte travelY(byte amount);
+    public abstract byte travelY(byte amount,Direction nextDirection);
 
+    private boolean onX(byte command){
+        return (command & X_BIT) == X_BIT;//Check if first bit is present
+    }
+    private byte amount(byte command){
+        //Set first bit to the value of second bit.
+        //That is done by shifting whole 8bit value so many times, that first value is lost. Then it is shifted back.
+        //Due to way how java handles signed shifts, given task is accomplished.
+        return (byte) ((command << 25) >> 25);
+    }
     public final void travelPath(){
-        while(pathQueue.nonEmpty()){
-            final byte command = pathQueue.remove();
-            final boolean onX = (command & X_BIT) == X_BIT;//Check if first bit is present
-            //Set first bit to the value of second bit.
-            //That is done by shifting whole 8bit value so many times, that first value is lost. Then it is shifted back.
-            //Due to way how java handles signed shifts, given task is accomplished.
-            final byte amount = (byte) ((command << 25) >> 25);
-            if(onX){
-                travelX(amount);
-            }else{
-                travelY(amount);
-            }
+        if(pathQueue.isEmpty())return;
+        boolean onX;
+        byte amount;
+        {
+            byte command = pathQueue.remove();
+            onX = onX(command);
+            amount = amount(command);
         }
+
+        do{
+            final byte nextCommand = pathQueue.isEmpty() ? 0 : pathQueue.remove();
+            final boolean nextOnX = onX(nextCommand);
+            final byte nextAmount = amount(nextCommand);
+            if(onX){
+                travelX(amount, Direction.toDirection(nextOnX, nextAmount));
+            }else{
+                travelY(amount, Direction.toDirection(nextOnX, nextAmount));
+            }
+            onX = nextOnX;
+            amount = nextAmount;
+        }while(pathQueue.nonEmpty());
     }
 }
