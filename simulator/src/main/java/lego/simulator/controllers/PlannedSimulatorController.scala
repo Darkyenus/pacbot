@@ -1,7 +1,7 @@
 package lego.simulator.controllers
 
 import lego.api.controllers.MapAwareController._
-import lego.api.controllers.{MapAwareController, PlannedController}
+import lego.api.controllers.{EnvironmentController, MapAwareController, PlannedController}
 import lego.simulator.{MazeMap, Simulator, MapTile}
 
 /**
@@ -12,7 +12,7 @@ import lego.simulator.{MazeMap, Simulator, MapTile}
  */
 class PlannedSimulatorController(map:MazeMap,onStatusChanged:(PlannedSimulatorController)=>Unit,val onError:(Byte)=>Unit) extends PlannedController {
 
-  override def travelX(xMove: Byte): Byte = {
+  override def travelX(xMove: Byte, nextDirection: EnvironmentController.Direction): Byte = {
     val direction:Byte = xMove.signum.toByte
     var remaining = xMove
     var moved = 0
@@ -45,7 +45,7 @@ class PlannedSimulatorController(map:MazeMap,onStatusChanged:(PlannedSimulatorCo
     moved.toByte
   }
 
-  override def travelY(yMove: Byte): Byte = {
+  override def travelY(yMove: Byte, nextDirection: EnvironmentController.Direction): Byte = {
     val direction:Byte = yMove.signum.toByte
     var remaining = yMove
     var moved = 0

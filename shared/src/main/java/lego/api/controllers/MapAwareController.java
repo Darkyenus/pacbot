@@ -190,19 +190,19 @@ public abstract class MapAwareController extends BotController {
         }
     }
 
-    public final boolean isFree(byte x, byte y) {
+    public final boolean isFree(int x, int y) {
         return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & FREE_BIT) == FREE_BIT;
     }
 
-    public final boolean isFreeUnvisited(byte x, byte y) {
+    public final boolean isFreeUnvisited(int x, int y) {
         return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE_UNVISITED;
     }
 
-    public final boolean isFreeVisited(byte x, byte y) {
+    public final boolean isFreeVisited(int x, int y) {
         return !(x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight) && (maze[x][y] & TILE_TYPE_MASK) == FREE_VISITED;
     }
 
-    public final boolean isObstacle(byte x, byte y) {
+    public final boolean isObstacle(int x, int y) {
         return x < 0 || y < 0 || x >= mazeWidth || y >= mazeHeight || (maze[x][y] & TILE_TYPE_MASK) == OBSTACLE;
     }
 
@@ -210,7 +210,7 @@ public abstract class MapAwareController extends BotController {
      * Check whether there is a start at given coordinate.
      * (Note: Unlike isFree and isObstacle, this is hardcoded for correct coordinate.
      */
-    public final boolean isStart(byte x, byte y){
+    public final boolean isStart(int x, int y){
         return x == startX && y == startY;
     }
 
