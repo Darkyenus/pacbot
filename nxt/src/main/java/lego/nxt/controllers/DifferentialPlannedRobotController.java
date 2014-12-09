@@ -33,7 +33,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
     private String lastError = "";
     private byte warnings = 0;
-    private byte lastMoved = 0;
 
     @Override
     public void initialize () {
@@ -161,11 +160,12 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 break;
             case WARNING_TOOK_TOO_LONG_TIME_TO_COMPUTE:
                 lastError = "wttlttc";
+                break;
             case SUCCESS_PATH_COMPUTED:
                 for (byte i = 0; i < 50; i++) {
                     Sound.playTone(400 + i * 15, 20);
-                    // Sound.playTone(1135 - i*15,10);
                 }
+                break;
             default:
                 Sound.buzz();
                 lastError = "!" + error;
@@ -174,42 +174,27 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
     private Direction direction = Direction.DOWN;
 
-    private boolean isInOppositeDirection (Direction to) {
-        return to.x == -direction.x && to.y == -direction.y;
-    }
-
-    private boolean ensureDirection (Direction to, boolean stopAfterCalibrating) {
-        if (to == direction) return false;
-        boolean calibrated = false;
-        // warnings++;
+    /**
+     * Assumption is, that the robot is standing before this. It will be at the end.
+     * @return False if it should go backward afterwards, because direction has not been changed and req. dir is the opposite
+     */
+    private boolean ensureDirectionForward(Direction to) {
+        if (to == direction) return true;
         switch ((direction.ordinal() - to.ordinal() + 4) % 4) {// It's a kind of magic
             case 1:
                 turnLeft();
-                if (lastMoved > 3 && isObstacle((byte)(x - to.x), (byte)(y - to.y))) {
-                    calibrateBackward(stopAfterCalibrating);
-                    calibrated = true;
-                }
-                break;
+                direction = to;
+                if(sensors != null)sensors.readSensors();
+                return true;
             case 2:
-                turnAround();
-                if (isObstacle((byte)(x - to.x), (byte)(y - to.y))) {
-                    calibrateBackward(stopAfterCalibrating);
-                    calibrated = true;
-                }
-                break;
+                return false;
             case 3:
                 turnRight();
-                if (lastMoved > 3 && isObstacle((byte)(x - to.x), (byte)(y - to.y))) {
-                    calibrateBackward(stopAfterCalibrating);
-                    calibrated = true;
-                }
-                break;
+                direction = to;
+                if(sensors != null)sensors.readSensors();
+                return true;
         }
-        // warnings--;
-        direction = to;
-        lastMoved = 0;
-        if(sensors != null)sensors.readSensors();
-        return calibrated;
+        return true;//This will never happen
     }
 
     private float calculateBias () {
@@ -226,13 +211,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     private void turnRight () {
         motors.reset();
         motors.turnRad(-DifferentialMotorManager.HALF_PI - calculateBias(), DifferentialMotorManager.MAX_SPEED(),
-                DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-        motors.reset();
-    }
-
-    private void turnAround () {
-        motors.reset();
-        motors.turnRad(DifferentialMotorManager.PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
         motors.reset();
     }
@@ -277,7 +255,6 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         warnings++;
         while (motors.asyncProgress() < 0.95) {
-            // Sound.playTone(500+(int)(motors.asyncProgress() * 500),100);//TODO QQQ
             if (backTouch.isPressed()) {// && motors.asyncProgress() > 0.7f //TODO
 
                 Delay.msDelay(CALIBRATION_WAITING);
@@ -298,6 +275,45 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         warnings--;
         return true;
+    }
+
+    private void calibrateForward(boolean stopAfterCalibrating){
+        warnings++;
+        float speed = DifferentialMotorManager.MAX_SPEED() * 0.8f;
+        motors.moveAsync(BLOCK_DISTANCE, BLOCK_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
+                DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+
+        while (motors.asyncMoving()) {
+            if (frontTouch.isPressed()) {
+                //Calibrated successfully
+                Delay.msDelay(CALIBRATION_WAITING);
+                motors.reset();
+                if (stopAfterCalibrating) {
+                    motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
+                            DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+                    motors.reset();
+                } else {
+                    motors.moveAsync(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
+                            DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
+                    motors.waitForAsyncProgress(0.95f);
+                }
+                warnings--;
+                return;
+            }
+        }
+        //Not calibrated, aborting, no touch
+        onError(ERROR_CAL_BLOCK_EXPECTED);
+        motors.reset();
+        if (stopAfterCalibrating) {
+            motors.moveAsync(-BLOCK_DISTANCE, -BLOCK_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
+                    DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+        } else {
+            // We shall continue forward after returning to center
+            motors.moveAsync(-BLOCK_DISTANCE, -BLOCK_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
+                    DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
+        }
+        motors.waitForAsyncProgress(0.95f);
+        warnings--;
     }
 
     private void calibrateBackward (boolean stopAfterCalibrating) {
@@ -340,20 +356,20 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
 
     @Override
-    public byte travelX(byte amount) {
+    public byte travelX(byte amount,Direction nextDirection) {
         if(amount < 0){
-            return move(Direction.LEFT, (byte) -amount);
+            return move(Direction.LEFT, (byte) -amount,nextDirection);
         }else{
-            return move(Direction.RIGHT,amount);
+            return move(Direction.RIGHT,amount,nextDirection);
         }
     }
 
     @Override
-    public byte travelY(byte amount) {
+    public byte travelY(byte amount,Direction nextDirection) {
         if(amount < 0){
-            return move(Direction.UP, (byte) -amount);
+            return move(Direction.UP, (byte) -amount,nextDirection);
         }else{
-            return move(Direction.DOWN,amount);
+            return move(Direction.DOWN,amount,nextDirection);
         }
     }
 
@@ -362,29 +378,29 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         return direction;
     }
 
+    private boolean firstCalibration = true;
+    private byte movesWithoutCalibration = 0;
+
     //Movement
-    private byte move(Direction direction, byte amount){
+    private byte move(Direction direction, byte amount, Direction nextDirection){
+        if(amount == 0){
+            motors.reset();
+            return 0;
+        }
         byte moved = 0;
 
-        if(amount >= 3){//If travelling 3 or more fields, calibrate forward
-            //TODO Also calibrate on start
-            byte finalX = (byte)(x + (direction.x) * (amount + 1));
-            byte finalY = (byte)(y + (direction.y) * (amount + 1));
-            if (isObstacle(finalX, finalY)) {
-                amount++; // Calibrate forward if going into wall
-            }
-        }
+        boolean timeToCalibrate = firstCalibration || movesWithoutCalibration > 3 || amount > 3;
+        boolean calibrateBefore = timeToCalibrate && isObstacle(x - direction.x, y - direction.y);
+        boolean calibrateAfter = timeToCalibrate && isObstacle(x + direction.x * amount + direction.x, y + direction.y * amount + direction.y);
 
-        if ( ! isInOppositeDirection(direction)) {
-            //------------------------------------------ processForward ------------------------------------------------
-            // Dont stop if were moving after this. Should never be true, but just in case
-            boolean stopAfterCalibrating = amount == 0;
-            boolean calibrated = ensureDirection(direction, stopAfterCalibrating);
-            if (!calibrated && amount >= 3 && isObstacle((byte)(x - direction.x), (byte)(y - direction.y))) {
-                calibrateBackward(stopAfterCalibrating);
+        if(ensureDirectionForward(direction)){//going forward
+            if(calibrateBefore){
+                calibrateBackward(false);
+                movesWithoutCalibration = 0;
+                firstCalibration = false;
             }
-            while (moved < amount) {
-                if (driveForward(moved == 0, moved == amount - 1)) {
+            while(moved < amount){
+                if(driveForward(moved == 0 && !calibrateBefore, moved == amount - 1 && !calibrateAfter)){
                     moved += 1;
                     x += direction.x;
                     y += direction.y;
@@ -395,11 +411,21 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     break;
                 }
             }
-        } else {
-            //----------------------------------------- processBackward ------------------------------------------------
-            // TODO Maybe some calibrating?
-            while (moved < amount) {
-                if (driveBackward(moved == 0, moved == amount - 1)) {
+            movesWithoutCalibration += moved;
+            if(calibrateAfter){
+                boolean willGoBackward = direction.isOpposite(nextDirection);
+                calibrateForward(!willGoBackward);
+                movesWithoutCalibration = 0;
+                firstCalibration = false;
+            }
+        }else{//going backward
+            if(calibrateBefore){
+                calibrateForward(false);
+                movesWithoutCalibration = 0;
+                firstCalibration = false;
+            }
+            while(moved < amount){
+                if(driveBackward(moved == 0 && !calibrateBefore, moved == amount - 1 && !calibrateAfter)){
                     moved += 1;
                     x -= direction.x;
                     y -= direction.y;
@@ -410,8 +436,14 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     break;
                 }
             }
+            movesWithoutCalibration += moved;
+            if(calibrateAfter){
+                boolean willGoForward = direction.isOpposite(nextDirection);
+                calibrateBackward(!willGoForward);
+                movesWithoutCalibration = 0;
+                firstCalibration = false;
+            }
         }
-        lastMoved = moved;
         return moved;
     }
 }

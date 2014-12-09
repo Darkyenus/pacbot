@@ -70,6 +70,24 @@ public abstract class EnvironmentController extends MapAwareController {
 				values[i].left = values()[(i + length - 1) % length];
 			}
 		}
+
+		public static Direction toDirection(boolean onX, byte amount){
+			if(onX){
+				if(amount < 0)
+					return Direction.LEFT;
+				else
+					return Direction.RIGHT;
+			}else{
+				if(amount < 0)
+					return Direction.UP;
+				else
+					return Direction.DOWN;
+			}
+		}
+
+		public boolean isOpposite(Direction to){
+			return  x == -to.x && y == -to.y;
+		}
 	}
 
 	public static interface MoveFieldsTask {
