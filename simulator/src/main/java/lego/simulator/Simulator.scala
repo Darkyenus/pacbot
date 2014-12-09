@@ -219,10 +219,10 @@ object Simulator {
       SimulateLock.release()
 
       try {
-        println("Preparing run of #" + mapName + "")
+        println("Preparing run of #" + mapName)
         val now = System.currentTimeMillis()
         bot.onEvent(BotEvent.RUN_PREPARE)
-        println("Run of " + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
+        println("Run of #" + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s")
         bot.onEvent(BotEvent.RUN_STARTED)
       } catch {
         case e: Exception =>
