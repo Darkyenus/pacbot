@@ -2,6 +2,7 @@ package lego.simulator
 
 import java.io.File
 import java.lang.reflect.ParameterizedType
+import java.util.concurrent.Semaphore
 
 import com.google.common.base.Charsets
 import com.google.common.io.Files
@@ -10,6 +11,8 @@ import lego.api.controllers.MapAwareController._
 import lego.api.{BotController, Bot, BotEvent}
 import lego.util.Latch
 import org.reflections.Reflections
+
+import scala.concurrent.util.Unsafe
 
 /**
  * Private property.
@@ -145,7 +148,7 @@ object Simulator {
 
   private val simulatorControllerPackage = new Reflections("lego.simulator.controllers")
 
-  private val SimulateLock = new Object
+  private final val SimulateLock = new Semaphore(1)
 
   /**
    * Simulates given bot on a given map.
@@ -162,7 +165,8 @@ object Simulator {
       var bot: Bot[BotController] = null
       var robotThread:Thread = null
 
-      SimulateLock.synchronized{
+      SimulateLock.acquire()
+        println("SyncEnter "+Thread.currentThread().getName+" on "+SimulateLock)
         //This must happen sequentially, so controller can load that file. It is stupid, but it works. In theory.
         Files.write(mapName.toString, controllerMapPointerFile, Charsets.UTF_8)
 
@@ -211,7 +215,8 @@ object Simulator {
         robotThread.start()
 
         initLatch.pass() //Wait for bot to initialize. Should be instant.
-      }
+        println("SyncLeave "+Thread.currentThread().getName+" on "+SimulateLock)
+      SimulateLock.release()
 
       try {
         println("Preparing run of #" + mapName + "")
