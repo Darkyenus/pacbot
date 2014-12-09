@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public final class NodeBot extends Bot<EnvironmentController> {
 
     private static final byte MAX_ALLOWED_COMPLEXITY = 50;
-    static final int STACK_SIZE = 16;
+    static final int STACK_SIZE = 32;
 
     private final Latch startLatch = new Latch();
 
@@ -190,7 +190,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
     final ByteStack path = new ByteStack(STACK_SIZE);
     short price = 0;
 
-    private byte[] bestPath = new byte[32];
+    private byte[] bestPath = new byte[STACK_SIZE];
     private int bestPathLength = 0;
     private short bestPrice = Short.MAX_VALUE;
 
