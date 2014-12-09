@@ -19,4 +19,16 @@ public class HWParameters {
 
     // For direct bot false, for geared bot true
     public static final boolean FLIP_DIRECTION = false;
+
+    //0.010f;//Racing values
+    public static final float TURNING_BIAS = 0.00f;
+
+    //How long wait after button touch
+    public static final int CALIBRATION_WAITING = 200;
+
+    /**
+     * Stop the wheel in one peek. Rotate motor slowly. Stop just before the wheel would start moving.
+     * Write here absolute value of measured motor rotation in degrees.
+     */
+    public static final int GEARBOX_INACCURACY_MOTOR_DEG = 0;
 }
