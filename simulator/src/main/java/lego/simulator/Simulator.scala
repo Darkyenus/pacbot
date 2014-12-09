@@ -162,7 +162,7 @@ object Simulator {
       var bot: Bot[BotController] = null
       var robotThread:Thread = null
 
-      SimulateLock.synchronized{
+      SimulateLock.synchronized {
         //This must happen sequentially, so controller can load that file. It is stupid, but it works. In theory.
         Files.write(mapName.toString, controllerMapPointerFile, Charsets.UTF_8)
 
@@ -214,10 +214,10 @@ object Simulator {
       }
 
       try {
-        println("Preparing run of #" + mapName + "")
+        println("Preparing run of #" + mapName + "\n")
         val now = System.currentTimeMillis()
         bot.onEvent(BotEvent.RUN_PREPARE)
-        println("Run of " + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
+        println("Run of #" + mapName + " prepared in " + (((System.currentTimeMillis() - now) / 100) / 10f) + "s\n")
         bot.onEvent(BotEvent.RUN_STARTED)
       } catch {
         case e: Exception =>
