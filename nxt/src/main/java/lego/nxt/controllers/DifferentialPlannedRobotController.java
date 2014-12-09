@@ -8,6 +8,7 @@ import lego.api.controllers.PlannedController;
 import lego.nxt.controllers.util.DifferentialController;
 import lego.nxt.controllers.util.DifferentialMotorManager;
 import lego.nxt.controllers.util.DifferentialSensors;
+import lego.nxt.controllers.util.HWParameters;
 import lego.nxt.util.MotorController;
 import lego.nxt.util.TaskProcessor;
 import lejos.nxt.*;
@@ -22,8 +23,7 @@ import lejos.util.Delay;
 @SuppressWarnings("ConstantConditions")//Due to sensors field
 public final class DifferentialPlannedRobotController extends PlannedController implements DifferentialController {
 
-    private static final int CALIBRATION_WAITING = 200;
-    private static final float TURNING_BIAS = 0.00f;//0.010f;//Racing values
+    private static final int CALIBRATION_WAITING = HWParameters.CALIBRATION_WAITING;
 
     private static final DifferentialMotorManager motors = new DifferentialMotorManager(MotorPort.C, MotorPort.B);
     private static final MotorPort warningLight = MotorPort.A;
@@ -213,7 +213,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
 
     private float calculateBias () {
-        return TURNING_BIAS * lastDirection;
+        return HWParameters.TURNING_BIAS * lastDirection;
     }
 
     private void turnLeft () {
