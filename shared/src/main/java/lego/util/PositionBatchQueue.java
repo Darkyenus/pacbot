@@ -122,7 +122,7 @@ public final class PositionBatchQueue {
 		readPosition = 0;
 	}
 
-    protected short computePrice(byte priceMove, byte priceTurnAround, byte priceTurn){
+    public short computePrice(byte priceMove, byte priceTurnAround, byte priceTurn){
         short price = 0;
 
         EnvironmentController.Direction actualDir = null;
