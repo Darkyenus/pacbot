@@ -1,6 +1,8 @@
 
 package lego.util;
 
+import lego.api.controllers.EnvironmentController;
+
 /**
  * Created by jIRKA on 11.11.2014. */
 @SuppressWarnings({"unchecked", "UnusedDeclaration"})
@@ -41,11 +43,11 @@ public final class PositionBatchQueue {
 	}
 
 	public byte getXAt (int index) {
-		return internalX[index];
+		return internalX[index + readPosition];
 	}
 
 	public byte getYAt (int index) {
-		return internalY[index];
+		return internalY[index + readPosition];
 	}
 
     public void changeValue(int index, byte x, byte y){
@@ -53,6 +55,27 @@ public final class PositionBatchQueue {
             internalX[readPosition + index] = x;
             internalY[readPosition + index] = y;
         }
+    }
+
+    public void compress(){
+        byte[] newInternalX = new byte[writePosition - readPosition];
+        byte[] newInternalY = new byte[writePosition - readPosition];
+        byte lastX = -1;
+        byte lastY = -1;
+
+        for(int i = readPosition; i < writePosition; i++){
+            if(lastX != internalX[i] || lastY != internalY[i]){
+                newInternalX[i - readPosition] = internalX[i];
+                newInternalY[i - readPosition] = internalY[i];
+            }
+            lastX = internalX[i];
+            lastY = internalY[i];
+        }
+
+        internalX = newInternalX;
+        internalY = newInternalY;
+        writePosition -= readPosition;
+        readPosition = 0;
     }
 
     public void insertAfter(int index, byte x, byte y){
@@ -98,4 +121,78 @@ public final class PositionBatchQueue {
 		writePosition = 0;
 		readPosition = 0;
 	}
+
+    protected short computePrice(byte priceMove, byte priceTurnAround, byte priceTurn){
+        short price = 0;
+
+        EnvironmentController.Direction actualDir = null;
+
+        byte prevX = 0;
+        byte prevY = 0;
+        byte nextX, nextY = 0;
+
+        if(!isEmpty()) {
+            prevX = internalX[readPosition];
+            prevY = internalY[readPosition];
+        }
+
+        for(byte i = 1; i < size(); i++){
+            nextX = internalX[i + readPosition];
+            nextY = internalY[i + readPosition];
+
+            if (nextX == prevX && nextY == prevY + 1) {
+                if (actualDir == EnvironmentController.Direction.DOWN) {
+                    price += priceMove;
+                } else if(actualDir == EnvironmentController.Direction.UP) {
+                    price += priceTurnAround;
+                    price += priceMove;
+                } else {
+                    price += priceTurn;
+                    price += priceMove;
+                }
+                actualDir = EnvironmentController.Direction.DOWN;
+            }
+            if (nextX == prevX && nextY == prevY - 1) {
+                if (actualDir == EnvironmentController.Direction.UP) {
+                    price += priceMove;
+                } else if(actualDir == EnvironmentController.Direction.DOWN) {
+                    price += priceTurnAround;
+                    price += priceMove;
+                } else {
+                    price += priceTurn;
+                    price += priceMove;
+                }
+                actualDir = EnvironmentController.Direction.UP;
+            }
+            if (nextX == prevX - 1 && nextY == prevY) {
+                if (actualDir == EnvironmentController.Direction.LEFT) {
+                    price += priceMove;
+                } else if(actualDir == EnvironmentController.Direction.RIGHT) {
+                    price += priceTurnAround;
+                    price += priceMove;
+                } else {
+                    price += priceTurn;
+                    price += priceMove;
+                }
+                actualDir = EnvironmentController.Direction.LEFT;
+            }
+            if (nextX == prevX + 1 && nextY == prevY) {
+                if (actualDir == EnvironmentController.Direction.RIGHT) {
+                    price += priceMove;
+                } else if(actualDir == EnvironmentController.Direction.LEFT) {
+                    price += priceTurnAround;
+                    price += priceMove;
+                } else {
+                    price += priceTurn;
+                    price += priceMove;
+                }
+                actualDir = EnvironmentController.Direction.RIGHT;
+            }
+
+            prevX = nextX;
+            prevY = nextY;
+        }
+
+        return price;
+    }
 }

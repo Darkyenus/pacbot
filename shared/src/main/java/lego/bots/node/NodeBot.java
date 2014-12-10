@@ -85,6 +85,10 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         }
 
+        route.compress();
+
+
+
         synchronized (SAVE_ROUTE_LOCK) {// So multiple NodeBots can run in parallel and not mess with each others saving
             saveRoute(getIndex());
         }
