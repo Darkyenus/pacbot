@@ -110,7 +110,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 while (frontTouch.isPressed()) {
                     Delay.msDelay(50);
                 }
-                Delay.msDelay(500);
+                Delay.msDelay(100);
                 Bot.active.onEvent(BotEvent.RUN_STARTED);
                 warningLight.controlMotor(30,BasicMotorPort.FORWARD);
 
@@ -192,6 +192,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
                 direction = to;
                 movesWithoutCalibration = 10;
+                justCalibrated = false;
                 if(sensors != null)sensors.readSensors();
                 return true;
             case 2:
@@ -203,6 +204,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     turnRight();
                 direction = to;
                 movesWithoutCalibration = 10;
+                justCalibrated = false;
                 if(sensors != null)sensors.readSensors();
                 return true;
         }
@@ -214,17 +216,17 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
 
     private void turnLeft () {
-        motors.reset();
+        //motors.reset();
         motors.turnRad(DifferentialMotorManager.HALF_PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-        motors.reset();
+        //motors.reset();
     }
 
     private void turnRight () {
-        motors.reset();
+        //motors.reset();
         motors.turnRad(-DifferentialMotorManager.HALF_PI - calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-        motors.reset();
+        //motors.reset();
     }
 
     private static final float BLOCK_DISTANCE = 28.75f;// 28.5 cm
@@ -238,7 +240,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         while (motors.asyncProgress() < 0.95f) {
-            if (frontTouch.isPressed() && motors.asyncProgress() < 0.8f) {
+            if (frontTouch.isPressed() && motors.asyncProgress() < 0.85f) {
                 //Going forward for a bit, because we hit an obstacle
 
                 Delay.msDelay(CALIBRATION_WAITING);
@@ -254,7 +256,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         if(decelerate){
             motors.completeAsync();
-            motors.reset();
+            //motors.reset();
         }
         return true;
     }
@@ -266,7 +268,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         warnings++;
         while (motors.asyncProgress() < 0.95) {
-            if (backTouch.isPressed() && motors.asyncProgress() < 0.8f) {
+            if (backTouch.isPressed() && motors.asyncProgress() < 0.85f) {
 
                 Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
@@ -282,7 +284,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         if(decelerate){
             motors.completeAsync();
-            motors.reset();
+            //motors.reset();
         }
         warnings--;
         return true;
@@ -313,6 +315,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             }
         }
         //Not calibrated, aborting, no touch
+        //TODO Keep turning in last turn direction in this case. That way, it will have some chance to fix itself. Do that until button press or timeout, in that case call lost
         onError(ERROR_CAL_BLOCK_EXPECTED);
         motors.reset();
         if (stopAfterCalibrating) {
@@ -352,6 +355,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             }
         }
         //Not calibrated, aborting, no touch
+        //TODO Keep turning in last turn direction in this case. That way, it will have some chance to fix itself. Do that until button press or timeout, in that case call lost
         onError(ERROR_CAL_BLOCK_EXPECTED);
         motors.reset();
         if (stopAfterCalibrating) {
@@ -390,6 +394,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
 
     private byte movesWithoutCalibration = 100;
+    private boolean justCalibrated = true;
 
     //Movement
     private byte move(Direction direction, byte amount, Direction nextDirection){
@@ -402,8 +407,13 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         boolean goingForward = ensureDirectionForward(direction);
 
         boolean timeToCalibrate = movesWithoutCalibration >= 3 || amount >= 3;
-        boolean calibrateBefore = timeToCalibrate && isObstacle(x - direction.x, y - direction.y);
+        boolean calibrateBefore = timeToCalibrate && !justCalibrated && isObstacle(x - direction.x, y - direction.y);
         boolean calibrateAfter = timeToCalibrate && isObstacle(x + direction.x * amount + direction.x, y + direction.y * amount + direction.y);
+        if(calibrateBefore && calibrateAfter && amount < 3){
+            calibrateAfter = false;
+        }
+
+        justCalibrated = false;
 
         if(goingForward){//going forward
             if(calibrateBefore){
@@ -427,8 +437,9 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 boolean willGoBackward = direction.isOpposite(nextDirection);
                 calibrateForward(!willGoBackward);
                 movesWithoutCalibration = 0;
+                justCalibrated = true;
             }
-        }else{//going backward
+        } else {//going backward
             if(calibrateBefore){
                 calibrateForward(false);
                 movesWithoutCalibration = 0;
@@ -450,6 +461,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 boolean willGoForward = direction.isOpposite(nextDirection);
                 calibrateBackward(!willGoForward);
                 movesWithoutCalibration = 0;
+                justCalibrated = true;
             }
         }
         return moved;
