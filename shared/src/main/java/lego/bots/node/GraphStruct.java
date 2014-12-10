@@ -14,9 +14,10 @@ import java.util.ArrayList;
  */
 public final class GraphStruct {
 
-    public static final byte PRICE_MOVE = 10;
+    public static final byte PRICE_MOVE = 1;
     public static final byte PRICE_TURN_AROUND = 1;
-    public static final byte PRICE_TURN = 1;
+    public static final byte PRICE_TURN = 2;
+    public static final byte PRICE_TOTAL =  110;
 
 
     public final ByteArrayArrayList edges = new ByteArrayArrayList(NodeBot.STACK_SIZE);

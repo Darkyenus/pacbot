@@ -5,6 +5,9 @@ import lego.api.BotEvent;
 import lego.api.controllers.EnvironmentController;
 import lego.util.*;
 
+import java.io.*;
+import java.util.ArrayList;
+
 /**
  * Weight navigated bot. This computes weight of every field on map and navigates the shortest way to target (unvisited field with best weight)
  *
@@ -27,6 +30,8 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
     private final BatchQueue<EnvironmentController.Direction> pDirections = new BatchQueue<EnvironmentController.Direction>(STACK_SIZE);
     private final BatchByteQueue pDistances = new BatchByteQueue(STACK_SIZE);
 
+    private static final Object SAVE_ROUTE_LOCK = new Object();
+
     public void prepare(){
 
         pDirections.clear();
@@ -44,6 +49,10 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
         while(!done) {
             calcDistances();
             done = calcRoute(route);
+        }
+
+        synchronized (SAVE_ROUTE_LOCK){ //So multiple weight navs can save the route
+            saveRoute(getIndex(), route);
         }
 
         EnvironmentController.Direction actualDir = null;
@@ -122,6 +131,131 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
 
         controller.onError(EnvironmentController.SUCCESS_PATH_COMPUTED);
 
+    }
+
+    private int getIndex(){
+        FileInputStream input = null;
+        File mapsFile = new File("mappointer");
+        try {
+            input = new FileInputStream(mapsFile);
+            int mapName = input.read();
+            if (mapName == -1) {
+                controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_CORRUPTED);
+            } else {
+                return mapName;
+            }
+        } catch (FileNotFoundException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return -1;
+    }
+
+    ArrayList<byte[]> originalFileContent = new ArrayList<byte[]>();
+
+    private void loadEverything(){
+        FileInputStream input = null;
+        File mapsFile = new File("routes");
+        try {
+            input = new FileInputStream(mapsFile);
+            int mapName = input.read();
+            while (mapName != -1) {
+
+                int skip = 0;
+                skip += (input.read() - '0') * 1000;
+                skip += (input.read() - '0') * 100;
+                skip += (input.read() - '0') * 10;
+                skip += (input.read() - '0');
+
+                byte[] data = new byte[skip + 5];
+                data[0] = (byte)mapName;
+                data[1] = (byte)((skip / 1000) + '0');
+                data[2] = (byte)(((skip / 100) % 10) + '0');
+                data[3] = (byte)(((skip / 10) % 10) + '0');
+                data[4] = (byte)((skip % 10) + '0');
+
+                int next = input.read();
+                int i = 5;
+                while(next != '\n' && next != -1){
+                    data[i++] = (byte)next;
+                    next = input.read();
+                }
+
+                originalFileContent.add(data);
+
+                mapName = input.read();
+
+            }
+        } catch (FileNotFoundException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
+        } catch (IOException e) {
+            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+
+    private void saveRoute(int name, PositionBatchQueue route){
+        if(name != -1){
+            loadEverything();
+            FileOutputStream output = null;
+            File routesFile = new File("routes");
+
+            try {
+                output = new FileOutputStream(routesFile);
+
+                output.write(name);
+                int size = route.size();
+                output.write((size*2 / 1000) + '0');
+                output.write(((size*2 / 100) % 10) + '0');
+                output.write(((size*2 / 10) % 10) + '0');
+                output.write((size*2 % 10) + '0');
+
+                for (int i = 0; i < size; i++) {
+
+                    output.write('0' + route.getXAt(i));
+                    output.write('0' + route.getYAt(i));
+
+                }
+                output.write('\n');
+
+                //noinspection ForLoopReplaceableByForEach
+                for(int j = 0; j < originalFileContent.size(); j ++){
+                    if(originalFileContent.get(j)[0] != name) {
+                        byte[] data = originalFileContent.get(j); //Saving CPU time
+                        //noinspection ForLoopReplaceableByForEach
+                        for (int i = 0; i < data.length; i++) {
+                            output.write(data[i]);
+                        }
+                        output.write('\n');
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (output != null) {
+                    try {
+                        output.close();
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+
+        }
     }
 
     @Override
