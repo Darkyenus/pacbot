@@ -6,10 +6,10 @@ package lego.nxt.controllers.util;
  */
 public class HWParameters {
     //0.50f;//0.95f; //Racing values for direct bot 0.95f
-    public static final float SPEED = 0.70f;
+    public static final float SPEED = 0.85f;
 
     //900;//1300 - Racing;
-    public static final int ACCELERATION = 800;
+    public static final int ACCELERATION = 1100;
 
     //13.8333333f;//8.3f;//For direct motor
     public static final float WHEEL_DIAMETER = 8.3f;
@@ -18,7 +18,9 @@ public class HWParameters {
     public static final float WHEEL_DISTANCE = 6.8f;
 
     // For direct bot false, for geared bot true
-    public static final boolean FLIP_DIRECTION = false;
+    public static final boolean FLIP_DIRECTION = true;//false;
+
+    public static final boolean FLIP_TURN_DIRECTION = true;
 
     //0.010f;//Racing values
     public static final float TURNING_BIAS = 0.00f;

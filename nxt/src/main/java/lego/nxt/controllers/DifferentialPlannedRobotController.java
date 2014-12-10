@@ -27,8 +27,8 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
     private static final DifferentialMotorManager motors = new DifferentialMotorManager(MotorPort.C, MotorPort.B);
     private static final MotorPort warningLight = MotorPort.A;
-    private static final TouchSensor frontTouch = new TouchSensor(SensorPort.S1);
-    private static final TouchSensor backTouch = new TouchSensor(SensorPort.S2);
+    private static final TouchSensor frontTouch = new TouchSensor(SensorPort.S2);//S1
+    private static final TouchSensor backTouch = new TouchSensor(SensorPort.S1);//S2
     private static final DifferentialSensors sensors = null;//Sensors are off
 
     private String lastError = "";
@@ -185,7 +185,11 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         if (to == direction) return true;
         switch ((direction.ordinal() - to.ordinal() + 4) % 4) {// It's a kind of magic
             case 1:
-                turnLeft();
+                if(HWParameters.FLIP_TURN_DIRECTION)
+                    turnRight();
+                else
+                    turnLeft();
+
                 direction = to;
                 movesWithoutCalibration = 10;
                 if(sensors != null)sensors.readSensors();
@@ -193,7 +197,10 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             case 2:
                 return false;
             case 3:
-                turnRight();
+                if(HWParameters.FLIP_TURN_DIRECTION)
+                    turnLeft();
+                else
+                    turnRight();
                 direction = to;
                 movesWithoutCalibration = 10;
                 if(sensors != null)sensors.readSensors();
