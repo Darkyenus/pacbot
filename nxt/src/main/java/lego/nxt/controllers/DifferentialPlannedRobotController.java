@@ -52,7 +52,8 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 // LCD.drawString((short)(motors.asyncProgress()*100f)+"%   ",mazeWidth+1,1);
 
                 LCD.drawString("d"+(motors.rightMotor.getTachoCount() - motors.leftMotor.getTachoCount())+"   ", 0, LCD.DISPLAY_CHAR_DEPTH - 2);
-                LCD.drawString("p"+(motors.asyncProgress())+"   ", 0, LCD.DISPLAY_CHAR_DEPTH - 1);
+                //LCD.drawString("p"+(motors.asyncProgress())+"   ", 0, LCD.DISPLAY_CHAR_DEPTH - 1);
+                //Sound.playTone(700 + (motors.rightMotor.getTachoCount() - motors.leftMotor.getTachoCount()) * 10,50,100);
                 if(sensors != null){
                     sensors.readSensors();
                     LCD.drawString("L:", 0, mazeHeight + 1);
@@ -68,12 +69,13 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 }
 
                 LCD.asyncRefresh();
-                glows = !glows;
+                /*glows = !glows;
                 if (warnings > 0) {
                     warningLight.controlMotor(glows ? 100 : 0, BasicMotorPort.FORWARD);
                 } else {
                     warningLight.controlMotor(0, BasicMotorPort.FORWARD);
-                }
+                }*/
+                warningLight.controlMotor((motors.rightMotor.getTachoCount() - motors.leftMotor.getTachoCount())*8, BasicMotorPort.FORWARD);
             }
 
             @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})

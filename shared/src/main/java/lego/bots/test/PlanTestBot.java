@@ -21,7 +21,7 @@ public final class PlanTestBot extends Bot<PlannedController> {
 		startLatch.pass();
 		while (continueRunning) {
 			// tightLoop((byte)2);
-			thereAndBackAgain((byte)2);
+			thereAndBackAgainY((byte)6);
 			controller.travelPath();
 		}
 	}
@@ -31,6 +31,11 @@ public final class PlanTestBot extends Bot<PlannedController> {
 		controller.addYPath((byte)-dist);
 		controller.addXPath(dist);
 		controller.addXPath((byte)-dist);
+	}
+
+	private void thereAndBackAgainY (byte dist) {
+		controller.addYPath(dist);
+		controller.addYPath((byte)-dist);
 	}
 
 	private void tightLoop (byte dist) {

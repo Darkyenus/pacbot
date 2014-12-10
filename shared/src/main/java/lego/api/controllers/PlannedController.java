@@ -1,5 +1,7 @@
 package lego.api.controllers;
 
+import lego.api.Bot;
+import lego.api.BotEvent;
 import lego.util.BatchByteQueue;
 import lego.api.controllers.EnvironmentController.Direction;
 
@@ -61,10 +63,15 @@ public abstract class PlannedController extends MapAwareController {
             final byte nextCommand = pathQueue.isEmpty() ? 0 : pathQueue.remove();
             final boolean nextOnX = onX(nextCommand);
             final byte nextAmount = amount(nextCommand);
+
+            byte actuallyTravelled;
             if(onX){
-                travelX(amount, Direction.toDirection(nextOnX, nextAmount));
+                actuallyTravelled = travelX(amount, Direction.toDirection(nextOnX, nextAmount));
             }else{
-                travelY(amount, Direction.toDirection(nextOnX, nextAmount));
+                actuallyTravelled = travelY(amount, Direction.toDirection(nextOnX, nextAmount));
+            }
+            if(actuallyTravelled != amount){
+                Bot.active.onEvent(BotEvent.BOT_LOST);
             }
             onX = nextOnX;
             amount = nextAmount;
