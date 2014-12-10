@@ -62,11 +62,14 @@ public final class PositionBatchQueue {
         byte[] newInternalY = new byte[writePosition - readPosition];
         byte lastX = -1;
         byte lastY = -1;
+        int shift = 0;
 
         for(int i = readPosition; i < writePosition; i++){
             if(lastX != internalX[i] || lastY != internalY[i]){
-                newInternalX[i - readPosition] = internalX[i];
-                newInternalY[i - readPosition] = internalY[i];
+                newInternalX[i - readPosition - shift] = internalX[i];
+                newInternalY[i - readPosition - shift] = internalY[i];
+            }else{
+                shift ++;
             }
             lastX = internalX[i];
             lastY = internalY[i];
@@ -74,7 +77,7 @@ public final class PositionBatchQueue {
 
         internalX = newInternalX;
         internalY = newInternalY;
-        writePosition -= readPosition;
+        writePosition -= readPosition + shift;
         readPosition = 0;
     }
 
