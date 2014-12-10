@@ -17,7 +17,7 @@ public final class GraphStruct {
     public static final byte PRICE_MOVE = 1;
     public static final byte PRICE_TURN_AROUND = 1;
     public static final byte PRICE_TURN = 2;
-    public static final byte PRICE_TOTAL =  110;
+    public static final byte PRICE_MAX_ALLOWED =  115;
 
 
     public final ByteArrayArrayList edges = new ByteArrayArrayList(NodeBot.STACK_SIZE);

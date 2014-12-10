@@ -54,7 +54,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
         byte positionsIndex = 0;
         byte[] positions = new byte[ARTIFACTS_SEARCH_SIZE + 2];
 
-
         for(i = 0; i < route.size(); i++){
             visited[route.getXAt(i)][route.getYAt(i)] ++;
         }
@@ -82,17 +81,71 @@ public final class NodeBot extends Bot<EnvironmentController> {
                 positionsIndex = 0;
                 positions[0] = (byte)((x << 4) | y);
             }
-
         }
 
         route.compress();
 
+        price = route.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
 
+        System.out.println("Price: "+price);
+
+        ignoreSomeDots(); //Returns if we have enough time to get through maze.
 
         synchronized (SAVE_ROUTE_LOCK) {// So multiple NodeBots can run in parallel and not mess with each others saving
             saveRoute(getIndex());
         }
 
+    }
+
+    private void ignoreSomeDots(){
+        byte x, y;
+        short localMaxPrice;
+        int localMaxPriceIndex;
+        PositionBatchQueue tmp;
+
+        while(price > GraphStruct.PRICE_MAX_ALLOWED){
+
+            localMaxPrice = 0;
+            localMaxPriceIndex = -1;
+
+            for(int i = 2; i < route.size() - 1; i++){
+
+                if(route.getXAt(i) == route.getXAt(i - 2) && route.getYAt(i) == route.getYAt(i - 2)){
+                    tmp = new PositionBatchQueue(5);
+
+                    tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
+                    tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
+                    tmp.pushNext(route.getXAt(i - 1), route.getYAt(i - 1));
+                    tmp.pushNext(route.getXAt(i), route.getYAt(i));
+                    tmp.pushNext(route.getXAt(i + 1), route.getYAt(i + 1));
+
+                    short localPrice = tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
+
+                    tmp.clear();
+
+                    tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
+                    tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
+                    tmp.pushNext(route.getXAt(i + 1), route.getYAt(i + 1));
+
+                    localPrice -= tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
+
+                    if(localPrice > localMaxPrice){
+                        localMaxPrice = localPrice;
+                        localMaxPriceIndex = i;
+                    }
+                }
+
+            }
+
+            if(localMaxPrice != 0){
+                route.changeValue(localMaxPriceIndex - 1, route.getXAt(localMaxPriceIndex), route.getYAt(localMaxPriceIndex));
+                price -= localMaxPrice;
+            }else{
+                return;
+            }
+
+            route.compress();
+        }
     }
 
     private boolean checkIfContainsLoop(byte[] positions, byte positionsIndex, byte i, byte x, byte y){
