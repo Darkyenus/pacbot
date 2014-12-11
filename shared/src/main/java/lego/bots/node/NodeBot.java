@@ -51,45 +51,19 @@ public final class NodeBot extends Bot<EnvironmentController> {
             }
         }
 
-        byte positionsIndex = 0;
-        byte[] positions = new byte[ARTIFACTS_SEARCH_SIZE + 2];
+        route.compress();
 
         for(i = 0; i < route.size(); i++){
             visited[route.getXAt(i)][route.getYAt(i)] ++;
         }
 
-        for (i = 0; i < route.size(); i++){
-            byte x = route.getXAt(i);
-            byte y = route.getYAt(i);
-
-            if(visited[x][y] > 1){
-                if(positionsIndex < ARTIFACTS_SEARCH_SIZE + 1){
-                    positionsIndex ++;
-                } else {
-                    positionsIndex = 0; //This situation wont happen. And if will (for example when returning from long dead end) start over and ignore prev results.
-                }
-                positions[positionsIndex] = (byte)((x << 4) | y);
-
-                if(checkIfContainsLoop(positions, positionsIndex, i, x, y)){
-                    positionsIndex = 0;
-                    positions[0] = (byte)((x << 4) | y);
-                }
-            } else {
-                if(positionsIndex > 0){
-                    checkIfContainsLoop(positions, positionsIndex, i, x, y);
-                }
-                positionsIndex = 0;
-                positions[0] = (byte)((x << 4) | y);
-            }
-        }
-
-        route.compress();
+        ignoreSomeDots(true);
 
         price = route.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
 
         System.out.println("Price: "+price);
 
-        ignoreSomeDots(); //Returns if we have enough time to get through maze.
+        ignoreSomeDots(false); //Returns if we have enough time to get through maze.
 
         synchronized (SAVE_ROUTE_LOCK) {// So multiple NodeBots can run in parallel and not mess with each others saving
             saveRoute(getIndex());
@@ -97,12 +71,12 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
     }
 
-    private void ignoreSomeDots(){
+    private void ignoreSomeDots(boolean searchForArtifacts){
         short localMaxPrice;
         int localMaxPriceIndex;
         PositionBatchQueue tmp =  new PositionBatchQueue(5);
 
-        while(price > GraphStruct.PRICE_MAX_ALLOWED){
+        while(price > GraphStruct.PRICE_MAX_ALLOWED || searchForArtifacts){
 
             localMaxPrice = 0;
             localMaxPriceIndex = -1;
@@ -110,27 +84,36 @@ public final class NodeBot extends Bot<EnvironmentController> {
             for(int i = 2; i < route.size() - 1; i++){
 
                 if(route.getXAt(i) == route.getXAt(i - 2) && route.getYAt(i) == route.getYAt(i - 2)){
-                    tmp.clear();
 
-                    tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
-                    tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
-                    tmp.pushNext(route.getXAt(i - 1), route.getYAt(i - 1));
-                    tmp.pushNext(route.getXAt(i), route.getYAt(i));
-                    tmp.pushNext(route.getXAt(i + 1), route.getYAt(i + 1));
+                    if(searchForArtifacts) {
+                        if (visited[route.getXAt(i - 1)][route.getYAt(i - 1)] > 1) {
+                            localMaxPriceIndex = i;
+                            localMaxPrice = Short.MAX_VALUE; //Almost infinity
+                        }
+                    } else {
 
-                    short localPrice = tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
+                        tmp.clear();
 
-                    tmp.clear();
+                        tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
+                        tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
+                        tmp.pushNext(route.getXAt(i - 1), route.getYAt(i - 1));
+                        tmp.pushNext(route.getXAt(i), route.getYAt(i));
+                        tmp.pushNext(route.getXAt(i + 1), route.getYAt(i + 1));
 
-                    tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
-                    tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
-                    tmp.pushNext(route.getXAt(i + 1), route.getYAt(i + 1));
+                        short localPrice = tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
 
-                    localPrice -= tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
+                        tmp.clear();
 
-                    if(localPrice > localMaxPrice){
-                        localMaxPrice = localPrice;
-                        localMaxPriceIndex = i;
+                        tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
+                        tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
+                        tmp.pushNext(route.getXAt(i + 1), route.getYAt(i + 1));
+
+                        localPrice -= tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
+
+                        if (localPrice > localMaxPrice) {
+                            localMaxPrice = localPrice;
+                            localMaxPriceIndex = i;
+                        }
                     }
                 }
 
@@ -144,6 +127,11 @@ public final class NodeBot extends Bot<EnvironmentController> {
             lastBlockPrice += tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
 
             if(localMaxPrice > lastBlockPrice){
+                if(searchForArtifacts){
+                    visited[route.getXAt(localMaxPriceIndex - 1)][route.getYAt(localMaxPriceIndex - 1)] --;
+                    visited[route.getXAt(localMaxPriceIndex)][route.getYAt(localMaxPriceIndex)] --;
+                }
+
                 route.changeValue(localMaxPriceIndex - 1, route.getXAt(localMaxPriceIndex), route.getYAt(localMaxPriceIndex));
                 price -= localMaxPrice;
             }else{
@@ -152,23 +140,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
             route.compress();
         }
-    }
-
-    private boolean checkIfContainsLoop(byte[] positions, byte positionsIndex, byte i, byte x, byte y){
-        byte foundFrom = -1;
-        for (byte j = 0; j < positionsIndex; j++){
-            if(positions[j] == positions[positionsIndex]){
-                foundFrom = j;
-                break;
-            }
-        }
-        if(foundFrom != -1){
-            for(byte j = foundFrom; j < positionsIndex; j++){
-                route.changeValue(i + j - positionsIndex, x, y);
-            }
-            return true;
-        }
-        return false;
     }
 
     private int getIndex(){
