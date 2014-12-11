@@ -322,10 +322,11 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             }
         }
         //Not calibrated on the first try
+        motors.move(BACKING_DISTANCE * -0.1f,BACKING_DISTANCE * -0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,false);
         if(lastTurnWasRight){
-            motors.moveAsync(BACKING_DISTANCE * 2f, BACKING_DISTANCE,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+            motors.moveAsync(BACKING_DISTANCE * 2f, BACKING_DISTANCE * 0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
         }else{
-            motors.moveAsync(BACKING_DISTANCE, BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+            motors.moveAsync(BACKING_DISTANCE * 0.1f, BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
         }
         while(motors.asyncMoving()){
             if(frontTouch.isPressed()){
@@ -379,10 +380,11 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             }
         }
         //Not calibrated on the first try
+        motors.move(BACKING_DISTANCE * 0.1f,BACKING_DISTANCE * 0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,false);
         if(lastTurnWasRight){
-            motors.moveAsync(-BACKING_DISTANCE, -BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+            motors.moveAsync(-BACKING_DISTANCE * 0.1f, -BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
         }else{
-            motors.moveAsync(-BACKING_DISTANCE * 2f, -BACKING_DISTANCE,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+            motors.moveAsync(-BACKING_DISTANCE * 2f, -BACKING_DISTANCE * 0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
         }
         while(motors.asyncMoving()){
             if(backTouch.isPressed()){
