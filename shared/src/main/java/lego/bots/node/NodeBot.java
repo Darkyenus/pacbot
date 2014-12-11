@@ -101,7 +101,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         byte x, y;
         short localMaxPrice;
         int localMaxPriceIndex;
-        PositionBatchQueue tmp;
+        PositionBatchQueue tmp =  new PositionBatchQueue(5);
 
         while(price > GraphStruct.PRICE_MAX_ALLOWED){
 
@@ -111,7 +111,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
             for(int i = 2; i < route.size() - 1; i++){
 
                 if(route.getXAt(i) == route.getXAt(i - 2) && route.getYAt(i) == route.getYAt(i - 2)){
-                    tmp = new PositionBatchQueue(5);
+                    tmp.clear();
 
                     tmp.pushNext(route.getXAt(i - 3), route.getYAt(i - 3));
                     tmp.pushNext(route.getXAt(i - 2), route.getYAt(i - 2));
