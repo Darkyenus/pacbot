@@ -36,6 +36,12 @@ public abstract class MapAwareController extends BotController {
     protected byte y = startY;
     protected final byte[][] maze = new byte[mazeWidth][mazeHeight];
 
+    protected int mapIndex = -1;
+
+    public int getMapIndex(){
+        return mapIndex;
+    }
+
     public final byte[][] getMindMaze () {
         return maze;
     }
@@ -120,6 +126,7 @@ public abstract class MapAwareController extends BotController {
             if (mapName == -1) {
                 onError(ERROR_LOADING_POINTER_FILE_CORRUPTED);
             } else {
+                mapIndex = mapName;
                 return loadSavedMap(mapName);
             }
         } catch (FileNotFoundException e) {

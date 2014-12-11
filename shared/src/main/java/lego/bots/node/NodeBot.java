@@ -66,7 +66,7 @@ public final class NodeBot extends Bot<EnvironmentController> {
         ignoreSomeDots(false); //Returns if we have enough time to get through maze.
 
         synchronized (SAVE_ROUTE_LOCK) {// So multiple NodeBots can run in parallel and not mess with each others saving
-            saveRoute(getIndex());
+            saveRoute(controller.getMapIndex());
         }
 
     }
