@@ -136,7 +136,14 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
             }
 
-            if(localMaxPrice != 0){
+            short lastBlockPrice = - GraphStruct.PRICE_MOVE;
+            tmp.clear();
+            tmp.pushNext(route.getXAt(route.size() - 3), route.getYAt(route.size() - 3));
+            tmp.pushNext(route.getXAt(route.size() - 2), route.getYAt(route.size() - 2));
+            tmp.pushNext(route.getXAt(route.size() - 1), route.getYAt(route.size() - 1));
+            lastBlockPrice += tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
+
+            if(localMaxPrice > lastBlockPrice){
                 route.changeValue(localMaxPriceIndex - 1, route.getXAt(localMaxPriceIndex), route.getYAt(localMaxPriceIndex));
                 price -= localMaxPrice;
             }else{
