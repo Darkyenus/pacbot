@@ -515,7 +515,7 @@ public final class MotorController {
 	 * To try and keep motors as closely synchronized as possible tacho counts for all motors are gathered as close as possible to
 	 * the same time. Similarly new power levels for each motor are also set at the same time. */
 	protected static class Controller extends Thread {
-		static final int UPDATE_PERIOD = 4;// 4
+		static final int UPDATE_PERIOD = 3;// 4
 		private final MotorController[] motors = new MotorController[3];
 		/** Active motor is being updated regularly. */
 		private final boolean[] activeMotors = new boolean[motors.length];
