@@ -215,7 +215,10 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         return HWParameters.TURNING_BIAS * lastDirection;
     }
 
+    private boolean lastTurnWasRight = false;//Whatever can be default
+
     private void turnLeft () {
+        lastTurnWasRight = false;
         //motors.reset();
         motors.turnRad(DifferentialMotorManager.HALF_PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
@@ -223,6 +226,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
 
     private void turnRight () {
+        lastTurnWasRight = true;
         //motors.reset();
         motors.turnRad(-DifferentialMotorManager.HALF_PI - calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
@@ -290,6 +294,19 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         return true;
     }
 
+    private void completeCalibrationForward(float speed, boolean stopAfterCalibrating){
+        Delay.msDelay(CALIBRATION_WAITING);
+        motors.reset();
+        if (stopAfterCalibrating) {
+            motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
+                    DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+            motors.reset();
+        } else {
+            motors.moveAsync(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
+                    DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
+            motors.waitForAsyncProgress(0.95f);
+        }
+    }
     private void calibrateForward(boolean stopAfterCalibrating){
         warnings++;
         float speed = DifferentialMotorManager.MAX_SPEED() * 0.8f;
@@ -299,23 +316,26 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         while (motors.asyncMoving()) {
             if (frontTouch.isPressed()) {
                 //Calibrated successfully
-                Delay.msDelay(CALIBRATION_WAITING);
-                motors.reset();
-                if (stopAfterCalibrating) {
-                    motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
-                            DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-                    motors.reset();
-                } else {
-                    motors.moveAsync(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
-                            DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
-                    motors.waitForAsyncProgress(0.95f);
-                }
+                completeCalibrationForward(speed,stopAfterCalibrating);
                 warnings--;
                 return;
             }
         }
-        //Not calibrated, aborting, no touch
-        //TODO Keep turning in last turn direction in this case. That way, it will have some chance to fix itself. Do that until button press or timeout, in that case call lost
+        //Not calibrated on the first try
+        if(lastTurnWasRight){
+            motors.moveAsync(BACKING_DISTANCE * 2f, BACKING_DISTANCE,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+        }else{
+            motors.moveAsync(BACKING_DISTANCE, BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+        }
+        while(motors.asyncMoving()){
+            if(frontTouch.isPressed()){
+                //Calibrated successfully on the second try
+                completeCalibrationForward(speed,stopAfterCalibrating);
+                warnings--;
+                return;
+            }
+        }
+        //All hope is lost here, abort and send lost event
         onError(ERROR_CAL_BLOCK_EXPECTED);
         motors.reset();
         if (stopAfterCalibrating) {
@@ -327,9 +347,23 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
         }
         motors.waitForAsyncProgress(0.95f);
+        Bot.active.onEvent(BotEvent.BOT_LOST);//EVERYTHING IS LOST!!!! FOR EVEEER!!!
         warnings--;
     }
 
+    private void completeCalibrationBackward(float speed, boolean stopAfterCalibrating){
+        Delay.msDelay(CALIBRATION_WAITING);
+        motors.reset();
+        if (stopAfterCalibrating) {
+            motors.move(BACKING_DISTANCE, BACKING_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
+                    DifferentialMotorManager.SMOOTH_ACCELERATION, true);
+            motors.reset();
+        } else {
+            motors.moveAsync(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
+                    DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
+            motors.waitForAsyncProgress(0.95f);
+        }
+    }
     private void calibrateBackward (boolean stopAfterCalibrating) {
         warnings++;
         float speed = DifferentialMotorManager.MAX_SPEED() * 0.8f;
@@ -339,23 +373,26 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         while (motors.asyncMoving()) {
             if (backTouch.isPressed()) {
                 //Calibrated successfully
-                Delay.msDelay(CALIBRATION_WAITING);
-                motors.reset();
-                if (stopAfterCalibrating) {
-                    motors.move(BACKING_DISTANCE, BACKING_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
-                            DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-                    motors.reset();
-                } else {
-                    motors.moveAsync(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED(),
-                            DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
-                    motors.waitForAsyncProgress(0.95f);
-                }
+                completeCalibrationBackward(speed,stopAfterCalibrating);
                 warnings--;
                 return;
             }
         }
-        //Not calibrated, aborting, no touch
-        //TODO Keep turning in last turn direction in this case. That way, it will have some chance to fix itself. Do that until button press or timeout, in that case call lost
+        //Not calibrated on the first try
+        if(lastTurnWasRight){
+            motors.moveAsync(-BACKING_DISTANCE, -BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+        }else{
+            motors.moveAsync(-BACKING_DISTANCE * 2f, -BACKING_DISTANCE,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
+        }
+        while(motors.asyncMoving()){
+            if(backTouch.isPressed()){
+                //Calibrated successfully on the second try
+                completeCalibrationBackward(speed, stopAfterCalibrating);
+                warnings--;
+                return;
+            }
+        }
+        //All hope is lost here, abort and send lost event
         onError(ERROR_CAL_BLOCK_EXPECTED);
         motors.reset();
         if (stopAfterCalibrating) {
@@ -367,6 +404,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
         }
         motors.waitForAsyncProgress(0.95f);
+        Bot.active.onEvent(BotEvent.BOT_LOST);//EVERYTHING IS LOST!!!! FOR EVEEER!!!
         warnings--;
     }
 
