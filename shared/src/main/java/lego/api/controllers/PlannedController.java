@@ -5,6 +5,8 @@ import lego.api.BotEvent;
 import lego.util.BatchByteQueue;
 import lego.api.controllers.EnvironmentController.Direction;
 
+import java.util.Random;
+
 /**
  * Max supported x/y amount is 63. Undefined results for numbers any bigger.
  * Min is -64.
@@ -80,6 +82,28 @@ public abstract class PlannedController extends MapAwareController {
             onX = nextOnX;
             amount = nextAmount;
             if(amount == 0 && pathQueue.isEmpty())break;
+        }
+    }
+
+    private boolean berserk = false;
+    /**
+     * This method cleans stacks and goes berserk. Also, blocks for ever. Make sure that travelPath is not running!
+     */
+    public final void takeoverAndGoRandom(){
+        if(berserk)return;
+        berserk = true;
+        clearPath();
+        Random random = new Random();
+        //noinspection InfiniteLoopStatement
+        while(true){
+            try{
+                travelX((byte) (random.nextInt(4)+1),Direction.UP);
+                travelY((byte) (random.nextInt(4) + 1), Direction.LEFT);
+                travelX((byte) -(random.nextInt(4)+1),Direction.DOWN);
+                travelY((byte) -(random.nextInt(4)+1),Direction.RIGHT);
+            }catch (Exception e){
+                //I don't care
+            }
         }
     }
 }
