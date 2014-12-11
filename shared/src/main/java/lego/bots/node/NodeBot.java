@@ -142,32 +142,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
         }
     }
 
-    private int getIndex(){
-        FileInputStream input = null;
-        File mapsFile = new File("mappointer");
-        try {
-            input = new FileInputStream(mapsFile);
-            int mapName = input.read();
-            if (mapName == -1) {
-                controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_CORRUPTED);
-            } else {
-                return mapName;
-            }
-        } catch (FileNotFoundException e) {
-            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
-        } catch (IOException e) {
-            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (Throwable ignored) {
-                }
-            }
-        }
-        return -1;
-    }
-
     ArrayList<byte[]> originalFileContent = new ArrayList<byte[]>();
 
     private void loadEverything(){
