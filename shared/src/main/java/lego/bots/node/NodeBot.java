@@ -98,7 +98,6 @@ public final class NodeBot extends Bot<EnvironmentController> {
     }
 
     private void ignoreSomeDots(){
-        byte x, y;
         short localMaxPrice;
         int localMaxPriceIndex;
         PositionBatchQueue tmp =  new PositionBatchQueue(5);
