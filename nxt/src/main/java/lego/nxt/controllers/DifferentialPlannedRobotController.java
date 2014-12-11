@@ -244,14 +244,15 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 accelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.MAX_ACCELERATION,
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         while (motors.asyncProgress() < 0.95f) {
-            if (frontTouch.isPressed() && motors.asyncProgress() < 0.85f) {
+            boolean success = motors.asyncProgress() > 0.85f;
+            if (frontTouch.isPressed()) {
                 //Going forward for a bit, because we hit an obstacle
 
                 Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 motors.move(-BACKING_DISTANCE, -BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
                         DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, false);
-                return false;
+                return success;
             }
             try {
                 Thread.sleep(40);
@@ -272,14 +273,15 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 decelerate ? DifferentialMotorManager.SMOOTH_ACCELERATION : DifferentialMotorManager.NO_DECELERATION, true);
         warnings++;
         while (motors.asyncProgress() < 0.95) {
-            if (backTouch.isPressed() && motors.asyncProgress() < 0.85f) {
+            boolean success = motors.asyncProgress() > 0.85f;
+            if (backTouch.isPressed()) {
 
                 Delay.msDelay(CALIBRATION_WAITING);
                 motors.reset();
                 motors.move(BACKING_DISTANCE, BACKING_DISTANCE, DifferentialMotorManager.MAX_SPEED() / 4,
                         DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, false);
                 warnings--;
-                return false;
+                return success;
             }
             try {
                 Thread.sleep(40);
