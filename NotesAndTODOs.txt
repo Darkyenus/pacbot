@@ -5,16 +5,11 @@ Please feel free to read, write and edit all of its contents, but try to maintai
  
 ==== Controller TODO ====
 
- -  Pokud je robot ztracen -> wall follower nebo random mouse.
  -  Timer. /* Dostupný pro api. */ Bude vracet čas (0-1) progressu. /* Užitečné po ztracení a nalezení, aby robot mohl znovu naplánovat trasu. */
     Robot by se měl vypnout / přestat hýbat když bude limit >= 1.05, pro případ že by neběžel úplně přesně
 
 
 ==== Hardware TODO ====
 
- -  Předělat spodek robota/magnetovou lištu tak, aby brala každé světlo, pokaždé a spolehlivě.
- 
- 
-==== High-level Bot TODO ====
 
- -  Po zkončení pohybu High-level Bota by se robot měl nějak pohybovat (Random mouse, wall follower)
+==== High-level Bot TODO ====

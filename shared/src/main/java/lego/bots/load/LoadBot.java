@@ -230,6 +230,9 @@ public final class LoadBot extends Bot<PlannedController> {
             case RUN_STARTED:
                 startLatch.open();
                 break;
+            case BOT_LOST:
+                controller.takeoverAndGoRandom();
+                break;
         }
     }
 }
