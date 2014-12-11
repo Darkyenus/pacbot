@@ -65,6 +65,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
 
         ignoreSomeDots(false); //Returns if we have enough time to get through maze.
 
+        collectIgnoredDots();
+
         synchronized (SAVE_ROUTE_LOCK) {// So multiple NodeBots can run in parallel and not mess with each others saving
             saveRoute(controller.getMapIndex());
         }
@@ -127,10 +129,8 @@ public final class NodeBot extends Bot<EnvironmentController> {
             lastBlockPrice += tmp.computePrice(GraphStruct.PRICE_MOVE, GraphStruct.PRICE_TURN_AROUND, GraphStruct.PRICE_TURN);
 
             if(localMaxPrice > lastBlockPrice){
-                if(searchForArtifacts){
-                    visited[route.getXAt(localMaxPriceIndex - 1)][route.getYAt(localMaxPriceIndex - 1)] --;
-                    visited[route.getXAt(localMaxPriceIndex)][route.getYAt(localMaxPriceIndex)] --;
-                }
+                visited[route.getXAt(localMaxPriceIndex - 1)][route.getYAt(localMaxPriceIndex - 1)] --;
+                visited[route.getXAt(localMaxPriceIndex)][route.getYAt(localMaxPriceIndex)] --;
 
                 route.changeValue(localMaxPriceIndex - 1, route.getXAt(localMaxPriceIndex), route.getYAt(localMaxPriceIndex));
                 price -= localMaxPrice;
@@ -636,6 +636,151 @@ public final class NodeBot extends Bot<EnvironmentController> {
         revertLast();
     }
 
+    public void collectIgnoredDots(){
+        botX = route.getXAt(route.size() - 1);
+        botY = route.getYAt(route.size() - 1);
+        calcDistances();
+        while(!calcRoute(route)){
+            calcDistances();
+        }
+    }
+
+    private final byte[][] distances = new byte[EnvironmentController.mazeWidth][EnvironmentController.mazeHeight];
+    private byte botX = -1;
+    private byte botY = -1;
+    byte lastDir = 0;
+    private boolean calcRoute(PositionBatchQueue outputRoute) {
+        byte targetX = Byte.MIN_VALUE;
+        byte targetY = Byte.MIN_VALUE;
+        byte minDist = Byte.MAX_VALUE;
+
+        for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
+                if( (x != botX || y != botY) && visited[x][y] == 0){
+                    byte dist = distances[x][y];
+
+                    if(dist < minDist){// || (dist == minDist && cmpDistFromBorder( x, y, targetX,targetY ))){
+
+                        minDist = dist;
+                        targetX = x;
+                        targetY = y;
+
+                    }
+                }
+            }
+        }
+
+        if(targetX == Byte.MIN_VALUE){
+            return true;
+        }
+
+        PositionStack tmp = new PositionStack(STACK_SIZE);
+        tmp.push(targetX, targetY);
+
+        controller.setField(targetX, targetY, EnvironmentController.FREE_VISITED);
+
+        byte psX = targetX;
+        byte psY = targetY;
+        byte robotPosX = botX;
+        byte robotPosY = botY;
+        botX = psX;
+        botY = psY;
+        byte count = 0;
+        while( psX != robotPosX || psY != robotPosY ) {
+            minDist = Byte.MAX_VALUE;
+            targetX = psX;
+            targetY = psY;
+
+            if( psX > 0 && (distances[ psX - 1 ][ psY ] < minDist || (distances[ psX - 1 ][ psY ] <= minDist && lastDir == 1))) {
+                minDist = distances[ psX - 1 ][ psY ];
+                targetX = (byte) (psX - 1);
+                targetY = psY;
+                lastDir = 1;
+            }
+
+            if( psY > 0 && (distances[ psX ][ psY - 1 ] < minDist || (distances[ psX ][ psY - 1 ] <= minDist && lastDir == 2))) {
+                minDist = distances[ psX ][ psY - 1 ];
+                targetX = psX;
+                targetY = (byte)(psY - 1);
+                lastDir = 2;
+            }
+
+            if( psX < EnvironmentController.mazeWidth - 1 && (distances[ psX + 1 ][ psY ] < minDist || (distances[ psX + 1 ][ psY ] <= minDist && lastDir == 4))) {
+                minDist = distances[psX + 1][psY];
+                targetX = (byte) (psX + 1);
+                targetY = psY;
+                lastDir = 4;
+            }
+
+            if( psY < EnvironmentController.mazeHeight - 1 && (distances[ psX ][ psY + 1 ] < minDist || (distances[ psX ][ psY + 1 ] <= minDist && lastDir == 8))) {
+                targetX = psX;
+                targetY = (byte)(psY + 1);
+                lastDir = 8;
+            }
+
+            if(!controller.isStart(targetX, targetY)) {
+                controller.setField(targetX, targetY, EnvironmentController.FREE_VISITED);
+            }
+            tmp.push(targetX, targetY);
+
+            psX = targetX;
+            psY = targetY;
+
+            if( count ++ > 100 ) {
+                controller.onError(EnvironmentController.ERROR_STUCK_IN_LOOP);  // Cannot compute route, algo is stuck.
+                break;
+            }
+        }
+
+        while(!tmp.isEmpty()){
+            visited[tmp.peekX()][tmp.peekY()] ++;
+            outputRoute.pushNext(tmp.peekX(), tmp.peekY());
+            tmp.pop();
+        }
+
+        return false;
+    }
+
+    private final PositionStack toCalc = new PositionStack(STACK_SIZE); //Used in calcDistances function
+    private void calcDistances() {
+        for(byte x = 0; x < EnvironmentController.mazeWidth; x++){
+            for(byte y = 0; y < EnvironmentController.mazeHeight; y++){
+                distances[x][y] = Byte.MAX_VALUE;
+            }
+        }
+
+        distances[botX][botY] = 0;
+        toCalc.clear();
+
+        toCalc.push(botX, botY);
+
+        while( !toCalc.isEmpty() ) {
+            byte psX = toCalc.peekX();
+            byte psY = toCalc.peekY();
+            toCalc.pop();
+
+            if(!controller.isObstacle(psX, psY)){
+                byte psDistActual = distances[ psX ][ psY ];
+                byte psDistNew = (byte) (psDistActual + ( controller.isFreeVisited(psX, psY)  ? 3 : 1 ));
+                if( psX > 0 && !controller.isObstacle((byte)(psX -1), psY) && ( distances[ psX - 1 ][ psY ] > psDistNew ) ) {
+                    distances[psX - 1][psY] = psDistNew;
+                    toCalc.push((byte) (psX - 1), psY);
+                }
+                if( psX < EnvironmentController.mazeWidth && !controller.isObstacle((byte)(psX + 1), psY) && ( distances[ psX + 1 ][ psY ] > psDistNew ) ) {
+                    distances[psX + 1][psY] = psDistNew;
+                    toCalc.push((byte) (psX + 1), psY);
+                }
+                if( psY > 0 && !controller.isObstacle(psX , (byte)(psY - 1)) && !controller.isStart(psX, psY)  && ( distances[ psX ][ psY - 1 ] > psDistNew ) ) {
+                    distances[psX][psY - 1] = psDistNew;
+                    toCalc.push(psX, (byte) (psY - 1));
+                }
+                if( psY < EnvironmentController.mazeHeight && !controller.isObstacle(psX , (byte)(psY + 1)) && !controller.isStart(psX, (byte)(psY + 1)) && ( distances[ psX ][ psY + 1 ] > psDistNew ) ) {
+                    distances[psX][psY + 1] = psDistNew;
+                    toCalc.push(psX, (byte) (psY + 1));
+                }
+            }
+        }
+    }
 
     private void resetToIterate(){
         final byte[][] maze = controller.getMindMaze();
