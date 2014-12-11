@@ -8,11 +8,9 @@ import com.google.common.base.Charsets
 import com.google.common.io.Files
 import lego.api.controllers.MapAwareController
 import lego.api.controllers.MapAwareController._
-import lego.api.{BotController, Bot, BotEvent}
+import lego.api.{Bot, BotController, BotEvent}
 import lego.util.Latch
 import org.reflections.Reflections
-
-import scala.concurrent.util.Unsafe
 
 /**
  * Private property.
@@ -43,11 +41,13 @@ object Simulator {
     printGrid.println(message)
   }
 
-  private val onChanged: (Array[Array[MapTile]],Boolean) => (BotController) => Unit
+  private var fastForward = false
+  private var silentFastForward = false
+
+  private val onChanged: (Array[Array[MapTile]]) => (BotController) => Unit
   = {
-    (maze: Array[Array[MapTile]],sFastForward:Boolean) => {
-      var fastForward = false
-      var silentFastForward = sFastForward
+    (maze: Array[Array[MapTile]]) => {
+
       (botController: BotController) => {
         if (!silentFastForward) {
           botController match {
@@ -184,7 +184,8 @@ object Simulator {
         val controllerClass = possibleControllers.iterator().next()
         val constrollerClassConstructor = controllerClass.getConstructor(classOf[MazeMap], classOf[(BotController => Unit)], classOf[(Byte) => Unit])
 
-        val controller: BotController = constrollerClassConstructor.newInstance(map, onChanged(map.maze,parallel), onError).asInstanceOf[BotController]
+        if(!silentFastForward)silentFastForward = parallel
+        val controller: BotController = constrollerClassConstructor.newInstance(map, onChanged(map.maze), onError).asInstanceOf[BotController]
         //Above code is extremely type safe and nothing can go wrong. Ever.
 
         val initLatch = new Latch()
