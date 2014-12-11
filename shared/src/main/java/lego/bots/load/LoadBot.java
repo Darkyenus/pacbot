@@ -216,6 +216,8 @@ public final class LoadBot extends Bot<PlannedController> {
     public synchronized void run () {
         startLatch.pass();
         controller.travelPath();
+
+        controller.takeoverAndGoRandom();
     }
 
     @Override
