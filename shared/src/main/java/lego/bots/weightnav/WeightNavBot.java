@@ -52,7 +52,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
         }
 
         synchronized (SAVE_ROUTE_LOCK){ //So multiple weight navs can save the route
-            saveRoute(getIndex(), route);
+            saveRoute(controller.getMapIndex(), route);
         }
 
         EnvironmentController.Direction actualDir = null;
@@ -131,32 +131,6 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
 
         controller.onError(EnvironmentController.SUCCESS_PATH_COMPUTED);
 
-    }
-
-    private int getIndex(){
-        FileInputStream input = null;
-        File mapsFile = new File("mappointer");
-        try {
-            input = new FileInputStream(mapsFile);
-            int mapName = input.read();
-            if (mapName == -1) {
-                controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_CORRUPTED);
-            } else {
-                return mapName;
-            }
-        } catch (FileNotFoundException e) {
-            controller.onError(EnvironmentController.ERROR_LOADING_POINTER_FILE_MISSING);
-        } catch (IOException e) {
-            controller.onError(EnvironmentController.ERROR_LOADING_MAP_CORRUPTED);
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (Throwable ignored) {
-                }
-            }
-        }
-        return -1;
     }
 
     ArrayList<byte[]> originalFileContent = new ArrayList<byte[]>();
