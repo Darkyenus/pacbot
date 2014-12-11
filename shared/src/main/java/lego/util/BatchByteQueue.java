@@ -51,4 +51,8 @@ public final class BatchByteQueue {
 		writePosition = 0;
 		readPosition = 0;
 	}
+
+	public int size(){
+		return writePosition - readPosition;
+	}
 }

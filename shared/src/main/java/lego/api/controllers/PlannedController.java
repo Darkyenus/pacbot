@@ -40,6 +40,10 @@ public abstract class PlannedController extends MapAwareController {
 
     public abstract byte travelY(byte amount,Direction nextDirection);
 
+    public final int pathSize(){
+        return pathQueue.size();
+    }
+
     private boolean onX(byte command){
         return (command & X_BIT) == X_BIT;//Check if first bit is present
     }

@@ -222,7 +222,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         //motors.reset();
         motors.turnRad(DifferentialMotorManager.HALF_PI + calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-        //motors.reset();
+        motors.reset();
     }
 
     private void turnRight () {
@@ -230,7 +230,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         //motors.reset();
         motors.turnRad(-DifferentialMotorManager.HALF_PI - calculateBias(), DifferentialMotorManager.MAX_SPEED(),
                 DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.SMOOTH_ACCELERATION, true);
-        //motors.reset();
+        motors.reset();
     }
 
     private static final float BLOCK_DISTANCE = 28.75f;// 28.5 cm
@@ -260,7 +260,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         if(decelerate){
             motors.completeAsync();
-            //motors.reset();
+            motors.reset();
         }
         return true;
     }
@@ -288,7 +288,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
         }
         if(decelerate){
             motors.completeAsync();
-            //motors.reset();
+            motors.reset();
         }
         warnings--;
         return true;
@@ -322,7 +322,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             }
         }
         //Not calibrated on the first try
-        motors.move(BACKING_DISTANCE * -0.1f,BACKING_DISTANCE * -0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,false);
+        motors.move(BACKING_DISTANCE * -0.3f,BACKING_DISTANCE * -0.3f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,false);
         if(lastTurnWasRight){
             motors.moveAsync(BACKING_DISTANCE * 2f, BACKING_DISTANCE * 0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
         }else{
@@ -380,7 +380,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
             }
         }
         //Not calibrated on the first try
-        motors.move(BACKING_DISTANCE * 0.1f,BACKING_DISTANCE * 0.1f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,false);
+        motors.move(BACKING_DISTANCE * 0.3f,BACKING_DISTANCE * 0.3f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,false);
         if(lastTurnWasRight){
             motors.moveAsync(-BACKING_DISTANCE * 0.1f, -BACKING_DISTANCE * 2f,speed,DifferentialMotorManager.MAX_ACCELERATION,DifferentialMotorManager.MAX_ACCELERATION,true);
         }else{
@@ -448,6 +448,9 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
         boolean timeToCalibrate = movesWithoutCalibration >= 3 || amount >= 3;
         boolean calibrateBefore = timeToCalibrate && !justCalibrated && isObstacle(x - direction.x, y - direction.y);
+        if(calibrateBefore && pathSize() <= 1){
+            calibrateBefore = false;
+        }
         boolean calibrateAfter = timeToCalibrate && isObstacle(x + direction.x * amount + direction.x, y + direction.y * amount + direction.y);
         if(calibrateBefore && calibrateAfter && amount < 3){
             calibrateAfter = false;

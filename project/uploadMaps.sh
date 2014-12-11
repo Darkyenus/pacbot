@@ -22,7 +22,7 @@ if [[ $OSTYPE == cygwin* ]]; then
 fi
 
 echo "Uploading maps with params: -u ..."
-../../lejos/bin/nxjupload$SCRIPT_SUFFIX -u ../../bot/maps
+../../lejos/bin/nxjupload$SCRIPT_SUFFIX -u ../../maps
 echo "Uploaded"
 echo "Uploading routes with params: -u ..."
 ../../lejos/bin/nxjupload$SCRIPT_SUFFIX -u ../../routes
