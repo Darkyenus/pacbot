@@ -52,7 +52,7 @@ public final class WeightNavBot extends Bot<EnvironmentController> {
         }
 
         synchronized (SAVE_ROUTE_LOCK){ //So multiple weight navs can save the route
-            saveRoute(getIndex(), route);
+            saveRoute(controller.getMapIndex(), route);
         }
 
         EnvironmentController.Direction actualDir = null;
