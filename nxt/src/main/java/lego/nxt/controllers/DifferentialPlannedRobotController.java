@@ -171,6 +171,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                 break;
             case ERROR_ON_LOST:
                 lastError = "lost!";
+                LCD.drawString(lastError, mazeWidth + 1, 1);
                 Sound.buzz();
                 break;
             default:
