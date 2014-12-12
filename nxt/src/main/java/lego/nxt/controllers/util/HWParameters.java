@@ -11,13 +11,13 @@ public class HWParameters {
     public static final float CALIBRATION_SPEED = 0.6f;
 
     //900;//1300 - Racing;
-    public static final int ACCELERATION = 1170;//1250;
+    public static final int ACCELERATION = 1120;//1250;
 
     //13.8333333f;//8.3f;//For direct motor
     public static final float WHEEL_DIAMETER = 8.3f;
 
     // Half distance between wheels
-    public static final float WHEEL_DISTANCE = 7.5f;//6.2f;//6.8
+    public static final float WHEEL_DISTANCE = 7.45f;//6.2f;//6.8
 
     // For direct bot false, for geared bot true
     public static final boolean FLIP_DIRECTION = true;//false - Normal direction slow bot;
