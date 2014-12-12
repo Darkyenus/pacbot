@@ -315,7 +315,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
     private void calibrateForward(boolean stopAfterCalibrating){
         warnings++;
-        float speed = DifferentialMotorManager.MAX_SPEED() * 0.8f;
+        float speed = DifferentialMotorManager.MAX_SPEED() * HWParameters.CALIBRATION_SPEED;
         motors.moveAsync(BLOCK_DISTANCE, BLOCK_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
                 DifferentialMotorManager.SMOOTH_ACCELERATION, true);
 
@@ -373,7 +373,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
     }
     private void calibrateBackward (boolean stopAfterCalibrating) {
         warnings++;
-        float speed = DifferentialMotorManager.MAX_SPEED() * 0.8f;
+        float speed = DifferentialMotorManager.MAX_SPEED() * HWParameters.CALIBRATION_SPEED;
         motors.moveAsync(-BLOCK_DISTANCE, -BLOCK_DISTANCE, speed, DifferentialMotorManager.SMOOTH_ACCELERATION,
                 DifferentialMotorManager.SMOOTH_ACCELERATION, true);
 
