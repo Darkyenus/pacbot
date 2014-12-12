@@ -323,6 +323,7 @@ public abstract class MapAwareController extends BotController {
     public static final byte ERROR_LOADING_IOEXCEPTION = 8;
     public static final byte ERROR_LOADING_POINTER_FILE_MISSING = 9;
     public static final byte ERROR_LOADING_POINTER_FILE_CORRUPTED = 10;
+    public static final byte ERROR_ON_LOST = 11;
 
     public static final byte WARNING_TOOK_TOO_LONG_TIME_TO_COMPUTE = -1;
     public static final byte WARNING_ALERT = -2;

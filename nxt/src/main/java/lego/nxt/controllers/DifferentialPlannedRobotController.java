@@ -169,6 +169,10 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     Sound.playTone(400 + i * 15, 20);
                 }
                 break;
+            case ERROR_ON_LOST:
+                lastError = "lost!";
+                Sound.buzz();
+                break;
             default:
                 Sound.buzz();
                 lastError = "!" + error;
@@ -350,7 +354,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
         }
         motors.waitForAsyncProgress(0.95f);
-        Bot.active.onEvent(BotEvent.BOT_LOST);//EVERYTHING IS LOST!!!! FOR EVEEER!!!
+        //Bot.active.onEvent(BotEvent.BOT_LOST);//EVERYTHING IS LOST!!!! FOR EVEEER!!!
         warnings--;
     }
 
@@ -408,7 +412,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
                     DifferentialMotorManager.SMOOTH_ACCELERATION, DifferentialMotorManager.NO_DECELERATION, true);
         }
         motors.waitForAsyncProgress(0.95f);
-        Bot.active.onEvent(BotEvent.BOT_LOST);//EVERYTHING IS LOST!!!! FOR EVEEER!!!
+        //Bot.active.onEvent(BotEvent.BOT_LOST);//EVERYTHING IS LOST!!!! FOR EVEEER!!!
         warnings--;
     }
 

@@ -76,7 +76,7 @@ public abstract class PlannedController extends MapAwareController {
             }else{
                 actuallyTravelled = travelY(amount, Direction.toDirection(nextOnX, nextAmount));
             }
-            if(actuallyTravelled != amount){
+            if(actuallyTravelled != amount && actuallyTravelled != -amount){
                 Bot.active.onEvent(BotEvent.BOT_LOST);
             }
             onX = nextOnX;
@@ -91,6 +91,7 @@ public abstract class PlannedController extends MapAwareController {
      */
     public final void takeoverAndGoRandom(){
         if(berserk)return;
+        onError(EnvironmentController.ERROR_ON_LOST);
         berserk = true;
         clearPath();
         Random random = new Random();

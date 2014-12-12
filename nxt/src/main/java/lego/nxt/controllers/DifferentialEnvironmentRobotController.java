@@ -232,7 +232,7 @@ public final class DifferentialEnvironmentRobotController extends EnvironmentCon
 	}
 
 	private static final float BLOCK_DISTANCE = 28.75f;// 28.5 cm
-	private static final float BACKING_DISTANCE = 6.0f;// 5.5
+	private static final float BACKING_DISTANCE = 5.0f;// 5.5
 
 	private byte lastDirection = 1;
 

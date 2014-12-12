@@ -6,16 +6,16 @@ package lego.nxt.controllers.util;
  */
 public class HWParameters {
     //0.50f;//0.95f; //Racing values for direct bot 0.95f
-    public static final float SPEED = 0.95f;//99
+    public static final float SPEED = 0.86f;//99
 
     //900;//1300 - Racing;
-    public static final int ACCELERATION = 1300;
+    public static final int ACCELERATION = 800;//1250;
 
     //13.8333333f;//8.3f;//For direct motor
     public static final float WHEEL_DIAMETER = 8.3f;
 
     // Half distance between wheels
-    public static final float WHEEL_DISTANCE = 7.10f;//6.2f;//6.8
+    public static final float WHEEL_DISTANCE = 6.95f;//6.2f;//6.8
 
     // For direct bot false, for geared bot true
     public static final boolean FLIP_DIRECTION = true;//false - Normal direction slow bot;
@@ -23,10 +23,10 @@ public class HWParameters {
     public static final boolean FLIP_TURN_DIRECTION = true;
 
     //0.010f;//Racing values
-    public static final float TURNING_BIAS = 0.00f;
+    public static final float TURNING_BIAS = 0.0f;
 
     //How long wait after button touch
-    public static final int CALIBRATION_WAITING = 200;
+    public static final int CALIBRATION_WAITING = 400;
 
     /**
      * Stop the wheel in one peek. Rotate motor slowly. Stop just before the wheel would start moving.
