@@ -107,4 +107,6 @@ public abstract class PlannedController extends MapAwareController {
             }
         }
     }
+
+    public boolean calibrate = true;
 }

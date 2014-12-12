@@ -452,7 +452,7 @@ public final class DifferentialPlannedRobotController extends PlannedController 
 
         boolean goingForward = ensureDirectionForward(direction);
 
-        boolean timeToCalibrate = movesWithoutCalibration >= 3 || amount >= 3;
+        boolean timeToCalibrate = (movesWithoutCalibration >= 3 || amount >= 3) && calibrate;
         boolean calibrateBefore = timeToCalibrate && !justCalibrated && isObstacle(x - direction.x, y - direction.y);
         if(calibrateBefore && pathSize() <= 1){
             calibrateBefore = false;
